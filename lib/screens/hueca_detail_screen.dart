@@ -158,7 +158,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
           children: [
             Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
             SizedBox(width: 8),
-            Text('Spot Details', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
+            Text(lang == 'es' ? 'Detalles de Hueca' : 'Spot Details', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -178,7 +178,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             icon: Icon(Icons.share),
             color: AppTheme.textMedium,
             onPressed: () {
-              Share.share('¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nEstá ubicado en Mercado San Francisco, Local 14, Centro Histórico de Quito. Mira dónde queda aquí: https://maps.google.com/?q=-0.220164,-78.512327');
+              Share.share(lang == 'es' ? '¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nMira dónde queda aquí: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}' : 'Come visit ${_currentHueca.name} with me on Hue-Quito! 😋🥘\n\nSee where it is here: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}');
             },
           ),
         ],
@@ -208,7 +208,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                      child: Text('1 / 5 FOTOS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      child: Text(lang == 'es' ? '1 / 5 FOTOS' : '1 / 5 PHOTOS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   )
                 ],
@@ -227,7 +227,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('${_currentHueca.name}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text('De Doña Rosa', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(lang == 'es' ? 'Tradición Quiteña' : 'Quito Tradition', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
                   SizedBox(height: 12),
                   Row(
                     children: [
@@ -247,8 +247,9 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(children: [Icon(Icons.near_me, color: AppTheme.primary, size: 16), SizedBox(width: 4), Text('Mercado San Francisco', style: TextStyle(fontWeight: FontWeight.bold))]),
-                        Text('08:00 - 16:30', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                        Expanded(child: Row(children: [Icon(Icons.near_me, color: AppTheme.primary, size: 16), SizedBox(width: 4), Expanded(child: Text(_currentHueca.sector, style: TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis))])),
+                        SizedBox(width: 8),
+                        Text(_currentHueca.schedule[lang] ?? _currentHueca.schedule['es'] ?? '08:00 - 16:00', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -259,7 +260,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                         flex: 2,
                         child: ElevatedButton(
                           onPressed: () => _openMapsSheet(context),
-                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.directions), SizedBox(width: 8), Text('Cómo llegar')]),
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.directions), SizedBox(width: 8), Text(lang == 'es' ? 'Cómo llegar' : 'Directions', style: TextStyle(fontSize: 12))]),
                         ),
                       ),
                       SizedBox(width: 8),
@@ -277,7 +278,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            Share.share('¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nEstá ubicado en Mercado San Francisco, Local 14, Centro Histórico de Quito. Mira dónde queda aquí: https://maps.google.com/?q=-0.220164,-78.512327');
+                            Share.share(lang == 'es' ? '¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nMira dónde queda aquí: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}' : 'Come visit ${_currentHueca.name} with me on Hue-Quito! 😋🥘\n\nSee where it is here: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}');
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: AppTheme.textDark, elevation: 0),
                           child: Column(children: [Icon(Icons.share, size: 20), Text(lang == 'es' ? 'Enviar' : 'Share', style: TextStyle(fontSize: 10))]),

@@ -20,8 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _selectedLocation = 'Todo Quito';
-  final List<String> _locations = ['Centro Histórico', 'La Floresta', 'Conocoto', 'Todo Quito'];
-  final List<String> _filters = ['🍲 Todos', '🥣 Sopas', '🍛 Platos Fuertes', '🥟 Tradición', '🍡 Dulces'];
   String _selectedFilter = '🍲 Todos';
   String _selectedSort = 'Más cerca (km)';
 
@@ -31,6 +29,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final List<String> _locations = lang == 'es' ? ['Centro Histórico', 'La Floresta', 'Conocoto', 'Todo Quito'] : ['Historic Center', 'La Floresta', 'Conocoto', 'All Quito'];
+    final List<String> _filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
     
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -45,7 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                Text('Explorar', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
+                Text(lang == 'es' ? 'Explorar' : 'Explore', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
               ],
             )
           ],
@@ -275,7 +275,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('PLATO INSIGNIA', style: TextStyle(color: AppTheme.textMedium, fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text(lang == 'es' ? 'PLATO INSIGNIA' : 'SIGNATURE DISH', style: TextStyle(color: AppTheme.textMedium, fontSize: 10, fontWeight: FontWeight.bold)),
                             Text(
                               hueca.mainDish['name'] is Map 
                                 ? (hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'] ?? hueca.mainDish['name'].values.first)
