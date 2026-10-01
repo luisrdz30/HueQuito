@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:hue_quito/theme/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/repositories/route_repository.dart';
 
-class RouteListScreen extends StatelessWidget {
+class RouteListScreen extends ConsumerWidget {
   const RouteListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final routesAsync = ref.watch(routesProvider);
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         toolbarHeight: 70,
         title: Row(
@@ -19,205 +24,126 @@ class RouteListScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
-                Text('Rutas', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
+                Text('Rutas Gastronómicas', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
               ],
             )
           ],
         ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (String result) {
-              // Location selected in list view
-            },
-            itemBuilder: (BuildContext context) => ['Quito', 'Centro Histórico', 'La Floresta', 'Conocoto'].map((String key) {
-              return PopupMenuItem<String>(
-                value: key,
-                child: Text(key),
-              );
-            }).toList(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
-              child: const Row(
-                children: [
-                  Icon(Icons.location_on, color: AppTheme.primary, size: 16),
-                  SizedBox(width: 4),
-                  Text('Centro Histórico', style: TextStyle(color: AppTheme.textDark, fontSize: 12, fontWeight: FontWeight.bold)),
-                  Icon(Icons.expand_more, size: 16),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
       ),
-      body: SingleChildScrollView(
+      body: routesAsync.when(
+        data: (routes) {
+          if (routes.isEmpty) {
+            return const Center(child: Text('No hay rutas disponibles.'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100), // espacio para bottom bar
+            itemCount: routes.length,
+            itemBuilder: (context, index) {
+              final route = routes[index];
+              return _buildRouteCard(context, route);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  Widget _buildRouteCard(BuildContext context, RouteModel route) {
+    return GestureDetector(
+      onTap: () => context.push('/route_detail', extra: route),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        ),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Circuitos Gastronómicos', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Recorridos a pie curados para saborear Quito', style: TextStyle(color: AppTheme.textMedium)),
-                  const SizedBox(height: 16),
-                  
-                  // Toggle Map / List
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(30)),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)]),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.format_list_bulleted, size: 16, color: AppTheme.primary),
-                                SizedBox(width: 4),
-                                Text('Lista de circuitos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => context.go('/mapa_interactivo'),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(30)),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.map, size: 16, color: AppTheme.textMedium),
-                                  SizedBox(width: 4),
-                                  Text('Mapa interactivo', style: TextStyle(color: AppTheme.textMedium, fontWeight: FontWeight.bold, fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            // Image header
+            Container(
+              height: 140,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                image: DecorationImage(
+                  image: NetworkImage(route.bannerImageUrl),
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            
-            // Filters
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _buildFilterChip('Todos los circuitos', true),
-                  _buildFilterChip('A pie (≤ 30 min)', false),
-                  _buildFilterChip('Tradición e Historia', false),
-                  _buildFilterChip('Café y Dulces', false),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Route Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                  ),
+                ),
+                padding: const EdgeInsets.all(12),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                          child: Image.network('https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=400&q=80', height: 160, width: double.infinity, fit: BoxFit.cover),
-                        ),
-                        Positioned(
-                          top: 12,
-                          left: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(12)),
-                            child: const Row(children: [Icon(Icons.local_fire_department, color: Colors.white, size: 12), SizedBox(width: 4), Text('Circuito Popular', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))]),
-                          ),
-                        ),
-                        const Positioned(
-                          bottom: 12,
-                          left: 12,
-                          child: Text('Ruta del Hornado y Tradición Colonial', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, shadows: [Shadow(color: Colors.black54, blurRadius: 4)])),
-                        )
-                      ],
+                    Text(
+                      route.name['es'] ?? 'Ruta',
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Desde la Plaza Grande hasta San Francisco, pasando por los hornados a leña más antiguos de Quito.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Column(children: [Icon(Icons.straighten, color: AppTheme.primary, size: 20), Text('3.2 km', style: TextStyle(fontWeight: FontWeight.bold)), Text('Distancia', style: TextStyle(fontSize: 10, color: AppTheme.textMedium))]),
-                                Column(children: [Icon(Icons.directions_walk, color: AppTheme.primary, size: 20), Text('45 min', style: TextStyle(fontWeight: FontWeight.bold)), Text('A pie', style: TextStyle(fontSize: 10, color: AppTheme.textMedium))]),
-                                Column(children: [Icon(Icons.storefront, color: AppTheme.primary, size: 20), Text('4 huecas', style: TextStyle(fontWeight: FontWeight.bold)), Text('Paradas', style: TextStyle(fontSize: 10, color: AppTheme.textMedium))]),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('PARADAS DEL RECORRIDO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textMedium)),
-                          const SizedBox(height: 8),
-                          _buildStop(1, 'Hornado San Francisco', 'Mercado', 'Hornado con mote, llapingachos...'),
-                          _buildStop(2, 'Ponches Don Michi', 'Plaza Grande', 'Ponche batido a mano...'),
-                          const SizedBox(height: 16),
-                          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => context.push('/route_detail'), child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.navigation), SizedBox(width: 8), Text('Ver detalles')]))),
-                        ],
-                      ),
-                    )
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            // Body
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, color: AppTheme.primary, size: 16),
+                          const SizedBox(width: 4),
+                          Text('${route.stops.length} Paradas', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.timer, color: AppTheme.textMedium, size: 16),
+                          const SizedBox(width: 4),
+                          Text(route.estimatedTime, style: const TextStyle(color: AppTheme.textMedium)),
+                          const SizedBox(width: 12),
+                          Icon(route.transportMethod['es'] == 'A pie' ? Icons.directions_walk : Icons.directions_car, color: AppTheme.textMedium, size: 16),
+                          const SizedBox(width: 4),
+                          Text(route.totalDistance, style: const TextStyle(color: AppTheme.textMedium)),
+                        ],
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    route.description['es'] ?? '',
+                    style: const TextStyle(color: AppTheme.textMedium, fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => context.push('/route_detail', extra: route),
+                      style: OutlinedButton.styleFrom(side: const BorderSide(color: AppTheme.primary)),
+                      child: const Text('Ver Itinerario', style: TextStyle(color: AppTheme.primary)),
+                    ),
+                  )
+                ],
+              ),
+            )
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(color: isActive ? AppTheme.tertiary : Colors.white, borderRadius: BorderRadius.circular(20), border: isActive ? null : Border.all(color: Colors.grey[300]!)),
-      child: Text(label, style: TextStyle(color: isActive ? Colors.white : AppTheme.textMedium, fontWeight: FontWeight.bold, fontSize: 12)),
-    );
-  }
-
-  Widget _buildStop(int number, String title, String location, String desc) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(width: 24, height: 24, decoration: BoxDecoration(color: number == 1 ? AppTheme.primary : Colors.grey[300], shape: BoxShape.circle), child: Center(child: Text('$number', style: TextStyle(color: number == 1 ? Colors.white : AppTheme.textDark, fontSize: 12, fontWeight: FontWeight.bold)))),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), Text(location, style: const TextStyle(fontSize: 10, color: AppTheme.textMedium))]),
-                Text(desc, style: const TextStyle(fontSize: 12, color: AppTheme.textMedium)),
-              ],
-            ),
-          )
-        ],
       ),
     );
   }

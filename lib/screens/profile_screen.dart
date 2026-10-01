@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/providers/data_provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hue_quito/repositories/user_repository.dart';
+import 'package:hue_quito/repositories/auth_repository.dart';
+import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
 import 'package:hue_quito/screens/preferences_screen.dart';
+import 'package:hue_quito/screens/edit_profile_screen.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
@@ -77,45 +84,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   };
 
-  void _showEditProfile(BuildContext context, Map<String, String> lang) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(lang['edit_profile']!, textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(leading: const Icon(Icons.person), title: Text(lang['change_name']!), onTap: () { Navigator.pop(context); }),
-            ListTile(leading: const Icon(Icons.photo_camera), title: Text(lang['change_photo']!), onTap: () { Navigator.pop(context); }),
-            ListTile(leading: const Icon(Icons.lock_reset), title: Text(lang['reset_pass']!), onTap: () { Navigator.pop(context); }),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(lang['close']!))],
-      )
-    );
+  void _showInviteDialog(BuildContext context) {
+    Share.share('¡Ven a conocer conmigo la gastronomía de Quito y sus huecas! Únete a Hue-Quito: https://huequito.app/invite');
   }
 
-  void _showInviteDialog(BuildContext context) {
+  Future<void> _applySettingWithRestart(VoidCallback updateSetting) async {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Invitar Amigos', textAlign: TextAlign.center),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Comparte este enlace con tus amigos:'),
-            SizedBox(height: 16),
-            SelectableText('¡Ven a conocer conmigo la gastronomía de Quito y sus huecas! Únete a Hue-Quito: https://huequito.app/invite', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
-          ],
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(child: CircularProgressIndicator()),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))],
-      )
+      ),
     );
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+    updateSetting();
+    ref.invalidate(huecasProvider);
+    ref.invalidate(routesProvider);
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final userAsync = ref.watch(currentUserProvider);
     final lang = t[settings.language]!;
 
     return Scaffold(
@@ -136,7 +134,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
+      body: userAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text('Error: $e')),
+        data: (user) {
+          final isGuest = user == null;
+          final huecasList = ref.watch(huecasProvider).value ?? [];
+          final displayUser = user ?? UserModel(
+            uid: 'guest',
+            email: 'invitado@huequito.com',
+            name: 'Invitado',
+            profilePicUrl: 'https://ui-avatars.com/api/?name=Invitado&background=random',
+            gamification: {'level': 1, 'totalStamps': 0, 'title': 'Explorador'},
+            preferences: {}, sectorAlbums: [],
+          );
+          return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -150,7 +162,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        const CircleAvatar(radius: 36, backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80')),
+                        CircleAvatar(radius: 36, backgroundImage: NetworkImage(displayUser.profilePicUrl)),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -158,16 +170,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Text('Camila Proaño', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                  Text(displayUser.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                   const SizedBox(width: 8),
                                   IconButton(
                                     icon: const Icon(Icons.edit, size: 20, color: AppTheme.primary),
-                                    onPressed: () => _showEditProfile(context, lang),
+                                    onPressed: () => context.push('/edit_profile'),
                                     visualDensity: VisualDensity.compact,
                                   ),
                                 ],
                               ),
-                              const Text('camila.quito@gmail.com', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text(displayUser.email, style: TextStyle(color: Colors.grey, fontSize: 12)),
                             ],
                           ),
                         )
@@ -211,11 +223,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=150&q=80', 'Hornado San Francisco', 'Centro Histórico'),
-                            const SizedBox(width: 8),
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=150&q=80', 'Morocho La Floresta', 'La Floresta'),
-                            const SizedBox(width: 8),
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=150&q=80', 'Empanadas de Viento', 'San Juan'),
+                            if (displayUser.favoriteHuecas.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text('No tienes huecas favoritas.', style: TextStyle(color: Colors.grey)),
+                              )
+                            else
+                              ...displayUser.favoriteHuecas.map((id) {
+                                final h = huecasList.where((hueca) => hueca.id == id).firstOrNull;
+                                if (h == null) return const SizedBox.shrink();
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector),
+                                );
+                              }).toList(),
                           ],
                         ),
                       )
@@ -224,10 +245,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         spacing: 8,
                         runSpacing: 12,
                         children: [
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=150&q=80', 'Hornado San Francisco', 'Centro Histórico'),
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=150&q=80', 'Morocho La Floresta', 'La Floresta'),
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=150&q=80', 'Empanadas de Viento', 'San Juan'),
-                            _buildFavoriteCard(context, 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=150&q=80', 'Caldo de Gallina', 'La Marín'),
+                          if (displayUser.favoriteHuecas.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('No tienes huecas favoritas.', style: TextStyle(color: Colors.grey)),
+                            )
+                          else
+                            ...displayUser.favoriteHuecas.map((id) {
+                              final h = huecasList.where((hueca) => hueca.id == id).firstOrNull;
+                              if (h == null) return const SizedBox.shrink();
+                              return _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector);
+                            }).toList(),
                         ],
                       )
                   ],
@@ -245,11 +273,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Row(children: [const Icon(Icons.tune, color: AppTheme.primary), const SizedBox(width: 8), Text(lang['preferences']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
                     const SizedBox(height: 12),
-                    _buildPreferenceItem(context, Icons.local_fire_department, 'Nivel de Picante', 'Medio (Ají de tomate de árbol con moderación)'),
-                    _buildPreferenceItem(context, Icons.dinner_dining, 'Platos Favoritos Elegidos', 'Hornados, Sopas, Dulces'),
+                    _buildPreferenceItem(context, Icons.local_fire_department, 'Nivel de Picante', displayUser.preferences['spiceLevel']?.toString() ?? 'Medio'),
+                    _buildPreferenceItem(context, Icons.dinner_dining, 'Platos Favoritos Elegidos', (displayUser.preferences['favoriteDishes'] as List<dynamic>? ?? []).isEmpty ? 'Ninguno' : (displayUser.preferences['favoriteDishes'] as List<dynamic>).join(', ')),
                     const SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PreferencesScreen()));
+                      context.push('/preferences');
                     }, child: Text(lang['edit_preferences']!))),
                   ],
                 ),
@@ -270,9 +298,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Expanded(child: _buildToggleButton(context, 'EC', 'Español (EC)', settings.language == 'EC', () { ref.read(settingsProvider.notifier).setLanguage('EC'); })),
+                        Expanded(child: _buildToggleButton(context, 'EC', 'Español (EC)', settings.language == 'EC', () { 
+                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('EC'));
+                          })),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildToggleButton(context, 'US', 'English', settings.language == 'US', () { ref.read(settingsProvider.notifier).setLanguage('US'); })),
+                        Expanded(child: _buildToggleButton(context, 'US', 'English', settings.language == 'US', () { 
+                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('US'));
+                          })),
                       ]
                     ),
                     const SizedBox(height: 24),
@@ -286,11 +318,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const Icon(Icons.text_fields, size: 20),
                           const SizedBox(width: 8),
                           Expanded(child: Text(lang['text_size']!, style: const TextStyle(fontSize: 14))),
-                          GestureDetector(onTap: (){ ref.read(settingsProvider.notifier).setTextSize('A-'); }, child: Text('A-', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A-' ? AppTheme.primary : Colors.grey))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('A-')); }, child: Text('A-', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A-' ? AppTheme.primary : Colors.grey))),
                           const SizedBox(width: 12),
-                          GestureDetector(onTap: (){ ref.read(settingsProvider.notifier).setTextSize('Normal'); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.textSize == 'Normal' ? AppTheme.secondary : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Text('Normal', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'Normal' ? Colors.white : Colors.grey)))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('Normal')); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.textSize == 'Normal' ? AppTheme.secondary : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Text('Normal', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'Normal' ? Colors.white : Colors.grey)))),
                           const SizedBox(width: 12),
-                          GestureDetector(onTap: (){ ref.read(settingsProvider.notifier).setTextSize('A+'); }, child: Text('A+', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A+' ? AppTheme.primary : Colors.grey))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('A+')); }, child: Text('A+', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A+' ? AppTheme.primary : Colors.grey))),
                         ],
                       )
                     ),
@@ -303,9 +335,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const Icon(Icons.palette, size: 20),
                           const SizedBox(width: 8),
                           Expanded(child: Text(lang['theme']!, style: const TextStyle(fontSize: 14))),
-                          GestureDetector(onTap: (){ ref.read(settingsProvider.notifier).toggleDarkMode(false); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: !settings.isDarkMode ? AppTheme.secondary.withValues(alpha:0.2) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.light_mode, size: 14, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey), const SizedBox(width: 4), Text(lang['light']!, style: TextStyle(fontWeight: FontWeight.bold, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey))]))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(false)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: !settings.isDarkMode ? AppTheme.secondary.withValues(alpha:0.2) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.light_mode, size: 14, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey), const SizedBox(width: 4), Text(lang['light']!, style: TextStyle(fontWeight: FontWeight.bold, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey))]))),
                           const SizedBox(width: 4),
-                          GestureDetector(onTap: (){ ref.read(settingsProvider.notifier).toggleDarkMode(true); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.isDarkMode ? Colors.grey.withValues(alpha:0.4) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.dark_mode, size: 14, color: settings.isDarkMode ? Colors.white : Colors.grey), const SizedBox(width: 4), Text(lang['dark']!, style: TextStyle(fontWeight: FontWeight.bold, color: settings.isDarkMode ? Colors.white : Colors.grey))]))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(true)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.isDarkMode ? Colors.grey.withValues(alpha:0.4) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.dark_mode, size: 14, color: settings.isDarkMode ? Colors.white : Colors.grey), const SizedBox(width: 4), Text(lang['dark']!, style: TextStyle(fontWeight: FontWeight.bold, color: settings.isDarkMode ? Colors.white : Colors.grey))]))),
                         ],
                       )
                     ),
@@ -318,7 +350,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const Icon(Icons.contrast, color: AppTheme.primary, size: 20),
                           const SizedBox(width: 8),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang['high_contrast']!, style: const TextStyle(fontSize: 14)), Text(lang['high_contrast_desc']!, style: const TextStyle(fontSize: 10, color: Colors.grey))])),
-                          Switch(value: settings.isHighContrast, onChanged: (v){ ref.read(settingsProvider.notifier).toggleHighContrast(v); }, activeColor: AppTheme.primary),
+                          Switch(value: settings.isHighContrast, onChanged: (v){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleHighContrast(v)); }, activeColor: AppTheme.primary),
                         ],
                       )
                     ),
@@ -344,8 +376,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(4), 
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), 
-                            child: Image.network('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png', width: 24, height: 24)
+                            decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle), 
+                            child: const Icon(Icons.g_mobiledata, size: 32, color: Colors.blue)
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -353,7 +385,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start, 
                               children: [
                                 Text(lang['connected']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), 
-                                const Text('camila.quito@gmail.com', style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis)
+                                Text(displayUser.email, style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis)
                               ]
                             )
                           ),
@@ -367,7 +399,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ListTile(leading: const Icon(Icons.policy), title: Text(lang['terms']!, style: const TextStyle(fontSize: 14)), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen()))),
                     ListTile(leading: const Icon(Icons.share), title: Text(lang['invite']!, style: const TextStyle(fontSize: 14)), trailing: const Icon(Icons.chevron_right), onTap: () => _showInviteDialog(context)),
                     const SizedBox(height: 12),
-                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.logout), const SizedBox(width: 8), Text(lang['logout']!)]))),
+                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () async {
+                      await ref.read(authRepositoryProvider).signOut();
+                      ref.invalidate(currentUserProvider);
+                      if (context.mounted) context.go('/login');
+                    }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.logout), const SizedBox(width: 8), Text(lang['logout']!)]))),
                     const SizedBox(height: 16),
                     const Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
                   ],
@@ -377,6 +413,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
         ),
+      );
+        },
       ),
     );
   }

@@ -6,7 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hue_quito/services/directions_service.dart';
 
 class RouteMapScreen extends StatefulWidget {
-  const RouteMapScreen({super.key});
+  final Object? routeModel;
+  const RouteMapScreen({super.key, this.routeModel});
 
   @override
   State<RouteMapScreen> createState() => _RouteMapScreenState();
@@ -169,7 +170,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
             child: Row(
               children: [
                 Container(
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle),
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppTheme.textDark),
                     onPressed: () => context.pop(),
@@ -283,7 +284,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
             bottom: 180,
             right: 16,
             child: FloatingActionButton(
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               child: const Icon(Icons.my_location, color: AppTheme.primary),
               onPressed: () {
                 if (_currentPosition != null) {

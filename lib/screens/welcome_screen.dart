@@ -8,7 +8,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -96,7 +96,7 @@ class WelcomeScreen extends StatelessWidget {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(12)),
+                                  decoration: BoxDecoration(color: Theme.of(context).cardColor.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(12)),
                                   child: const Text('Turismo Gastronómico 🇪🇨', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                 ),
                               ],
@@ -212,7 +212,7 @@ class WelcomeScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8)],
       ),

@@ -8,6 +8,8 @@ class AppTheme {
   static const Color secondary = Color(0xFFC84B31); // Terracota
   static const Color tertiary = Color(0xFF2D4238); // Verde Páramo
   static const Color accentRed = Color(0xFFD32F2F); // Rojo Quito/Ají
+  static const Color accentGreen = Colors.green;
+  static const Color backgroundDark = Color(0xFF121212);
   
   static const Color backgroundLight = Color(0xFFF9F9F9); // Blanco humo
   static const Color surfaceLight = Color(0xFFFFFFFF);

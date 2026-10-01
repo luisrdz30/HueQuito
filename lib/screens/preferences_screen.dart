@@ -81,24 +81,22 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            if (context.canPop()) {
-              // editing from profile
-              context.pop();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferencias guardadas exitosamente.')));
-            } else {
-              // onboarding
-              context.push('/login');
-            }
-          },
-          child: Text(context.canPop() ? 'Guardar preferencias' : 'Comenzar a explorar huecas'),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton(
+            onPressed: () {
+              if (context.canPop()) {
+                // editing from profile
+                context.pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferencias guardadas exitosamente.')));
+              } else {
+                // onboarding
+                context.push('/login');
+              }
+            },
+            child: Text(context.canPop() ? 'Guardar preferencias' : 'Comenzar a explorar huecas'),
+          ),
         ),
       ),
     );

@@ -10,6 +10,7 @@ import 'package:hue_quito/screens/route_list_screen.dart';
 import 'package:hue_quito/screens/scan_screen.dart';
 import 'package:hue_quito/screens/album_screen.dart';
 import 'package:hue_quito/screens/profile_screen.dart';
+import 'package:hue_quito/screens/edit_profile_screen.dart';
 import 'package:hue_quito/screens/hueca_detail_screen.dart';
 import 'package:hue_quito/screens/route_detail_screen.dart';
 import 'package:hue_quito/screens/map_screen.dart';
@@ -44,31 +45,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/home',
                 builder: (context, state) => const HomeScreen(),
               ),
-            ],
+              GoRoute(path: '/edit_profile', builder: (context, state) => const EditProfileScreen()),
+      ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/rutas',
-                pageBuilder: (context, state) => CustomTransitionPage(
-                  key: state.pageKey,
-                  child: const RouteListScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  transitionDuration: const Duration(milliseconds: 200),
-                ),
+                path: '/rutas', builder: (context, state) => const RouteListScreen(),
               ),
               GoRoute(
-                path: '/mapa_interactivo',
-                pageBuilder: (context, state) => CustomTransitionPage(
-                  key: state.pageKey,
-                  child: const MapScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  transitionDuration: const Duration(milliseconds: 200),
-                ),
+                path: '/mapa_interactivo', builder: (context, state) => const MapScreen(),
               ),
             ],
           ),
@@ -100,15 +86,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/hueca_detail',
-        builder: (context, state) => const HuecaDetailScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          return HuecaDetailScreen(hueca: extra);
+        }
       ),
       GoRoute(
         path: '/route_detail',
-        builder: (context, state) => const RouteDetailScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          return RouteDetailScreen(routeModel: extra);
+        }
       ),
       GoRoute(
         path: '/route_map',
-        builder: (context, state) => const RouteMapScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          return RouteMapScreen(routeModel: extra);
+        }
       ),
       GoRoute(
         path: '/reward',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/utils/auth_utils.dart';
 
 class MainLayout extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -11,7 +12,7 @@ class MainLayout extends StatelessWidget {
     required this.navigationShell,
   });
 
-  void _goBranch(int index) {
+  void _goBranch(BuildContext context, int index) {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -26,14 +27,14 @@ class MainLayout extends StatelessWidget {
     final inactiveColor = isDark ? Colors.white54 : AppTheme.textMedium.withValues(alpha: 0.5);
 
     return GestureDetector(
-      onTap: () => _goBranch(index),
+      onTap: () => _goBranch(context, index),
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutBack,
+            curve: Curves.easeInOut,
             padding: EdgeInsets.all(isActive ? 14 : 8),
             decoration: BoxDecoration(
               color: isActive ? activeColor : Colors.transparent,

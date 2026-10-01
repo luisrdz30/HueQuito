@@ -94,7 +94,7 @@ class RewardScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     foregroundColor: AppTheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
