@@ -1,3 +1,4 @@
+import 'dart:io'; import 'package:image_picker/image_picker.dart'; import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +31,41 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         _emailController.text = user.email;
       }
     });
+  }
+
+
+  Future<void> _pickAndUploadImage() async {
+    if (!AuthUtils.checkAuthAndPrompt(context)) return;
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800, maxHeight: 800, imageQuality: 85);
+      if (pickedFile == null) return;
+
+      setState(() => _isLoading = true);
+      
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final file = File(pickedFile.path);
+      final refStorage = FirebaseStorage.instance.ref().child('user_profiles').child('.jpg');
+      
+      await refStorage.putFile(file);
+      final downloadUrl = await refStorage.getDownloadURL();
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'profilePicUrl': downloadUrl,
+      });
+
+      ref.invalidate(currentUserProvider);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto de perfil actualizada')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al actualizar foto: ')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _updateProfile() async {
@@ -104,22 +140,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         child: Column(
           children: [
             Center(
-              child: Stack(
-                children: [
-                   CircleAvatar(
-                    radius: 50,
-                    backgroundImage: NetworkImage(userAsync?.profilePicUrl ?? 'https://ui-avatars.com/api/?name=Invitado&background=random'),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+              child: GestureDetector(
+                onTap: _isLoading ? null : _pickAndUploadImage,
+                child: Stack(
+                  children: [
+                     CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage(userAsync?.profilePicUrl ?? 'https://ui-avatars.com/api/?name=Invitado&background=random'),
                     ),
-                  )
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 32),
