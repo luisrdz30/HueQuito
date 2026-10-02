@@ -1,4 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿
+import io
+
+code = '''import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RouteModel {
   final String id;
@@ -53,3 +56,8 @@ class RouteRepository {
     await _db.collection('routes').doc(routeData['id']).set(routeData);
   }
 }
+'''
+
+with io.open('lib/repositories/route_repository.dart', 'w', encoding='utf-8') as f:
+    f.write(code)
+
