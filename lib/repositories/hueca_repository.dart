@@ -85,6 +85,11 @@ class HuecaRepository {
     return null;
   }
 
+  Future<void> addHueca(Map<String, dynamic> huecaData) async {
+    final id = huecaData['id'];
+    await _db.collection('huecas').doc(id).set(huecaData);
+  }
+
   Future<void> addReview(String huecaId, int rating, String comment, String userName, String userPic) async {
     final reviewRef = _db.collection('huecas').doc(huecaId).collection('reviews').doc();
     await reviewRef.set({

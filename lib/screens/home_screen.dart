@@ -1,3 +1,4 @@
+import 'package:hue_quito/utils/seed_data.dart' as seed;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        leading: IconButton(
+          icon: const Icon(Icons.cloud_upload, color: AppTheme.primary),
+          onPressed: () async {
+            await seed.seedHuecas(context);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Huecas importadas a Firebase')));
+          },
+        ),
         title: Row(
           children: [
             const Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
