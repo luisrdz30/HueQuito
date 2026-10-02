@@ -31,6 +31,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final List<String> _locations = lang == 'es' ? ['Centro Histórico', 'La Floresta', 'Conocoto', 'Todo Quito'] : ['Historic Center', 'La Floresta', 'Conocoto', 'All Quito'];
     final List<String> _filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
+
+    if (!_locations.contains(_selectedLocation)) {
+      _selectedLocation = _locations.last;
+    }
+    if (!_filters.contains(_selectedFilter)) {
+      _selectedFilter = _filters.first;
+    }
     
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
