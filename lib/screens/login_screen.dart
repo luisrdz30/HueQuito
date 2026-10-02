@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -17,7 +16,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -67,130 +65,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
   
   
-  String _verificationId = '';
-  
-  void _verifyOTP(String smsCode) async {
-    setState(() => _isLoading = true);
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId,
-        smsCode: smsCode,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) context.go('/home');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cdigo invlido: ${e.toString()}')));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _showOTPDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        String smsCode = '';
-        return AlertDialog(
-          title: const Text('Ingresa el cdigo SMS'),
-          content: TextField(
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 24, letterSpacing: 8),
-            decoration: const InputDecoration(hintText: '000000'),
-            onChanged: (v) => smsCode = v,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (smsCode.length == 6) {
-                  Navigator.pop(context);
-                  _verifyOTP(smsCode);
-                }
-              },
-              child: const Text('Verificar'),
-            )
-          ],
-        );
-      },
-    );
-  }
-
-  void _signInWithPhone() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) {
-        String fullPhone = '';
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Ingresar con telfono', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              IntlPhoneField(
-                decoration: InputDecoration(
-                  labelText: 'Nmero de telfono',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                initialCountryCode: 'EC',
-                onChanged: (phone) {
-                  fullPhone = phone.completeNumber;
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    if (!mounted || fullPhone.isEmpty) return;
-                    setState(() => _isLoading = true);
-                    try {
-                      await FirebaseAuth.instance.verifyPhoneNumber(
-                        phoneNumber: fullPhone,
-                        verificationCompleted: (PhoneAuthCredential credential) async {
-                          await FirebaseAuth.instance.signInWithCredential(credential);
-                          if (mounted) context.go('/home');
-                        },
-                        verificationFailed: (FirebaseAuthException e) {
-                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fallo: ${e.message}')));
-                          if (mounted) setState(() => _isLoading = false);
-                        },
-                        codeSent: (String vid, int? token) {
-                          _verificationId = vid;
-                          if (mounted) setState(() => _isLoading = false);
-                          _showOTPDialog();
-                        },
-                        codeAutoRetrievalTimeout: (String vid) {
-                          _verificationId = vid;
-                        },
-                      );
-                    } catch(e) {
-                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fallo: $e')));
-                       if (mounted) setState(() => _isLoading = false);
-                    }
-                  },
-                  child: const Text('Enviar SMS'),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
 void _signInAnonymously() async {
     setState(() {
       _isLoading = true;
@@ -316,18 +190,6 @@ void _signInAnonymously() async {
                 onPressed: _isLoading ? null : _signInWithGoogle,
                 icon: const Icon(Icons.g_mobiledata, size: 32, color: Colors.red),
                 label: const Text('Continuar con Google'),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  foregroundColor: AppTheme.textDark,
-                  elevation: 1,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: _isLoading ? null : _signInWithPhone,
-                icon: const Icon(Icons.phone, size: 24, color: Colors.green),
-                label: const Text('Continuar con Teléfono'),
               ),
               const SizedBox(height: 12),
               TextButton(

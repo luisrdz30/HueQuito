@@ -30,11 +30,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final List<String> _locations = lang == 'es' ? ['Centro Histórico', 'La Floresta', 'Conocoto', 'Todo Quito'] : ['Historic Center', 'La Floresta', 'Conocoto', 'All Quito'];
-    final List<String> _filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
+    List<String> _locations = lang == 'es' ? ['Todo Quito'] : ['All Quito'];
+    List<String> _filters = lang == 'es' ? ['🍽️ Todos'] : ['🍽️ All'];
+
+    if (huecasAsync.value != null && huecasAsync.value!.isNotEmpty) {
+      final huecas = huecasAsync.value!;
+      final baseLoc = huecas.map((h) => h.sector).toSet().where((s) => s.isNotEmpty).toList();
+      _locations.addAll(baseLoc);
+      
+      Map<String, int> tagCounts = {};
+      for (var h in huecas) {
+        for (var t in h.tags) { tagCounts[t] = (tagCounts[t] ?? 0) + 1; }
+      }
+      var sortedTags = tagCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+      var topTags = sortedTags.take(6).map((e) => e.key).toList();
+
+      for (var tag in topTags) {
+         String emoji = '🏷️';
+         String tLower = tag.toLowerCase();
+         if (tLower.contains('sopa') || tLower.contains('caldo')) emoji = '🍲';
+         else if (tLower.contains('plato') || tLower.contains('carne') || tLower.contains('cerdo') || tLower.contains('marisco') || tLower.contains('pescado')) emoji = '🍛';
+         else if (tLower.contains('tradici') || tLower.contains('mercado')) emoji = '⭐';
+         else if (tLower.contains('dulce') || tLower.contains('postre')) emoji = '🍰';
+         else if (tLower.contains('snack') || tLower.contains('frito') || tLower.contains('empanada')) emoji = '🥟';
+         
+         String translatedTag = tag;
+         if (lang == 'en') {
+           if (tLower == 'platos fuertes') translatedTag = 'Main Dishes';
+           else if (tLower == 'sopas') translatedTag = 'Soups';
+           else if (tLower == 'tradición' || tLower == 'tradicional') translatedTag = 'Tradition';
+           else if (tLower == 'dulces') translatedTag = 'Sweets';
+         }
+         _filters.add('$emoji $translatedTag');
+      }
+    } else {
+      _locations = lang == 'es' ? ['Todo Quito', 'Centro Histórico', 'La Floresta', 'Conocoto'] : ['All Quito', 'Historic Center', 'La Floresta', 'Conocoto'];
+      _filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
+    }
 
     if (!_locations.contains(_selectedLocation)) {
-      _selectedLocation = _locations.last;
+      _selectedLocation = _locations.first;
     }
     if (!_filters.contains(_selectedFilter)) {
       _selectedFilter = _filters.first;
@@ -45,13 +80,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.cloud_upload, color: AppTheme.primary),
-          onPressed: () async {
-            await seed.seedHuecas(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Huecas importadas a Firebase')));
-          },
-        ),
         title: Row(
           children: [
             const Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
@@ -115,13 +143,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           huecasAsync.when(
             data: (huecas) {
               var filtered = List<Hueca>.from(huecas);
-              if (_selectedLocation != 'Todo Quito') {
+              if (_selectedLocation != 'Todo Quito' && _selectedLocation != 'All Quito') {
                 filtered = filtered.where((h) => h.sector.toLowerCase().contains(_selectedLocation.toLowerCase()) || h.address.toLowerCase().contains(_selectedLocation.toLowerCase())).toList();
               }
-              if (!_selectedFilter.contains('Todos')) {
-                String tag = _selectedFilter.split(' ')[1].toLowerCase();
-                if (tag == 'platos') tag = 'plato';
-                filtered = filtered.where((h) => h.tags.any((t) => t.toLowerCase().contains(tag))).toList();
+              if (!_selectedFilter.contains('Todos') && !_selectedFilter.contains('All')) {
+                String uiTag = _selectedFilter.split(' ').skip(1).join(' ').toLowerCase();
+                String targetTag = uiTag;
+                if (lang == 'en') {
+                  if (uiTag == 'main dishes') targetTag = 'plato';
+                  else if (uiTag == 'soups') targetTag = 'sopa';
+                  else if (uiTag == 'tradition') targetTag = 'tradici';
+                  else if (uiTag == 'sweets') targetTag = 'dulce';
+                  else if (uiTag == 'seafood') targetTag = 'marisco';
+                } else {
+                  if (targetTag == 'platos fuertes') targetTag = 'plato';
+                  if (targetTag == 'tradición') targetTag = 'tradici';
+                  if (targetTag == 'dulces') targetTag = 'dulce';
+                  if (targetTag == 'sopas') targetTag = 'sopa';
+                  if (targetTag == 'mariscos') targetTag = 'marisco';
+                }
+                filtered = filtered.where((h) => h.tags.any((t) => t.toLowerCase().contains(targetTag))).toList();
               }
               if (filtered.isEmpty) filtered = List<Hueca>.from(huecas);
 
