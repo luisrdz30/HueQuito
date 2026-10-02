@@ -8,7 +8,7 @@ class SettingsState {
   final bool isHighContrast;
 
   SettingsState({
-    this.language = 'EC',
+    this.language = 'es',
     this.textSize = 'Normal',
     this.isDarkMode = false,
     this.isHighContrast = false,

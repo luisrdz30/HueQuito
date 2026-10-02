@@ -24,7 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isFavoritesExpanded = false;
 
   final Map<String, Map<String, String>> t = {
-    'EC': {
+    'es': {
       'profile_title': 'Mi Perfil',
       'profile_subtitle': 'Pasaporte Gastronómico',
       'edit_profile': 'Editar Perfil',
@@ -53,7 +53,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'invite': 'Invitar a otros comensales',
       'logout': 'Cerrar Sesión',
     },
-    'US': {
+    'en': {
       'profile_title': 'My Profile',
       'profile_subtitle': 'Gastronomic Passport',
       'edit_profile': 'Edit Profile',
@@ -114,7 +114,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final userAsync = ref.watch(currentUserProvider);
-    final lang = t[settings.language]!;
+    final lang = t[settings.language] ?? t['es']!;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -298,12 +298,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Expanded(child: _buildToggleButton(context, 'EC', 'Español (EC)', settings.language == 'EC', () { 
-                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('EC'));
+                        Expanded(child: _buildToggleButton(context, 'es', 'Español (EC)', settings.language == 'es', () { 
+                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('es'));
                           })),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildToggleButton(context, 'US', 'English', settings.language == 'US', () { 
-                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('US'));
+                        Expanded(child: _buildToggleButton(context, 'en', 'English', settings.language == 'en', () { 
+                            _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('en'));
                           })),
                       ]
                     ),
