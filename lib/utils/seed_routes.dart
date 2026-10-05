@@ -1,134 +1,88 @@
 import 'package:flutter/material.dart';
-import 'package:hue_quito/repositories/route_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> seedRoutes(BuildContext context) async {
-  final repo = RouteRepository();
+  final db = FirebaseFirestore.instance;
 
-  final route1 = {
-    'id': 'ruta_01',
-    'name': {
-      'es': 'Ruta Colonial de Sabores',
-      'en': 'Colonial Flavors Route'
-    },
-    'narrative': {
-      'es': 'Un recorrido sensorial a través de empedrados centenarios que serpentean por el Centro Histórico. Inicia en San Juan con las famosas quesadillas, baja a la mítica Heladería San Agustín y culmina en el bullicio del Mercado Central con la corvina.',
-      'en': 'A sensory journey through centuries-old cobblestones in the Historic Center. Starts in San Juan with the famous quesadillas, goes down to the mythical San Agustín ice cream shop, and ends in the bustling Central Market with corvina.'
-    },
-    'bannerImageUrl': 'https://lh3.googleusercontent.com/aida/AEtjO1UlqkyPYbg08vZp-Tr0LV0ZLcEOPheQAEviSYtOZEUez01sec1kQbjtHvdUlXtSINk4e93fN3Y17xDquKlT_mS3j1NtrtxQNmvRL01NGFj5mH0M7hDxM7bZGefwtf_VkW5kfx6x6Ei5RjlgYycfaU0n9gtF-fs9Pc0WCMpA9_yte0GYXOwQqFw_CYudrng7IwiNA-yrRGQmMbKwXZV97ZrhUPN_IQmGoA0jdscqI1nQAsTife0RG_YvGpe4',
-    'tags': [
-      {'icon': 'location_on', 'text': {'es': 'Centro Histórico', 'en': 'Historic Center'}},
-      {'icon': 'restaurant', 'text': {'es': 'Platos Típicos', 'en': 'Typical Dishes'}},
-      {'icon': 'family_restroom', 'text': {'es': 'Apto Familiar', 'en': 'Family Friendly'}}
-    ],
-    'metrics': {
-      'distance': '2.4 km',
-      'estimatedTime': '2h 30m'
-    },
-    'recommendedSchedule': {
-      'time': {'es': '09:30 AM a 02:00 PM', 'en': '09:30 AM to 02:00 PM'},
-      'note': {
-        'es': 'Momento cumbre para saborear el almuerzo quiteño en los mercados.',
-        'en': 'Peak time to savor the traditional lunch in the local markets.'
-      }
-    },
-    'stops': [
-      {
-        'order': 1,
-        'huecaId': 'hueca_003',
-        'travelToNext': {
-          'mode': 'walk',
-          'duration': '15 min',
-          'distance': '1.1 km',
-          'instruction': {
-            'es': 'bajada hacia Plaza Grande',
-            'en': 'downhill towards Plaza Grande'
-          }
-        }
-      },
-      {
-        'order': 2,
-        'huecaId': 'hueca_002',
-        'travelToNext': {
-          'mode': 'walk',
-          'duration': '10 min',
-          'distance': '750 m',
-          'instruction': {
-            'es': 'por calle Guayaquil hacia el Mercado',
-            'en': 'via Guayaquil street towards the Market'
-          }
-        }
-      },
-      {
-        'order': 3,
-        'huecaId': 'hueca_001',
-        'travelToNext': null
-      }
-    ]
-  };
+  // Fetch all huecas
+  final huecasSnapshot = await db.collection('huecas').get();
+  final huecas = huecasSnapshot.docs.map((d) => d.data()).toList();
 
-  final route2 = {
-    'id': 'ruta_02',
-    'name': {
-      'es': 'Tardeada en La Floresta',
-      'en': 'Evening in La Floresta'
-    },
-    'narrative': {
-      'es': 'Descubre los olores nocturnos del barrio bohemio de La Floresta. Empezando con empanadas calientes al final de la tarde, pasando a las emblemáticas tripas de la vicentina y cerrando con una increíble bandera marinera.',
-      'en': 'Discover the night aromas of the bohemian neighborhood of La Floresta. Starting with hot empanadas in the late afternoon, moving to the iconic tripe, and ending with an amazing seafood bandera.'
-    },
-    'bannerImageUrl': 'https://plus.unsplash.com/premium_photo-1661963054563-ce928e592186?q=80&w=2000&auto=format&fit=crop',
-    'tags': [
-      {'icon': 'location_on', 'text': {'es': 'La Floresta', 'en': 'La Floresta'}},
-      {'icon': 'nights_stay', 'text': {'es': 'Nocturno', 'en': 'Nightly'}},
-      {'icon': 'fastfood', 'text': {'es': 'Comida Rápida', 'en': 'Street Food'}}
-    ],
-    'metrics': {
-      'distance': '1.2 km',
-      'estimatedTime': '1h 45m'
-    },
-    'recommendedSchedule': {
-      'time': {'es': '05:00 PM a 09:00 PM', 'en': '05:00 PM to 09:00 PM'},
-      'note': {
-        'es': 'Perfecto para cuando empieza a bajar el sol y se encienden los fogones.',
-        'en': 'Perfect for when the sun goes down and the street stoves light up.'
-      }
-    },
-    'stops': [
-      {
-        'order': 1,
-        'huecaId': 'hueca_005',
-        'travelToNext': {
-          'mode': 'walk',
-          'duration': '5 min',
-          'distance': '400 m',
-          'instruction': {
-            'es': 'caminando por el parque',
-            'en': 'walking through the park'
-          }
-        }
-      },
-      {
-        'order': 2,
-        'huecaId': 'hueca_004',
-        'travelToNext': {
-          'mode': 'walk',
-          'duration': '2 min',
-          'distance': '150 m',
-          'instruction': {
-            'es': 'cruzando la calle',
-            'en': 'crossing the street'
-          }
-        }
-      },
-      {
-        'order': 3,
-        'huecaId': 'hueca_006',
-        'travelToNext': null
-      }
-    ]
-  };
+  Map<String, List<Map<String, dynamic>>> huecasBySector = {};
+  for (var h in huecas) {
+    final sector = h['sector'] ?? 'Desconocido';
+    huecasBySector.putIfAbsent(sector, () => []).add(h);
+  }
 
-  await repo.addRoute(route1);
-  await repo.addRoute(route2);
-  print('Routes seeded');
+  List<Map<String, dynamic>> routes = [];
+
+  void createRoute(String sectorName, String routeEs, String routeEn, String narEs, String narEn, String banner, List<String> tags) {
+    final sectorHuecas = huecasBySector[sectorName] ?? [];
+    if (sectorHuecas.isEmpty) return;
+
+    List<Map<String, dynamic>> stops = [];
+    for (int i = 0; i < sectorHuecas.length && i < 3; i++) {
+      stops.add({
+        'order': i + 1,
+        'huecaId': sectorHuecas[i]['id'],
+        'estimatedTimeHere': '45 min'
+      });
+    }
+
+    routes.add({
+      'name': {'es': routeEs, 'en': routeEn},
+      'narrative': {'es': narEs, 'en': narEn},
+      'bannerImageUrl': banner,
+      'tags': tags,
+      'metrics': {'distance': '2.4 km', 'estimatedTime': '2h 30m'},
+      'recommendedSchedule': {
+        'time': {'es': '09:30 AM a 02:00 PM', 'en': '09:30 AM to 02:00 PM'},
+        'note': {'es': 'Momento cumbre para saborear', 'en': 'Peak time to taste'}
+      },
+      'stops': stops,
+    });
+  }
+
+  createRoute(
+    'Centro Histórico', 
+    'Ruta Colonial de Sabores', 
+    'Colonial Flavors Route',
+    'Un recorrido sensorial a través de empedrados centenarios que serpentean desde los soportales de la Plaza de la Independencia, pasando por la mística plazoleta de San Francisco, hasta el corazón bullicioso de San Roque. Aquí la cocina conventual colonial abraza el fogón popular andino.',
+    'A sensory journey through centuries-old cobblestones winding from the arcades of Independence Square, past the mystical San Francisco plaza, to the bustling heart of San Roque. Here, colonial convent cuisine embraces the popular Andean hearth.',
+    'https://quitotourbus.com/wp-content/uploads/2018/06/centro-historico-de-quito.jpg',
+    ['Centro Histórico', 'Platos Típicos', 'Apto Familiar']
+  );
+
+  createRoute(
+    'Conocoto', 
+    'Sendero del Hornado', 
+    'Hornado Trail',
+    'Descubre el valle de Conocoto a través de su plato estrella. Este circuito te lleva a degustar las recetas familiares mejor guardadas de cerdos horneados a fuego lento con leña de eucalipto.',
+    'Discover the Conocoto valley through its star dish. This circuit takes you to taste the best-kept family recipes of slow-roasted pork cooked with eucalyptus wood.',
+    'https://www.quitotravel.ec/wp-content/uploads/2021/04/Parque-Conocoto-768x512.jpg',
+    ['Conocoto', 'Carnes', 'Tradicional']
+  );
+
+  createRoute(
+    'La Floresta', 
+    'Bohemia y Sabor', 
+    'Bohemia and Flavor',
+    'La Floresta no es solo arte y cultura; también es la cuna de innovadores platillos ecuatorianos y huecas tradicionales que se reinventan entre murales y galerías.',
+    'La Floresta is not just art and culture; it is also the cradle of innovative Ecuadorian dishes and traditional huecas that reinvent themselves among murals and galleries.',
+    'https://www.ecuadorecoadventure.com/wp-content/uploads/2019/04/floresta-quito.jpg',
+    ['La Floresta', 'Urbano', 'Arte']
+  );
+
+  // Clear existing routes
+  final existing = await db.collection('routes').get();
+  for (var doc in existing.docs) {
+    await doc.reference.delete();
+  }
+
+  // Insert new ones
+  for (var r in routes) {
+    await db.collection('routes').add(r);
+  }
+
+  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Routes seeded!')));
 }

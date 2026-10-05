@@ -5,6 +5,7 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
+import 'package:hue_quito/repositories/hueca_repository.dart';
 
 class RouteDetailScreen extends ConsumerWidget {
   final Object? routeModel;
@@ -418,16 +419,23 @@ class RouteDetailScreen extends ConsumerWidget {
                     error: (e, s) => Text('Error: $e'),
                   ),
                   const SizedBox(height: 32),
-                  // Map Button
+                  // Start Route Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
                       onPressed: () {
-                        context.push('/route_map', extra: route);
+                        if (huecasAsync.value == null) return;
+                        final List<Hueca> routeStops = [];
+                        for (var s in route.stops) {
+                          final h = huecasAsync.value!.where((h) => h.id == s['huecaId']).firstOrNull;
+                          if (h != null) routeStops.add(h);
+                        }
+                        context.push('/route_navigation', extra: {'route': route, 'stops': routeStops});
                       },
-                      icon: const Icon(Icons.map),
-                      label: Text(lang == 'es' ? 'Ver en Mapa Interactivo' : 'View on Interactive Map'),
+                      icon: const Icon(Icons.navigation_outlined, color: Colors.white),
+                      label: Text(lang == 'es' ? 'Iniciar Recorrido en GPS' : 'Start GPS Tour', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),
                   const SizedBox(height: 32),

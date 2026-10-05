@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class DirectionsService {
   static const String _apiKey = 'AIzaSyDcxM0KCwFiiZBUj555w2K4xT8czajL8ms';
 
-  static Future<Map<String, dynamic>?> getDirections(double startLat, double startLng, double endLat, double endLng, {String mode = 'walking'}) async {
+  static Future<Map<String, dynamic>?> getDirections(double startLat, double startLng, double endLat, double endLng, {String mode = 'walking', List<Map<String, double>> waypoints = const []}) async {
     final String url = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
     final travelMode = mode == 'driving' ? 'DRIVE' : 'WALK';
@@ -25,6 +25,16 @@ class DirectionsService {
       "units": "METRIC"
     };
 
+    if (waypoints.isNotEmpty) {
+      body['intermediates'] = waypoints.map((w) {
+        return {
+          "location": {
+            "latLng": {"latitude": w['lat'], "longitude": w['lng']}
+          }
+        };
+      }).toList();
+    }
+
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -40,22 +50,29 @@ class DirectionsService {
         final data = json.decode(response.body);
         if (data['routes'] != null && (data['routes'] as List).isNotEmpty) {
           final route = data['routes'][0];
-          final leg = route['legs'][0];
           
-          List<dynamic> steps = leg['steps'].map((s) {
-            String instruction = s['navigationInstruction']?['instructions'] ?? '';
-            int distanceMeters = s['distanceMeters'] ?? 0;
-            return {
-              'html_instructions': instruction,
-              'distance': {'text': '$distanceMeters m'}
-            };
-          }).toList();
+          List<dynamic> allSteps = [];
+          
+          if (route['legs'] != null) {
+            for (var leg in route['legs']) {
+              if (leg['steps'] != null) {
+                for (var s in leg['steps']) {
+                  String instruction = s['navigationInstruction']?['instructions'] ?? '';
+                  int distanceMeters = s['distanceMeters'] ?? 0;
+                  allSteps.add({
+                    'html_instructions': instruction,
+                    'distance': {'text': '$distanceMeters m'}
+                  });
+                }
+              }
+            }
+          }
 
           return {
             'distance': '${route['distanceMeters']} m',
             'duration': route['duration'],
             'polyline': route['polyline']['encodedPolyline'],
-            'steps': steps,
+            'steps': allSteps,
           };
         } else {
           print("Routes API returned empty: ${response.body}");

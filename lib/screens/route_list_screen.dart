@@ -358,22 +358,43 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                   }),
                   
                   const SizedBox(height: 16),
-                  
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
-                      onPressed: () => context.push('/route_detail', extra: route),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.navigation, size: 18),
-                          SizedBox(width: 8),
-                          Text('Iniciar recorrido a pie', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => context.push('/route_detail', extra: route),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppTheme.primary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text('Ver Ficha', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: const EdgeInsets.symmetric(vertical: 12)),
+                          onPressed: () {
+                            // Find all huecas for this route
+                            final List<Hueca> routeStops = [];
+                            for (var s in route.stops) {
+                              final h = huecasList.where((h) => h.id == s['huecaId']).firstOrNull;
+                              if (h != null) routeStops.add(h);
+                            }
+                            context.push('/route_navigation', extra: {'route': route, 'stops': routeStops});
+                          },
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.navigation, size: 16, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text('Iniciar Ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ] else ...[
                   // Compact View

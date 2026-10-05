@@ -12,6 +12,7 @@ import 'package:hue_quito/screens/edit_profile_screen.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
+import 'package:hue_quito/utils/seed_routes.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -409,6 +410,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ref.invalidate(currentUserProvider);
                       if (context.mounted) context.go('/login');
                     }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.logout), const SizedBox(width: 8), Text(lang['logout']!)]))),
+                    const SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => seedRoutes(context), child: const Text('Seed 3 Routes (Dev)'))),
                     const SizedBox(height: 16),
                     const Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
                   ],
