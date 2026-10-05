@@ -127,22 +127,31 @@ class RouteDetailScreen extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: route.tags.map<Widget>((tagData) {
-                      IconData getIcon(String i) {
-                        switch (i) {
-                          case 'location_on': return Icons.location_on;
-                          case 'restaurant': return Icons.restaurant;
-                          case 'family_restroom': return Icons.family_restroom;
-                          case 'nights_stay': return Icons.nights_stay;
-                          case 'fastfood': return Icons.fastfood;
-                          default: return Icons.label;
+                      if (tagData is String) {
+                        return Chip(
+                          label: Text(tagData, style: const TextStyle(fontSize: 12)),
+                          backgroundColor: Theme.of(context).cardColor,
+                          side: BorderSide.none,
+                        );
+                      } else if (tagData is Map) {
+                        IconData getIcon(String? i) {
+                          switch (i) {
+                            case 'location_on': return Icons.location_on;
+                            case 'restaurant': return Icons.restaurant;
+                            case 'family_restroom': return Icons.family_restroom;
+                            case 'nights_stay': return Icons.nights_stay;
+                            case 'fastfood': return Icons.fastfood;
+                            default: return Icons.label;
+                          }
                         }
+                        return Chip(
+                          avatar: Icon(getIcon(tagData['icon']), size: 16, color: AppTheme.textMedium),
+                          label: Text(tagData['text']?[lang] ?? tagData['text']?['es'] ?? '', style: const TextStyle(fontSize: 12)),
+                          backgroundColor: Theme.of(context).cardColor,
+                          side: BorderSide.none,
+                        );
                       }
-                      return Chip(
-                        avatar: Icon(getIcon(tagData['icon']), size: 16, color: AppTheme.textMedium),
-                        label: Text(tagData['text'][lang] ?? tagData['text']['es'], style: const TextStyle(fontSize: 12)),
-                        backgroundColor: Theme.of(context).cardColor,
-                        side: BorderSide.none,
-                      );
+                      return const SizedBox.shrink();
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
