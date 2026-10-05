@@ -377,7 +377,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200], foregroundColor: AppTheme.secondary, elevation: 0),
-                        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.directions, size: 16), SizedBox(width: 4), Text('Cómo llegar', style: TextStyle(fontSize: 12))]),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.directions, size: 16), SizedBox(width: 4), Text(lang == 'es' ? 'Cómo llegar' : 'Directions', style: TextStyle(fontSize: 12))]),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -387,7 +387,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 context.push('/hueca_detail', extra: hueca);
                         },
                         style: ElevatedButton.styleFrom(elevation: 4),
-                        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Text('Ver Hueca', style: TextStyle(fontSize: 12)), SizedBox(width: 4), Icon(Icons.arrow_forward, size: 16)]),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Text(lang == 'es' ? 'Ver Hueca' : 'View Spot', style: TextStyle(fontSize: 12)), SizedBox(width: 4), Icon(Icons.arrow_forward, size: 16)]),
                       ),
                     ),
                   ],

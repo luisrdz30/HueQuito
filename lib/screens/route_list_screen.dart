@@ -24,6 +24,9 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
     final routesAsync = ref.watch(routesProvider);
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
+    if (_selectedSector == 'Todos' || _selectedSector == 'All') {
+      _selectedSector = lang == 'es' ? 'Todos' : 'All';
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -161,7 +164,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         data: (huecasList) {
                           // Filter routes by selected sector
                           List<RouteModel> filteredRoutes = routes;
-                          if (_selectedSector != 'Todos') {
+                          if (_selectedSector != 'Todos' && _selectedSector != 'All') {
                             filteredRoutes = routes.where((route) {
                               // Check if any stop in the route belongs to the selected sector
                               return route.stops.any((stop) {
@@ -204,6 +207,9 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
 
   Widget _buildFooter() {
     final lang = ref.watch(settingsProvider).language;
+    if (_selectedSector == 'Todos' || _selectedSector == 'All') {
+      _selectedSector = lang == 'es' ? 'Todos' : 'All';
+    }
     return Container(
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(16),

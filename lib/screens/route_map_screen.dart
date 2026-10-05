@@ -72,7 +72,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     
     for (var hueca in huecas) {
       // Filter by sector
-      if (_selectedSector != 'Todos') {
+      if (_selectedSector != 'Todos' && _selectedSector != 'All') {
         if (hueca.sector != _selectedSector) continue;
       }
       
@@ -109,6 +109,9 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
   Widget build(BuildContext context) {
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
+    if (_selectedSector == 'Todos' || _selectedSector == 'All') {
+      _selectedSector = lang == 'es' ? 'Todos' : 'All';
+    }
     final userAsync = ref.watch(currentUserProvider);
     final user = userAsync.value;
 
@@ -214,7 +217,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                 children: [
                   Icon(Icons.location_on, color: AppTheme.primary, size: 14),
                   SizedBox(width: 4),
-                  Text(_selectedSector == 'Todos' ? (lang == 'es' ? 'Mostrando todo' : 'Showing all') : _selectedSector, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text((_selectedSector == 'Todos' || _selectedSector == 'All') ? (lang == 'es' ? 'Mostrando todo' : 'Showing all') : _selectedSector, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   SizedBox(width: 8),
                   Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
                   SizedBox(width: 4),
