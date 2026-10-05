@@ -6,6 +6,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:share_plus/share_plus.dart';
 
 class RouteDetailScreen extends ConsumerWidget {
   final Object? routeModel;
@@ -50,7 +51,17 @@ class RouteDetailScreen extends ConsumerWidget {
                   backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
                   child: IconButton(
                     icon: const Icon(Icons.share, color: AppTheme.textDark),
-                    onPressed: () {},
+                    onPressed: () {
+                      final sector = route.tags.isNotEmpty ? route.tags.first.toString() : 'Quito';
+                      final huecasList = huecasAsync.value ?? [];
+                      List<String> huecaNames = [];
+                      for (var stop in route.stops) {
+                        final h = huecasList.where((h) => h.id == stop['huecaId']).firstOrNull;
+                        if (h != null) huecaNames.add(h.name);
+                      }
+                      final text = '¡Acompáñame a este tour por $sector!\nLas huecas que visitaríamos son:\n- ${huecaNames.join('\n- ')}\n\n¡Descarga HueQuito y vamos!';
+                      Share.share(text);
+                    },
                   ),
                 ),
               ),
@@ -249,7 +260,7 @@ class RouteDetailScreen extends ConsumerWidget {
                         ],
                       ),
                       Text(
-                        '${route.stops.length} ${lang == 'es' ? 'Hitos' : 'Milestones'}',
+                        '${route.stops.length} ${lang == 'es' ? 'Huecas' : 'Huecas'}',
                         style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
                       )
                     ],
@@ -376,10 +387,10 @@ class RouteDetailScreen extends ConsumerWidget {
                                                 ),
                                                 TextButton.icon(
                                                   onPressed: () {
-                                                    context.push('/hueca/${hueca.id}', extra: hueca);
+                                                    context.push('/hueca_detail', extra: hueca);
                                                   },
                                                   icon: const Text(
-                                                    'Ver Ficha',
+                                                    'Ver Hueca',
                                                     style: TextStyle(fontSize: 12),
                                                   ),
                                                   label: const Icon(Icons.chevron_right, size: 16),

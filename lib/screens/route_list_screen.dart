@@ -367,7 +367,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          child: const Text('Ver Ficha', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                          child: const Text('Ver Tour', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 12),
