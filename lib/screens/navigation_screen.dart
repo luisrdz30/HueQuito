@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -22,6 +21,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   Map<PolylineId, Polyline> _polylines = {};
   List<dynamic> _steps = [];
   bool _isLoading = true;
+  String _travelMode = 'walking'; // 'walking' or 'driving'
 
   @override
   void initState() {
@@ -50,12 +50,15 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   Future<void> _fetchRoute() async {
     if (_currentPosition == null) return;
+    
+    setState(() => _isLoading = true);
+
     final dir = await DirectionsService.getDirections(
       _currentPosition!.latitude, 
       _currentPosition!.longitude, 
       widget.targetHueca.location.latitude, 
       widget.targetHueca.location.longitude,
-      mode: 'walking' // Or driving based on distance, but let's default to walking for tours
+      mode: _travelMode
     );
 
     if (dir != null && dir['polyline'] != null && mounted) {
@@ -130,11 +133,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   void _openGoogleMaps() async {
     final lat = widget.targetHueca.location.latitude;
     final lng = widget.targetHueca.location.longitude;
-    final url = Uri.parse('google.navigation:q=$lat,$lng&mode=w'); // mode=w is walking
+    final mapMode = _travelMode == 'walking' ? 'w' : 'd';
+    final url = Uri.parse('google.navigation:q=$lat,$lng&mode=$mapMode'); 
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
-      final webUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=walking');
+      final webUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=$_travelMode');
       if (await canLaunchUrl(webUrl)) {
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       }
@@ -167,7 +171,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cómo llegar a ${widget.targetHueca.name}', style: const TextStyle(fontSize: 16)),
+        title: Text('A ${widget.targetHueca.name}', style: const TextStyle(fontSize: 16)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textDark,
         elevation: 0,
@@ -181,6 +185,75 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       ),
       body: Column(
         children: [
+          // Travel Mode Toggle
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_travelMode != 'walking') {
+                        setState(() => _travelMode = 'walking');
+                        _fetchRoute();
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey[300]!)
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
+                          const SizedBox(width: 8),
+                          Text('A pie', style: TextStyle(
+                            color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
+                            fontWeight: FontWeight.bold
+                          ))
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_travelMode != 'driving') {
+                        setState(() => _travelMode = 'driving');
+                        _fetchRoute();
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey[300]!)
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
+                          const SizedBox(width: 8),
+                          Text('En carro', style: TextStyle(
+                            color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
+                            fontWeight: FontWeight.bold
+                          ))
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
           Expanded(
             flex: 4,
             child: Stack(
@@ -220,7 +293,10 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                           itemBuilder: (context, index) {
                             final step = _steps[index];
                             return ListTile(
-                              leading: const Icon(Icons.turn_right, color: AppTheme.primary),
+                              leading: Icon(
+                                _travelMode == 'walking' ? Icons.directions_walk : Icons.directions_car, 
+                                color: AppTheme.primary
+                              ),
                               title: Text(_stripHtml(step['html_instructions'] ?? '')),
                               subtitle: Text(step['distance']?['text'] ?? ''),
                             );
