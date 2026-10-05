@@ -206,7 +206,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(30),
-                          child: Image.network(_selectedHueca!.imageUrls.isNotEmpty ? _selectedHueca!.imageUrls.first : 'https://via.placeholder.com/60', width: 60, height: 60, fit: BoxFit.cover),
+                          child: Image.network(_selectedHueca!.images.isNotEmpty ? _selectedHueca!.images.first : 'https://via.placeholder.com/60', width: 60, height: 60, fit: BoxFit.cover),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
