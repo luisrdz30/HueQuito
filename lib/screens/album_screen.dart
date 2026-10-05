@@ -1,4 +1,5 @@
 import 'package:hue_quito/repositories/user_repository.dart';
+import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -158,12 +159,12 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildHuecasList(AsyncValue huecasAsync, user, bool isGuest) {
+  Widget _buildHuecasList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest) {
     return huecasAsync.when(
       data: (huecas) {
         if (huecas.isEmpty) return const Center(child: Text('No hay huecas disponibles'));
 
-        var activeHuecas = huecas.where((h) {
+        var activeHuecas = huecas.where((Hueca h) {
           if (isGuest || user.gamification['huecaStamps'] == null) return false;
           return (user.gamification['huecaStamps'][h.id] ?? 0) > 0;
         }).toList();
