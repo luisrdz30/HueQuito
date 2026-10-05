@@ -17,14 +17,7 @@ class RouteListScreen extends ConsumerStatefulWidget {
 
 class _RouteListScreenState extends ConsumerState<RouteListScreen> {
   int _selectedTab = 0; // 0 for List, 1 for Map
-  String _selectedFilter = 'Todos los circuitos';
-
-  final List<String> _filters = [
-    'Todos los circuitos',
-    'A pie (≤ 30 min)',
-    'Tradición Histórica',
-    'Nocturno'
-  ];
+  String _selectedSector = 'Todos';
 
   @override
   Widget build(BuildContext context) {
@@ -47,23 +40,41 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                 const SizedBox(width: 8),
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
-                      SizedBox(width: 4),
-                      Text('Centro Hist...', style: TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold)),
-                      Icon(Icons.keyboard_arrow_down, size: 14, color: AppTheme.textMedium),
-                    ],
-                  ),
+                // Sector Filter Dropdown
+                huecasAsync.when(
+                  data: (huecasList) {
+                    final sectors = ['Todos']..addAll(huecasList.map((h) => h.sector).toSet().toList()..sort());
+                    return Container(
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedSector,
+                          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) setState(() => _selectedSector = newValue);
+                          },
+                          items: sectors.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
+                                  const SizedBox(width: 4),
+                                  Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_,__) => const SizedBox.shrink(),
                 ),
-                const SizedBox(width: 12),
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundImage: NetworkImage('https://ui-avatars.com/api/?name=User'),
-                )
               ],
             ),
             const SizedBox(height: 16),
@@ -140,53 +151,37 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             ),
           ),
 
-          // Filters (only for list view)
-          if (_selectedTab == 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: _filters.map((f) => GestureDetector(
-                    onTap: () => setState(() => _selectedFilter = f),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _selectedFilter == f ? const Color(0xFF4A685D) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _selectedFilter == f ? Colors.transparent : Colors.grey[300]!),
-                      ),
-                      child: Text(f, style: TextStyle(
-                        color: _selectedFilter == f ? Colors.white : AppTheme.textDark,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12
-                      )),
-                    ),
-                  )).toList(),
-                ),
-              ),
-            ),
-
           // Main Content Area
           Expanded(
             child: _selectedTab == 0
                 ? routesAsync.when(
                     data: (routes) {
-                      if (routes.isEmpty) {
-                        return Center(child: Text(lang == 'es' ? 'No hay rutas disponibles.' : 'No routes available.'));
-                      }
                       return huecasAsync.when(
                         data: (huecasList) {
+                          // Filter routes by selected sector
+                          List<RouteModel> filteredRoutes = routes;
+                          if (_selectedSector != 'Todos') {
+                            filteredRoutes = routes.where((route) {
+                              // Check if any stop in the route belongs to the selected sector
+                              return route.stops.any((stop) {
+                                final hueca = huecasList.firstWhere((h) => h.id == stop['huecaId'], orElse: () => huecasList.first);
+                                return hueca.sector == _selectedSector;
+                              });
+                            }).toList();
+                          }
+
+                          if (filteredRoutes.isEmpty) {
+                            return Center(child: Text(lang == 'es' ? 'No hay rutas en este sector.' : 'No routes in this area.'));
+                          }
+
                           return ListView.builder(
                             padding: const EdgeInsets.only(bottom: 100),
-                            itemCount: routes.length + 1, // +1 for the footer
+                            itemCount: filteredRoutes.length + 1, // +1 for the footer
                             itemBuilder: (context, index) {
-                              if (index == routes.length) {
+                              if (index == filteredRoutes.length) {
                                 return _buildFooter();
                               }
-                              final route = routes[index];
+                              final route = filteredRoutes[index];
                               bool isFeatured = index == 0; // First item is featured
                               return _buildRouteCard(context, route, lang, huecasList, isFeatured);
                             },
@@ -229,7 +224,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
               children: [
                 Text('¿Prefieres explorar libremente sin ruta fija?', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark)),
                 SizedBox(height: 4),
-                Text('Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por categoría.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                Text('Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
               ],
             ),
           )
@@ -273,20 +268,6 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                       Icon(Icons.stars, color: Colors.white, size: 12),
                       SizedBox(width: 4),
                       Text('Circuito Popular', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 16, right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.orange, size: 12),
-                      SizedBox(width: 4),
-                      Text('4.9 (184)', style: TextStyle(color: AppTheme.textDark, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -390,23 +371,6 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                           Icon(Icons.navigation, size: 18),
                           SizedBox(width: 8),
                           Text('Iniciar recorrido a pie', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: TextButton(
-                      style: TextButton.styleFrom(backgroundColor: Colors.grey[100], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))),
-                      onPressed: () {},
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.location_on_outlined, size: 18, color: AppTheme.textDark),
-                          SizedBox(width: 8),
-                          Text('Ver paradas en mapa', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark)),
                         ],
                       ),
                     ),

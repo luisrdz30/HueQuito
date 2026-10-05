@@ -15,6 +15,7 @@ import 'package:hue_quito/screens/hueca_detail_screen.dart';
 import 'package:hue_quito/screens/route_detail_screen.dart';
 import 'package:hue_quito/screens/map_screen.dart';
 import 'package:hue_quito/screens/route_map_screen.dart';
+import 'package:hue_quito/screens/navigation_screen.dart';
 import 'package:hue_quito/screens/reward_screen.dart';
 import 'package:hue_quito/screens/main_layout.dart';
 
@@ -102,6 +103,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/route_map',
         builder: (context, state) {
           return const RouteMapScreen();
+        }
+      ),
+      GoRoute(
+        path: '/navigation',
+        builder: (context, state) {
+          final extra = state.extra as dynamic; // Assuming Hueca is passed as extra
+          return NavigationScreen(targetHueca: extra);
         }
       ),
       GoRoute(
