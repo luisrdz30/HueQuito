@@ -41,40 +41,41 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 // Sector Filter Dropdown
-                huecasAsync.when(
-                  data: (huecasList) {
-                    final sectors = ['Todos']..addAll(huecasList.map((h) => h.sector).toSet().toList()..sort());
-                    return Container(
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedSector,
-                          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
-                          style: const TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) setState(() => _selectedSector = newValue);
-                          },
-                          items: sectors.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
-                                  const SizedBox(width: 4),
-                                  Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                if (_selectedTab == 0)
+                  huecasAsync.when(
+                    data: (huecasList) {
+                      final sectors = ['Todos']..addAll(huecasList.map((h) => h.sector).toSet().toList()..sort());
+                      return Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedSector,
+                            icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) setState(() => _selectedSector = newValue);
+                            },
+                            items: sectors.map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
+                                    const SizedBox(width: 4),
+                                    Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_,__) => const SizedBox.shrink(),
-                ),
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_,__) => const SizedBox.shrink(),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
