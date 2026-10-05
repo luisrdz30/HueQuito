@@ -148,6 +148,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             gamification: {'level': 1, 'totalStamps': 0, 'title': 'Explorador'},
             preferences: {}, sectorAlbums: [],
           );
+          final int visitedHuecas = isGuest ? 0 : ((displayUser.gamification['huecaStamps'] as Map?)?.keys.length ?? 0);
+          final int favoriteCount = isGuest ? 0 : displayUser.favoriteHuecas.length;
+          final int rewardsCount = isGuest ? 0 : (displayUser.gamification['rewardsCount'] ?? 0);
+
           return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -170,28 +174,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text(displayUser.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                  Text(displayUser.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                   const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, size: 20, color: AppTheme.primary),
-                                    onPressed: () => context.push('/edit_profile'),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
+                                  if (!isGuest)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 20, color: AppTheme.primary),
+                                      onPressed: () => context.push('/edit_profile'),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
                                 ],
                               ),
-                              Text(displayUser.email, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text(displayUser.email, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                             ],
                           ),
                         )
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Column(children: [Icon(Icons.storefront, color: AppTheme.primary), Text('14', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Huecas', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [Icon(Icons.bookmark, color: AppTheme.secondary), Text('8', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Favoritos', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [Icon(Icons.redeem, color: AppTheme.secondary), Text('2', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Premios', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [const Icon(Icons.storefront, color: AppTheme.primary), Text('$visitedHuecas', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Huecas', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [const Icon(Icons.bookmark, color: AppTheme.secondary), Text('$favoriteCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Favoritos', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [const Icon(Icons.redeem, color: AppTheme.secondary), Text('$rewardsCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Premios', style: TextStyle(fontSize: 10, color: Colors.grey))]),
                       ],
                     )
                   ],

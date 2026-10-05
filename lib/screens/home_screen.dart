@@ -164,7 +164,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }
                 filtered = filtered.where((h) => h.tags.any((t) => t.toLowerCase().contains(targetTag))).toList();
               }
-              if (filtered.isEmpty) filtered = List<Hueca>.from(huecas);
+
+              if (filtered.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      lang == 'es' ? 'No hay huecas con estos filtros.' : 'No huecas match these filters.',
+                      style: const TextStyle(color: AppTheme.textMedium),
+                    ),
+                  ),
+                );
+              }
 
               return SliverList(
                 delegate: SliverChildBuilderDelegate(

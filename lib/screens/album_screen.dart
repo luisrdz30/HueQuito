@@ -162,11 +162,21 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     return huecasAsync.when(
       data: (huecas) {
         if (huecas.isEmpty) return const Center(child: Text('No hay huecas disponibles'));
+
+        var activeHuecas = huecas.where((h) {
+          if (isGuest || user.gamification['huecaStamps'] == null) return false;
+          return (user.gamification['huecaStamps'][h.id] ?? 0) > 0;
+        }).toList();
+
+        if (activeHuecas.isEmpty) {
+          return const Center(child: Text('Aún no tienes sellos en ninguna hueca. ¡Empieza a explorar!'));
+        }
+
         return ListView.builder(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
-          itemCount: huecas.length,
+          itemCount: activeHuecas.length,
           itemBuilder: (context, index) {
-            final hueca = huecas[index];
+            final hueca = activeHuecas[index];
             int currentStamps = 0;
             if (!isGuest && user.gamification['huecaStamps'] != null) {
               currentStamps = user.gamification['huecaStamps'][hueca.id] ?? 0;
