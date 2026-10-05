@@ -101,8 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/route_map',
         builder: (context, state) {
-          final extra = state.extra;
-          return RouteMapScreen(routeModel: extra);
+          return const RouteMapScreen();
         }
       ),
       GoRoute(
