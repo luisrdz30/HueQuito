@@ -5,10 +5,7 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
-import 'package:hue_quito/repositories/auth_repository.dart';
 import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
-import 'package:hue_quito/screens/preferences_screen.dart';
-import 'package:hue_quito/screens/edit_profile_screen.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
@@ -242,7 +239,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector),
                                 );
-                              }).toList(),
+                              }),
                           ],
                         ),
                       )
@@ -261,7 +258,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               final h = huecasList.where((hueca) => hueca.id == id).firstOrNull;
                               if (h == null) return const SizedBox.shrink();
                               return _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector);
-                            }).toList(),
+                            }),
                         ],
                       )
                   ],
@@ -356,7 +353,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const Icon(Icons.contrast, color: AppTheme.primary, size: 20),
                           const SizedBox(width: 8),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang['high_contrast']!, style: const TextStyle(fontSize: 14)), Text(lang['high_contrast_desc']!, style: const TextStyle(fontSize: 10, color: Colors.grey))])),
-                          Switch(value: settings.isHighContrast, onChanged: (v){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleHighContrast(v)); }, activeColor: AppTheme.primary),
+                          Switch(value: settings.isHighContrast, onChanged: (v){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleHighContrast(v)); }, activeThumbColor: AppTheme.primary),
                         ],
                       )
                     ),

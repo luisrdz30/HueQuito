@@ -22,7 +22,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
   String _selectedSector = 'Todos';
   String _searchQuery = '';
 
-  final LatLng _quitoCenter = const LatLng(-0.2186, -78.5097); // Basilica as center
+  final LatLng _quitoCenter = LatLng(-0.2186, -78.5097); // Basilica as center
 
   @override
   void initState() {
@@ -62,9 +62,9 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('user'),
+          markerId: MarkerId('user'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          infoWindow: const InfoWindow(title: 'Tú'),
+          infoWindow: InfoWindow(title: 'Tú'),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         )
       );
@@ -128,8 +128,8 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                 onTap: (_) => setState(() => _selectedHueca = null),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, s) => const Center(child: Text('Error al cargar mapa')),
+            loading: () => Center(child: CircularProgressIndicator()),
+            error: (e, s) => Center(child: Text(lang == 'es' ? 'Error al cargar mapa' : 'Error loading map')),
           ),
           
           // Top Overlays
@@ -148,31 +148,31 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                     onChanged: (val) => setState(() => _searchQuery = val),
                     decoration: InputDecoration(
                       hintText: lang == 'es' ? 'Buscar hueca, plato o barrio...' : 'Search place, dish, area...',
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
                       suffixIcon: GestureDetector(
                         onTap: () {
                           if (_currentPosition != null && _mapController != null) {
                             _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(_currentPosition!.latitude, _currentPosition!.longitude)));
                           }
                         },
-                        child: const Icon(Icons.my_location, color: AppTheme.primary)
+                        child: Icon(Icons.my_location, color: AppTheme.primary)
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      contentPadding: EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 
                 // Sector Filter Dropdown replacing chips
                 huecasAsync.when(
                   data: (huecasList) {
-                    final sectors = ['Todos']..addAll(huecasList.map((h) => h.sector).toSet().toList()..sort());
+                    final sectors = ['Todos', ...huecasList.map((h) => h.sector).toSet().toList()..sort()];
                     return Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -181,8 +181,8 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSector,
-                            icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textDark),
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textDark, fontWeight: FontWeight.bold),
+                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textDark),
+                            style: TextStyle(fontSize: 13, color: AppTheme.textDark, fontWeight: FontWeight.bold),
                             onChanged: (String? newValue) {
                               if (newValue != null) setState(() => _selectedSector = newValue);
                             },
@@ -197,8 +197,8 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       ),
                     );
                   },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_,__) => const SizedBox.shrink(),
+                  loading: () => SizedBox.shrink(),
+                  error: (_,__) => SizedBox.shrink(),
                 ),
               ],
             ),
@@ -208,23 +208,23 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
           Positioned(
             top: 140, left: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)]),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, color: AppTheme.primary, size: 14),
-                  const SizedBox(width: 4),
-                  Text(_selectedSector == 'Todos' ? 'Mostrando todo' : _selectedSector, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  const SizedBox(width: 8),
-                  Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                  const SizedBox(width: 4),
+                  Icon(Icons.location_on, color: AppTheme.primary, size: 14),
+                  SizedBox(width: 4),
+                  Text(_selectedSector == 'Todos' ? (lang == 'es' ? 'Mostrando todo' : 'Showing all') : _selectedSector, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  SizedBox(width: 8),
+                  Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+                  SizedBox(width: 4),
                   huecasAsync.when(
                     data: (h) {
                       final count = _buildMarkers(h).length - (_currentPosition != null ? 1 : 0);
-                      return Text('$count huecas', style: const TextStyle(fontSize: 10, color: Colors.grey));
+                      return Text('$count ${lang == 'es' ? 'huecas' : 'spots'}', style: TextStyle(fontSize: 10, color: Colors.grey));
                     },
-                    loading: () => const Text('...', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    error: (e,s) => const Text('0 huecas', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    loading: () => Text('...', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    error: (e,s) => Text(lang == 'es' ? '0 huecas' : '0 spots', style: TextStyle(fontSize: 10, color: Colors.grey)),
                   ),
                 ],
               ),
@@ -236,17 +236,17 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
             Positioned(
               bottom: 16, left: 16, right: 16,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 10))],
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: Offset(0, 10))],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Handle for swipe down indicator
-                    Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                    Container(width: 40, height: 4, margin: EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
                     
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,47 +255,47 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                           borderRadius: BorderRadius.circular(30),
                           child: Image.network(_selectedHueca!.images.isNotEmpty ? _selectedHueca!.images.first : 'https://via.placeholder.com/60', width: 60, height: 60, fit: BoxFit.cover),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                                  const SizedBox(width: 4),
-                                  const Text('Abierto', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
-                                  const Spacer(),
-                                  const Icon(Icons.star, color: Colors.orange, size: 14),
-                                  const SizedBox(width: 2),
-                                  Text(_selectedHueca!.rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Container(width: 6, height: 6, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+                                  SizedBox(width: 4),
+                                  Text(lang == 'es' ? 'Abierto' : 'Open', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
+                                  Spacer(),
+                                  Icon(Icons.star, color: Colors.orange, size: 14),
+                                  SizedBox(width: 2),
+                                  Text(_selectedHueca!.rating.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(_selectedHueca!.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text(_selectedHueca!.sector, style: const TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                              SizedBox(height: 4),
+                              Text(_selectedHueca!.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text(_selectedHueca!.sector, style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
                             ],
                           ),
                         )
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     
                     // Info Row
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                       decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
                       child: Row(
                         children: [
-                          const Icon(Icons.restaurant_menu, size: 14, color: AppTheme.primary),
-                          const SizedBox(width: 6),
+                          Icon(Icons.restaurant_menu, size: 14, color: AppTheme.primary),
+                          SizedBox(width: 6),
                           Expanded(
                             child: RichText(
                               maxLines: 1, overflow: TextOverflow.ellipsis,
                               text: TextSpan(
-                                style: const TextStyle(fontSize: 11, color: AppTheme.textDark),
+                                style: TextStyle(fontSize: 11, color: AppTheme.textDark),
                                 children: [
-                                  const TextSpan(text: 'Plato insignia: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  TextSpan(text: 'Plato insignia: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                   TextSpan(text: _selectedHueca!.mainDish['name'][lang] ?? _selectedHueca!.mainDish['name']['es']),
                                 ]
                               )
@@ -305,7 +305,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     
                     // Actions
                     Row(
@@ -316,40 +316,40 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primary, 
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(vertical: 0) // Reduce padding
+                              padding: EdgeInsets.symmetric(vertical: 0) // Reduce padding
                             ),
                             onPressed: () => context.push('/navigation', extra: _selectedHueca),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.directions, size: 14),
                                 SizedBox(width: 4),
-                                Text('Cómo llegar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white)),
+                                Text(lang == 'es' ? 'Cómo llegar' : 'Directions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white)),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Expanded(
                           flex: 4,
                           child: TextButton(
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.grey[100], 
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(vertical: 0)
+                              padding: EdgeInsets.symmetric(vertical: 0)
                             ),
                             onPressed: () => context.push('/hueca_detail', extra: _selectedHueca),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Ver Ficha', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 11)),
+                                Text(lang == 'es' ? 'Ver Hueca' : 'View Spot', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 11)),
                                 SizedBox(width: 4),
                                 Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.textDark),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Container(
                           width: 40, height: 40,
                           decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
@@ -362,7 +362,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                             ),
                             onPressed: () async {
                               if (user == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inicia sesión para guardar favoritos')));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(lang == 'es' ? 'Inicia sesión para guardar favoritos' : 'Log in to save favorites')));
                                 return;
                               }
                               await ref.read(userRepositoryProvider).toggleFavorite(_selectedHueca!.id);

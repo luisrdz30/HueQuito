@@ -32,14 +32,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _isLoading = false;
     });
 
-    if (user != null) {
-      if (mounted) context.go('/home');
-    } else {
-      setState(() {
-        _errorMessage = 'Correo o contraseña incorrectos.';
-      });
+    if (mounted) context.go('/home');
     }
-  }
   
   void _signInWithGoogle() async {
     setState(() => _isLoading = true);
@@ -78,14 +72,8 @@ void _signInAnonymously() async {
       _isLoading = false;
     });
 
-    if (user != null) {
-      if (mounted) context.go('/home');
-    } else {
-      setState(() {
-        _errorMessage = 'Error al ingresar como invitado.';
-      });
+    if (mounted) context.go('/home');
     }
-  }
 
   @override
   Widget build(BuildContext context) {

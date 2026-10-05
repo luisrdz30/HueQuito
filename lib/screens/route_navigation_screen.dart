@@ -22,7 +22,7 @@ class RouteNavigationScreen extends ConsumerStatefulWidget {
 class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   GoogleMapController? _mapController;
   Position? _currentPosition;
-  Map<PolylineId, Polyline> _polylines = {};
+  final Map<PolylineId, Polyline> _polylines = {};
   List<dynamic> _steps = [];
   bool _isLoading = true;
   String _travelMode = 'walking';
@@ -83,8 +83,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
     if (dir != null && dir['polyline'] != null && mounted) {
       List<LatLng> polylineCoordinates = _decodePolyline(dir['polyline']);
       setState(() {
-        _polylines[const PolylineId('route')] = Polyline(
-          polylineId: const PolylineId('route'),
+        _polylines[PolylineId('route')] = Polyline(
+          polylineId: PolylineId('route'),
           color: AppTheme.primary,
           points: polylineCoordinates,
           width: 5,
@@ -194,7 +194,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('user'),
+          markerId: MarkerId('user'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         )
@@ -203,13 +203,13 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name, style: const TextStyle(fontSize: 16)),
+        title: Text(name, style: TextStyle(fontSize: 16)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textDark,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.map, color: AppTheme.primary),
+            icon: Icon(Icons.map, color: AppTheme.primary),
             onPressed: _openGoogleMaps,
             tooltip: 'Abrir en Google Maps',
           )
@@ -219,7 +219,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
         children: [
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -231,7 +231,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
@@ -241,8 +241,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
-                          const SizedBox(width: 8),
-                          Text('A pie', style: TextStyle(
+                          SizedBox(width: 8),
+                          Text(lang == 'es' ? 'A pie' : 'Walking', style: TextStyle(
                             color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
                           ))
@@ -251,7 +251,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -261,7 +261,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
@@ -271,8 +271,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
-                          const SizedBox(width: 8),
-                          Text('En carro', style: TextStyle(
+                          SizedBox(width: 8),
+                          Text(lang == 'es' ? 'En carro' : 'Driving', style: TextStyle(
                             color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
                           ))
@@ -290,7 +290,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
               children: [
                 GoogleMap(
                   onMapCreated: (c) => _mapController = c,
-                  initialCameraPosition: const CameraPosition(
+                  initialCameraPosition: CameraPosition(
                     target: LatLng(-0.22985, -78.52495), 
                     zoom: 12.0
                   ),
@@ -300,7 +300,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                   myLocationButtonEnabled: true,
                 ),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator()),
+                  Center(child: CircularProgressIndicator()),
               ]
             ),
           ),
@@ -311,13 +311,13 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text('Indicaciones', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    child: Text(lang == 'es' ? 'Indicaciones' : 'Directions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
                   Expanded(
                     child: _steps.isEmpty 
-                      ? const Center(child: Text('Calculando ruta...'))
+                      ? Center(child: Text(lang == 'es' ? 'Calculando ruta...' : 'Calculating route...'))
                       : ListView.builder(
                           itemCount: _steps.length,
                           itemBuilder: (context, index) {
@@ -342,8 +342,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openGoogleMaps,
         backgroundColor: AppTheme.primary,
-        icon: const Icon(Icons.directions),
-        label: const Text('Ir con Google Maps', style: TextStyle(color: Colors.white)),
+        icon: Icon(Icons.directions),
+        label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: TextStyle(color: Colors.white)),
       ),
     );
   }

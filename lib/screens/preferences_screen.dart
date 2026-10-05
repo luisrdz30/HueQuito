@@ -107,8 +107,11 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          if (isSelected) _selectedCravings.remove(title);
-          else _selectedCravings.add(title);
+          if (isSelected) {
+            _selectedCravings.remove(title);
+          } else {
+            _selectedCravings.add(title);
+          }
         });
       },
       child: Container(
@@ -146,8 +149,11 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       selected: isSelected,
       onSelected: (v) {
         setState(() {
-          if (v) _selectedZones.add(title);
-          else _selectedZones.remove(title);
+          if (v) {
+            _selectedZones.add(title);
+          } else {
+            _selectedZones.remove(title);
+          }
         });
       },
       selectedColor: AppTheme.tertiary,

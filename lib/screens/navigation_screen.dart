@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/directions_service.dart';
 
@@ -18,7 +19,7 @@ class NavigationScreen extends ConsumerStatefulWidget {
 class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   GoogleMapController? _mapController;
   Position? _currentPosition;
-  Map<PolylineId, Polyline> _polylines = {};
+  final Map<PolylineId, Polyline> _polylines = {};
   List<dynamic> _steps = [];
   bool _isLoading = true;
   String _travelMode = 'walking'; // 'walking' or 'driving'
@@ -151,6 +152,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(settingsProvider).language;
     Set<Marker> markers = {
       Marker(
         markerId: MarkerId(widget.targetHueca.id),
@@ -171,7 +173,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('A ${widget.targetHueca.name}', style: const TextStyle(fontSize: 16)),
+        title: Text(lang == 'es' ? 'A ${widget.targetHueca.name}' : 'To ${widget.targetHueca.name}', style: const TextStyle(fontSize: 16)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.textDark,
         elevation: 0,
@@ -211,7 +213,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         children: [
                           Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
                           const SizedBox(width: 8),
-                          Text('A pie', style: TextStyle(
+                          Text(lang == 'es' ? 'A pie' : 'Walking', style: TextStyle(
                             color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
                           ))
@@ -241,7 +243,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                         children: [
                           Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
                           const SizedBox(width: 8),
-                          Text('En carro', style: TextStyle(
+                          Text(lang == 'es' ? 'En carro' : 'Driving', style: TextStyle(
                             color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
                           ))
@@ -270,7 +272,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   myLocationButtonEnabled: true,
                 ),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator()),
+                  Center(child: CircularProgressIndicator()),
               ]
             ),
           ),
@@ -281,13 +283,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text('Indicaciones', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    child: Text(lang == 'es' ? 'Indicaciones' : 'Directions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
                   Expanded(
                     child: _steps.isEmpty 
-                      ? const Center(child: Text('Calculando ruta...'))
+                      ? Center(child: Text(lang == 'es' ? 'Calculando ruta...' : 'Calculating route...'))
                       : ListView.builder(
                           itemCount: _steps.length,
                           itemBuilder: (context, index) {
@@ -313,7 +315,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         onPressed: _openGoogleMaps,
         backgroundColor: AppTheme.primary,
         icon: const Icon(Icons.directions),
-        label: const Text('Ir con Google Maps', style: TextStyle(color: Colors.white)),
+        label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: TextStyle(color: Colors.white)),
       ),
     );
   }

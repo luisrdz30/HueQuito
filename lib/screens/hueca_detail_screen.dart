@@ -14,7 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HuecaDetailScreen extends ConsumerStatefulWidget {
   final Object? hueca;
-  HuecaDetailScreen({super.key, this.hueca});
+  const HuecaDetailScreen({super.key, this.hueca});
 
   @override
   ConsumerState<HuecaDetailScreen> createState() => _HuecaDetailScreenState();
@@ -23,12 +23,13 @@ class HuecaDetailScreen extends ConsumerStatefulWidget {
 class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
 
   void _showReviewDialog(BuildContext context) {
+    final lang = ref.read(settingsProvider).language;
     if (!AuthUtils.checkAuthAndPrompt(context)) return;
     final user = ref.read(currentUserProvider).value;
     if (user == null) return;
     
-    int _rating = 0;
-    String _comment = '';
+    int rating = 0;
+    String comment = '';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -41,20 +42,20 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Deja tu opinión', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(lang == 'es' ? 'Deja tu opinión' : 'Leave your review', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(5, (index) {
                       return IconButton(
                         icon: Icon(
-                          index < _rating ? Icons.star : Icons.star_border,
+                          index < rating ? Icons.star : Icons.star_border,
                           color: Colors.amber,
                           size: 40,
                         ),
                         onPressed: () {
                           setStateSB(() {
-                            _rating = index + 1;
+                            rating = index + 1;
                           });
                         },
                       );
@@ -67,31 +68,31 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     maxLines: 3,
-                    onChanged: (v) => _comment = v,
+                    onChanged: (v) => comment = v,
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      onPressed: _rating == 0 ? null : () async {
+                      onPressed: rating == 0 ? null : () async {
                         Navigator.pop(context);
                         
                         try {
                           await ref.read(huecaRepositoryProvider).addReview(
                             _currentHueca.id,
-                            _rating,
-                            _comment,
+                            rating,
+                            comment,
                             user.name,
                             user.profilePicUrl,
                           );
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Gracias por tu opinión!')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(lang == 'es' ? '¡Gracias por tu opinión!' : 'Thanks for your review!')));
                           setState(() {}); // refresh the UI to fetch reviews
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al enviar reseña: $e')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(lang == 'es' ? 'Error al enviar reseña: $e' : 'Error submitting review: $e')));
                         }
                       },
-                      child: const Text('Enviar Reseña'),
+                      child: Text(lang == 'es' ? 'Enviar Reseña' : 'Submit Review'),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -145,7 +146,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider).value;
     final lang = ref.watch(settingsProvider).language;
-    final bool _isFavorite = user?.favoriteHuecas.contains(_currentHueca.id) ?? false;
+    final bool isFavorite = user?.favoriteHuecas.contains(_currentHueca.id) ?? false;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -163,14 +164,14 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         ),
         actions: [
                       IconButton(
-              icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
-              color: _isFavorite ? Colors.red : AppTheme.secondary,
+              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+              color: isFavorite ? Colors.red : AppTheme.secondary,
               onPressed: () async {
                 if (!AuthUtils.checkAuthAndPrompt(context)) return;
                 await ref.read(userRepositoryProvider).toggleFavorite(_currentHueca.id);
                 ref.invalidate(currentUserProvider);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(!_isFavorite ? 'Añadido a favoritos' : 'Eliminado de favoritos'), duration: const Duration(seconds: 1)));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(!isFavorite ? (lang == 'es' ? 'Añadido a favoritos' : 'Added to favorites') : (lang == 'es' ? 'Eliminado de favoritos' : 'Removed from favorites')), duration: const Duration(seconds: 1)));
                 }
               },
             ),
@@ -226,7 +227,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${_currentHueca.name}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(_currentHueca.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   Text(lang == 'es' ? 'Tradición Quiteña' : 'Quito Tradition', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
                   SizedBox(height: 12),
                   Row(
@@ -444,12 +445,12 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return const Text('Error al cargar reseñas.');
+                    return Text(lang == 'es' ? 'Error al cargar reseñas.' : 'Error loading reviews.');
                   }
                   
                   final allReviews = snapshot.data ?? [];
                   if (allReviews.isEmpty) {
-                    return const Text('Sé el primero en dejar una opinión sobre este local.', style: TextStyle(color: AppTheme.textMedium));
+                    return Text(lang == 'es' ? 'Sé el primero en dejar una opinión sobre este local.' : 'Be the first to leave a review for this spot.', style: TextStyle(color: AppTheme.textMedium));
                   }
                   
                   final goodReviews = allReviews.where((r) => r.rating >= 4).toList();
@@ -477,10 +478,11 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
   }
 
   void _openMapsSheet(BuildContext context) async {
+    final lang = ref.read(settingsProvider).language;
     final availableMaps = await MapLauncher.installedMaps;
     if (!context.mounted) return;
     if (availableMaps.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No hay mapas instalados')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(lang == 'es' ? 'No hay mapas instalados' : 'No maps installed')));
       return;
     }
     showModalBottomSheet(
@@ -494,7 +496,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               children: [
                 Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Text('Abrir ubicación con', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  child: Text(lang == 'es' ? 'Abrir ubicación con' : 'Open location with', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
                 Wrap(
                   children: <Widget>[
@@ -502,7 +504,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       ListTile(
                         onTap: () => map.showMarker(
                           coords: Coords(_currentHueca.location.latitude, _currentHueca.location.longitude),
-                          title: "${_currentHueca.name}",
+                          title: _currentHueca.name,
                           description: _currentHueca.address,
                         ),
                         title: Text(map.mapName),

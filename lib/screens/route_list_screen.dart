@@ -36,24 +36,24 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.restaurant, color: AppTheme.primary, size: 24),
-                const SizedBox(width: 8),
+                Icon(Icons.restaurant, color: AppTheme.primary, size: 24),
+                SizedBox(width: 8),
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
-                const Spacer(),
+                Spacer(),
                 // Sector Filter Dropdown
                 if (_selectedTab == 0)
                   huecasAsync.when(
                     data: (huecasList) {
-                      final sectors = ['Todos']..addAll(huecasList.map((h) => h.sector).toSet().toList()..sort());
+                      final sectors = [lang == 'es' ? 'Todos' : 'All', ...huecasList.map((h) => h.sector).toSet().toList()..sort()];
                       return Container(
                         height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(20)),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSector,
-                            icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold),
+                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
+                            style: TextStyle(fontSize: 12, color: AppTheme.textDark, fontWeight: FontWeight.bold),
                             onChanged: (String? newValue) {
                               if (newValue != null) setState(() => _selectedSector = newValue);
                             },
@@ -62,8 +62,8 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                                 value: value,
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
-                                    const SizedBox(width: 4),
+                                    Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
+                                    SizedBox(width: 4),
                                     Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
                                   ],
                                 ),
@@ -73,14 +73,14 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         ),
                       );
                     },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_,__) => const SizedBox.shrink(),
+                    loading: () => SizedBox.shrink(),
+                    error: (_,__) => SizedBox.shrink(),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(lang == 'es' ? 'Circuitos Gastronómicos' : 'Gastronomic Tours', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
-            Text(lang == 'es' ? 'Recorridos a pie curados para saborear Quito' : 'Curated walking tours to savor Quito', style: const TextStyle(fontSize: 12, color: AppTheme.textMedium)),
+            SizedBox(height: 16),
+            Text(lang == 'es' ? 'Circuitos Gastronómicos' : 'Gastronomic Tours', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+            Text(lang == 'es' ? 'Recorridos a pie curados para saborear Quito' : 'Curated walking tours to savor Quito', style: TextStyle(fontSize: 12, color: AppTheme.textMedium)),
           ],
         ),
       ),
@@ -88,9 +88,9 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
         children: [
           // Toggle Segmented Control
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(25),
@@ -101,7 +101,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedTab = 0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: _selectedTab == 0 ? Colors.white : Colors.transparent,
                           borderRadius: BorderRadius.circular(25),
@@ -111,8 +111,8 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.list, size: 18, color: _selectedTab == 0 ? AppTheme.primary : AppTheme.textMedium),
-                            const SizedBox(width: 8),
-                            Text('Lista de circuitos', style: TextStyle(
+                            SizedBox(width: 8),
+                            Text(lang == 'es' ? 'Lista de circuitos' : 'Tour List', style: TextStyle(
                               color: _selectedTab == 0 ? AppTheme.textDark : AppTheme.textMedium,
                               fontWeight: FontWeight.bold,
                               fontSize: 13
@@ -126,7 +126,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedTab = 1),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: _selectedTab == 1 ? Colors.white : Colors.transparent,
                           borderRadius: BorderRadius.circular(25),
@@ -136,8 +136,8 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.map_outlined, size: 18, color: _selectedTab == 1 ? AppTheme.primary : AppTheme.textMedium),
-                            const SizedBox(width: 8),
-                            Text('Mapa interactivo', style: TextStyle(
+                            SizedBox(width: 8),
+                            Text(lang == 'es' ? 'Mapa interactivo' : 'Interactive Map', style: TextStyle(
                               color: _selectedTab == 1 ? AppTheme.textDark : AppTheme.textMedium,
                               fontWeight: FontWeight.bold,
                               fontSize: 13
@@ -176,7 +176,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                           }
 
                           return ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 100),
+                            padding: EdgeInsets.only(bottom: 100),
                             itemCount: filteredRoutes.length + 1, // +1 for the footer
                             itemBuilder: (context, index) {
                               if (index == filteredRoutes.length) {
@@ -188,14 +188,14 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                             },
                           );
                         },
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (e,s) => const Center(child: Text('Error cargando huecas')),
+                        loading: () => Center(child: CircularProgressIndicator()),
+                        error: (e,s) => Center(child: Text('Error cargando huecas')),
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () => Center(child: CircularProgressIndicator()),
                     error: (err, stack) => Center(child: Text('Error: $err')),
                   )
-                : const RouteMapScreen(), // Display Map Screen here!
+                : RouteMapScreen(), // Display Map Screen here!
           ),
         ],
       ),
@@ -203,9 +203,10 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
   }
 
   Widget _buildFooter() {
+    final lang = ref.watch(settingsProvider).language;
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.secondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
@@ -214,18 +215,18 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.2), shape: BoxShape.circle),
-            child: const Icon(Icons.explore, color: AppTheme.secondary, size: 20),
+            child: Icon(Icons.explore, color: AppTheme.secondary, size: 20),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
+          SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('¿Prefieres explorar libremente sin ruta fija?', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                Text(lang == 'es' ? '¿Prefieres explorar libremente sin ruta fija?' : 'Prefer exploring freely without a fixed route?', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark)),
                 SizedBox(height: 4),
-                Text('Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                Text(lang == 'es' ? 'Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.' : 'Tap "Interactive Map" above or filter to see all spots directly on the map by sector.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
               ],
             ),
           )
@@ -236,11 +237,11 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
 
   Widget _buildRouteCard(BuildContext context, RouteModel route, String lang, List<Hueca> huecasList, bool isFeatured) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,48 +250,48 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 child: Image.network(route.bannerImageUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
               ),
               Container(
                 height: 180,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.7), Colors.transparent]),
                 ),
               ),
               Positioned(
                 top: 16, left: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(12)),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.stars, color: Colors.white, size: 12),
                       SizedBox(width: 4),
-                      Text('Circuito Popular', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text(lang == 'es' ? 'Circuito Popular' : 'Popular Tour', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ),
               Positioned(
                 bottom: 16, left: 16, right: 16,
-                child: Text(route.name[lang] ?? route.name['es'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.1)),
+                child: Text(route.name[lang] ?? route.name['es'] ?? '', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.1)),
               )
             ],
           ),
           
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: const TextStyle(color: AppTheme.textMedium, fontSize: 13, height: 1.4)),
-                  const SizedBox(height: 16),
+                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: TextStyle(color: AppTheme.textMedium, fontSize: 13, height: 1.4)),
+                  SizedBox(height: 16),
                   
                   // Metrics Box
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(16)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -301,10 +302,10 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   
-                  const Text('PARADAS DEL RECORRIDO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-                  const SizedBox(height: 16),
+                  Text(lang == 'es' ? 'PARADAS DEL RECORRIDO' : 'TOUR STOPS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                  SizedBox(height: 16),
                   
                   // Timeline (Inlined)
                   ...route.stops.map((stop) {
@@ -318,33 +319,33 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                             children: [
                               Container(
                                 width: 24, height: 24,
-                                decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-                                child: Center(child: Text('${stop['order']}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
+                                decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                                child: Center(child: Text('${stop['order']}', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
                               ),
                               if (!isLast) Expanded(child: Container(width: 2, color: AppTheme.primary.withOpacity(0.3))),
                             ],
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
+                              padding: EdgeInsets.only(bottom: 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Expanded(child: Text(hueca.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                      Text(hueca.sector, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                      Expanded(child: Text(hueca.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                                      Text(hueca.sector, style: TextStyle(fontSize: 10, color: Colors.grey)),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   RichText(
                                     text: TextSpan(
-                                      style: const TextStyle(fontSize: 12, color: AppTheme.textDark),
+                                      style: TextStyle(fontSize: 12, color: AppTheme.textDark),
                                       children: [
-                                        const TextSpan(text: 'Especialidad: ', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                        TextSpan(text: hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'], style: const TextStyle(color: AppTheme.textMedium)),
+                                        TextSpan(text: 'Especialidad: ', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                        TextSpan(text: hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'], style: TextStyle(color: AppTheme.textMedium)),
                                       ]
                                     ),
                                   )
@@ -357,24 +358,24 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                     );
                   }),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => context.push('/route_detail', extra: route),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppTheme.primary),
+                            side: BorderSide(color: AppTheme.primary),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(vertical: 12),
                           ),
-                          child: const Text('Ver Tour', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                          child: Text(lang == 'es' ? 'Ver Tour' : 'View Tour', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: const EdgeInsets.symmetric(vertical: 12)),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: EdgeInsets.symmetric(vertical: 12)),
                           onPressed: () {
                             // Find all huecas for this route
                             final List<Hueca> routeStops = [];
@@ -384,12 +385,12 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                             }
                             context.push('/route_navigation', extra: {'route': route, 'stops': routeStops});
                           },
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.navigation, size: 16, color: Colors.white),
                               SizedBox(width: 4),
-                              Text('Iniciar Ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                              Text(lang == 'es' ? 'Iniciar Ruta' : 'Start Route', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
                             ],
                           ),
                         ),
@@ -408,9 +409,9 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
     return Column(
       children: [
         Icon(icon, color: AppTheme.primary, size: 20),
-        const SizedBox(height: 4),
-        Text(val, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        SizedBox(height: 4),
+        Text(val, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey)),
       ],
     );
   }

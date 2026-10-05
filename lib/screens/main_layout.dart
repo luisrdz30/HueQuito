@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:hue_quito/theme/theme.dart';
-import 'package:hue_quito/utils/auth_utils.dart';
 
 class MainLayout extends StatelessWidget {
   final StatefulNavigationShell navigationShell;

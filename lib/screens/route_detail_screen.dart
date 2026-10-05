@@ -59,7 +59,9 @@ class RouteDetailScreen extends ConsumerWidget {
                         final h = huecasList.where((h) => h.id == stop['huecaId']).firstOrNull;
                         if (h != null) huecaNames.add(h.name);
                       }
-                      final text = '¡Acompáñame a este tour por $sector!\nLas huecas que visitaríamos son:\n- ${huecaNames.join('\n- ')}\n\n¡Descarga HueQuito y vamos!';
+                      final text = lang == 'es' 
+                          ? '¡Acompáñame a este tour por $sector!\nLas huecas que visitaríamos son:\n- ${huecaNames.join('\n- ')}\n\n¡Descarga HueQuito y vamos!'
+                          : 'Join me on this tour around $sector!\nThe spots we will visit are:\n- ${huecaNames.join('\n- ')}\n\nDownload HueQuito and let\'s go!';
                       Share.share(text);
                     },
                   ),
@@ -196,17 +198,14 @@ class RouteDetailScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                route.recommendedSchedule is Map 
-                                    ? (lang == 'es' ? 'Horario recomendado: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['es'] ?? ''}' : 'Recommended schedule: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['en'] ?? ''}')
-                                    : 'Horario recomendado: ${route.recommendedSchedule.toString()}',
+                                (lang == 'es' ? 'Horario recomendado: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['es'] ?? ''}' : 'Recommended schedule: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['en'] ?? ''}'),
                                 style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondary),
                               ),
                               const SizedBox(height: 4),
-                              if (route.recommendedSchedule is Map)
-                                Text(
-                                  route.recommendedSchedule['note']?[lang] ?? route.recommendedSchedule['note']?['es'] ?? '',
-                                  style: const TextStyle(color: AppTheme.textMedium, fontSize: 13),
-                                ),
+                              Text(
+                                route.recommendedSchedule['note']?[lang] ?? route.recommendedSchedule['note']?['es'] ?? '',
+                                style: const TextStyle(color: AppTheme.textMedium, fontSize: 13),
+                              ),
                             ],
                           ),
                         ),
@@ -389,9 +388,9 @@ class RouteDetailScreen extends ConsumerWidget {
                                                   onPressed: () {
                                                     context.push('/hueca_detail', extra: hueca);
                                                   },
-                                                  icon: const Text(
-                                                    'Ver Hueca',
-                                                    style: TextStyle(fontSize: 12),
+                                                  icon: Text(
+                                                    lang == 'es' ? 'Ver Hueca' : 'View Hueca',
+                                                    style: const TextStyle(fontSize: 12),
                                                   ),
                                                   label: const Icon(Icons.chevron_right, size: 16),
                                                   style: TextButton.styleFrom(

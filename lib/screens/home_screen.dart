@@ -1,11 +1,8 @@
-import 'package:hue_quito/utils/seed_data.dart' as seed;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/utils/auth_utils.dart';
-import 'package:hue_quito/repositories/user_repository.dart';
-import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
 
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
@@ -22,7 +19,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _selectedLocation = 'Todo Quito';
   String _selectedFilter = '🍲 Todos';
-  String _selectedSort = 'Más cerca (km)';
+  final String _selectedSort = 'Más cerca (km)';
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +27,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    List<String> _locations = lang == 'es' ? ['Todo Quito'] : ['All Quito'];
-    List<String> _filters = lang == 'es' ? ['🍽️ Todos'] : ['🍽️ All'];
+    List<String> locations = lang == 'es' ? ['Todo Quito'] : ['All Quito'];
+    List<String> filters = lang == 'es' ? ['🍽️ Todos'] : ['🍽️ All'];
 
     if (huecasAsync.value != null && huecasAsync.value!.isNotEmpty) {
       final huecas = huecasAsync.value!;
       final baseLoc = huecas.map((h) => h.sector).toSet().where((s) => s.isNotEmpty).toList();
-      _locations.addAll(baseLoc);
+      locations.addAll(baseLoc);
       
       Map<String, int> tagCounts = {};
       for (var h in huecas) {
@@ -48,31 +45,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       for (var tag in topTags) {
          String emoji = '🏷️';
          String tLower = tag.toLowerCase();
-         if (tLower.contains('sopa') || tLower.contains('caldo')) emoji = '🍲';
-         else if (tLower.contains('plato') || tLower.contains('carne') || tLower.contains('cerdo') || tLower.contains('marisco') || tLower.contains('pescado')) emoji = '🍛';
+         if (tLower.contains('sopa') || tLower.contains('caldo')) {
+           emoji = '🍲';
+         } else if (tLower.contains('plato') || tLower.contains('carne') || tLower.contains('cerdo') || tLower.contains('marisco') || tLower.contains('pescado')) emoji = '🍛';
          else if (tLower.contains('tradici') || tLower.contains('mercado')) emoji = '⭐';
          else if (tLower.contains('dulce') || tLower.contains('postre')) emoji = '🍰';
          else if (tLower.contains('snack') || tLower.contains('frito') || tLower.contains('empanada')) emoji = '🥟';
          
          String translatedTag = tag;
          if (lang == 'en') {
-           if (tLower == 'platos fuertes') translatedTag = 'Main Dishes';
-           else if (tLower == 'sopas') translatedTag = 'Soups';
+           if (tLower == 'platos fuertes') {
+             translatedTag = 'Main Dishes';
+           } else if (tLower == 'sopas') translatedTag = 'Soups';
            else if (tLower == 'tradición' || tLower == 'tradicional') translatedTag = 'Tradition';
            else if (tLower == 'dulces') translatedTag = 'Sweets';
          }
-         _filters.add('$emoji $translatedTag');
+         filters.add('$emoji $translatedTag');
       }
     } else {
-      _locations = lang == 'es' ? ['Todo Quito', 'Centro Histórico', 'La Floresta', 'Conocoto'] : ['All Quito', 'Historic Center', 'La Floresta', 'Conocoto'];
-      _filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
+      locations = lang == 'es' ? ['Todo Quito', 'Centro Histórico', 'La Floresta', 'Conocoto'] : ['All Quito', 'Historic Center', 'La Floresta', 'Conocoto'];
+      filters = lang == 'es' ? ['🍽️ Todos', '🍲 Sopas', '🍛 Platos Fuertes', '⭐ Tradición', '🍰 Dulces'] : ['🍽️ All', '🍲 Soups', '🍛 Main Dishes', '⭐ Tradition', '🍰 Sweets'];
     }
 
-    if (!_locations.contains(_selectedLocation)) {
-      _selectedLocation = _locations.first;
+    if (!locations.contains(_selectedLocation)) {
+      _selectedLocation = locations.first;
     }
-    if (!_filters.contains(_selectedFilter)) {
-      _selectedFilter = _filters.first;
+    if (!filters.contains(_selectedFilter)) {
+      _selectedFilter = filters.first;
     }
     
     return Scaffold(
@@ -107,7 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     setState(() { _selectedLocation = newValue; });
                   }
                 },
-                items: _locations.map<DropdownMenuItem<String>>((String value) {
+                items: locations.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
@@ -132,7 +131,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _filters.map((f) => _buildFilterChip(f, _selectedFilter == f)).toList(),
+                      children: filters.map((f) => _buildFilterChip(f, _selectedFilter == f)).toList(),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -150,8 +149,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 String uiTag = _selectedFilter.split(' ').skip(1).join(' ').toLowerCase();
                 String targetTag = uiTag;
                 if (lang == 'en') {
-                  if (uiTag == 'main dishes') targetTag = 'plato';
-                  else if (uiTag == 'soups') targetTag = 'sopa';
+                  if (uiTag == 'main dishes') {
+                    targetTag = 'plato';
+                  } else if (uiTag == 'soups') targetTag = 'sopa';
                   else if (uiTag == 'tradition') targetTag = 'tradici';
                   else if (uiTag == 'sweets') targetTag = 'dulce';
                   else if (uiTag == 'seafood') targetTag = 'marisco';
