@@ -176,14 +176,17 @@ class RouteDetailScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                lang == 'es' ? 'Horario recomendado: ${route.recommendedSchedule['time'][lang] ?? route.recommendedSchedule['time']['es']}' : 'Recommended schedule: ${route.recommendedSchedule['time'][lang] ?? route.recommendedSchedule['time']['en']}',
+                                route.recommendedSchedule is Map 
+                                    ? (lang == 'es' ? 'Horario recomendado: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['es'] ?? ''}' : 'Recommended schedule: ${route.recommendedSchedule['time']?[lang] ?? route.recommendedSchedule['time']?['en'] ?? ''}')
+                                    : 'Horario recomendado: ${route.recommendedSchedule.toString()}',
                                 style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.secondary),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                route.recommendedSchedule['note'][lang] ?? route.recommendedSchedule['note']['es'],
-                                style: const TextStyle(color: AppTheme.textMedium, fontSize: 13),
-                              ),
+                              if (route.recommendedSchedule is Map)
+                                Text(
+                                  route.recommendedSchedule['note']?[lang] ?? route.recommendedSchedule['note']?['es'] ?? '',
+                                  style: const TextStyle(color: AppTheme.textMedium, fontSize: 13),
+                                ),
                             ],
                           ),
                         ),

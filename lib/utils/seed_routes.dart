@@ -4,6 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 Future<void> seedRoutes(BuildContext context) async {
   final db = FirebaseFirestore.instance;
 
+  // Delete old routes first
+  final oldRoutes = await db.collection('routes').get();
+  for (var doc in oldRoutes.docs) {
+    await doc.reference.delete();
+  }
+
   // Fetch all huecas
   final huecasSnapshot = await db.collection('huecas').get();
   final huecas = huecasSnapshot.docs.map((d) => d.data()).toList();
@@ -49,7 +55,7 @@ Future<void> seedRoutes(BuildContext context) async {
     'Colonial Flavors Route',
     'Un recorrido sensorial a través de empedrados centenarios que serpentean desde los soportales de la Plaza de la Independencia, pasando por la mística plazoleta de San Francisco, hasta el corazón bullicioso de San Roque. Aquí la cocina conventual colonial abraza el fogón popular andino.',
     'A sensory journey through centuries-old cobblestones winding from the arcades of Independence Square, past the mystical San Francisco plaza, to the bustling heart of San Roque. Here, colonial convent cuisine embraces the popular Andean hearth.',
-    'https://quitotourbus.com/wp-content/uploads/2018/06/centro-historico-de-quito.jpg',
+    'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&q=80&w=800',
     ['Centro Histórico', 'Platos Típicos', 'Apto Familiar']
   );
 
@@ -58,31 +64,26 @@ Future<void> seedRoutes(BuildContext context) async {
     'Sendero del Hornado', 
     'Hornado Trail',
     'Descubre el valle de Conocoto a través de su plato estrella. Este circuito te lleva a degustar las recetas familiares mejor guardadas de cerdos horneados a fuego lento con leña de eucalipto.',
-    'Discover the Conocoto valley through its star dish. This circuit takes you to taste the best-kept family recipes of slow-roasted pork cooked with eucalyptus wood.',
-    'https://www.quitotravel.ec/wp-content/uploads/2021/04/Parque-Conocoto-768x512.jpg',
-    ['Conocoto', 'Carnes', 'Tradicional']
+    'Discover the Conocoto valley through its star dish. This circuit takes you to taste the best-kept family recipes of slow-roasted pork with eucalyptus wood.',
+    'https://images.unsplash.com/photo-1544025162-836e2978ff8a?auto=format&fit=crop&q=80&w=800',
+    ['Tradicional', 'Carnes', 'Fines de semana']
   );
 
   createRoute(
     'La Floresta', 
     'Bohemia y Sabor', 
-    'Bohemia and Flavor',
-    'La Floresta no es solo arte y cultura; también es la cuna de innovadores platillos ecuatorianos y huecas tradicionales que se reinventan entre murales y galerías.',
-    'La Floresta is not just art and culture; it is also the cradle of innovative Ecuadorian dishes and traditional huecas that reinvent themselves among murals and galleries.',
-    'https://www.ecuadorecoadventure.com/wp-content/uploads/2019/04/floresta-quito.jpg',
-    ['La Floresta', 'Urbano', 'Arte']
+    'Bohemian Flavor',
+    'La Floresta no es solo arte y cultura; también es la cuna de innovadores platillos ecuatorianos y fusiones únicas. Recorre las calles llenas de murales mientras pruebas la esencia gastronómica moderna.',
+    'La Floresta is not only art and culture; it is also the cradle of innovative Ecuadorian dishes and unique fusions. Walk the mural-filled streets while tasting the modern gastronomic essence.',
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800',
+    ['Urbano', 'Arte', 'Fusiones']
   );
 
-  // Clear existing routes
-  final existing = await db.collection('routes').get();
-  for (var doc in existing.docs) {
-    await doc.reference.delete();
-  }
-
-  // Insert new ones
   for (var r in routes) {
     await db.collection('routes').add(r);
   }
 
-  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Routes seeded!')));
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('3 Rutas Creadas! (Anteriores borradas)')));
+  }
 }

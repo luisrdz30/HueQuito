@@ -284,7 +284,6 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isFeatured) ...[
                   Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: const TextStyle(color: AppTheme.textMedium, fontSize: 13, height: 1.4)),
                   const SizedBox(height: 16),
                   
@@ -396,66 +395,6 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                       ),
                     ],
                   ),
-                ] else ...[
-                  // Compact View
-                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: const TextStyle(color: AppTheme.textMedium, fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.straighten, size: 14, color: AppTheme.primary), const SizedBox(width: 4),
-                      Text(route.metrics['distance'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.schedule, size: 14, color: AppTheme.primary), const SizedBox(width: 4),
-                      Text(route.metrics['estimatedTime'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.storefront, size: 14, color: AppTheme.primary), const SizedBox(width: 4),
-                      Text('${route.stops.length} huecas', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(16)),
-                    child: Column(
-                      children: route.stops.take(2).map((stop) {
-                        final hueca = huecasList.firstWhere((h) => h.id == stop['huecaId'], orElse: () => huecasList.first);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 16, height: 16,
-                                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                child: Center(child: Text('${stop['order']}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text('${hueca.name} • ${hueca.mainDish['name']['es']}', style: const TextStyle(fontSize: 11, color: AppTheme.textDark), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 40,
-                    child: TextButton(
-                      style: TextButton.styleFrom(backgroundColor: Colors.grey[100], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                      onPressed: () => context.push('/route_detail', extra: route),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Ver circuito completo', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 12)),
-                          SizedBox(width: 4),
-                          Icon(Icons.arrow_forward, size: 14, color: AppTheme.textDark),
-                        ],
-                      ),
-                    ),
-                  ),
-                ]
               ],
             ),
           )
