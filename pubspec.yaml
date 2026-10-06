@@ -57,6 +57,7 @@ dependencies:
   google_sign_in: 6.2.1
   intl_phone_field: ^3.2.0
   image_picker: ^1.2.3
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:

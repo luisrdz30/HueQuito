@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import os
+
+filepath = 'lib/screens/preferences_screen.dart'
+new_code = """import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:confetti/confetti.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
-import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/providers/user_provider.dart';
 import 'package:hue_quito/models/gastronomic_profile.dart';
 
 class PreferencesScreen extends ConsumerStatefulWidget {
@@ -70,9 +73,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     if (user != null) {
       Map<String, dynamic> newPrefs = Map.from(user.preferences);
       newPrefs['persona'] = winningId;
-      ref.read(userRepositoryProvider).updatePreferences(newPrefs).then((_) {
-         ref.invalidate(currentUserProvider);
-      });
+      ref.read(currentUserProvider.notifier).updateUser(user.copyWith(preferences: newPrefs));
     }
     
     _confettiController.play();
@@ -315,7 +316,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(isEs ? '¡Genial, vamos a explorar!' : 'Awesome, let\'s explore!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(isEs ? '¡Genial, vamos a explorar!' : 'Awesome, let\\'s explore!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
@@ -345,3 +346,7 @@ class _Option {
 
   _Option(this.textEs, this.textEn, this.profileId, this.emoji);
 }
+"""
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(new_code)
