@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hue_quito/theme/map_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hue_quito/theme/map_style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/theme/theme.dart';

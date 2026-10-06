@@ -9,7 +9,6 @@ import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
-import 'package:hue_quito/utils/seed_routes.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -192,9 +191,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Column(children: [Icon(Icons.storefront, color: AppTheme.primary), Text('$visitedHuecas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Huecas', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [Icon(Icons.bookmark, color: AppTheme.secondary), Text('$favoriteCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Favoritos', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [Icon(Icons.redeem, color: AppTheme.secondary), Text('$rewardsCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Premios', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.storefront, color: AppTheme.primary), Text('$visitedHuecas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text(ref.watch(settingsProvider).language == 'es' ? 'Huecas' : 'Spots', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.bookmark, color: AppTheme.secondary), Text('$favoriteCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text(ref.watch(settingsProvider).language == 'es' ? 'Favoritos' : 'Favorites', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.redeem, color: AppTheme.secondary), Text('$rewardsCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text(ref.watch(settingsProvider).language == 'es' ? 'Premios' : 'Rewards', style: TextStyle(fontSize: 10, color: Colors.grey))]),
                       ],
                     )
                   ],
@@ -407,8 +406,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ref.invalidate(currentUserProvider);
                       if (context.mounted) context.go('/login');
                     }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.logout), SizedBox(width: 8), Text(lang['logout']!)]))),
-                    SizedBox(height: 16),
-                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => seedRoutes(context), child: Text('Seed 3 Routes (Dev)'))),
+                    
                     SizedBox(height: 16),
                     Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
                   ],

@@ -6,7 +6,7 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 
 class AlbumScreen extends ConsumerStatefulWidget {
-  AlbumScreen({super.key});
+  const AlbumScreen({super.key});
 
   @override
   ConsumerState<AlbumScreen> createState() => _AlbumScreenState();
@@ -214,7 +214,7 @@ Start exploring!',
     );
   }
 
-  Widget _buildHuecaCard(lang: lang, {required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
+  Widget _buildHuecaCard(lang = lang, {required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
     bool isCompleted = currentStamps >= targetStamps;
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -302,7 +302,7 @@ Start exploring!',
     );
   }
 
-  Widget _buildSectorCard(lang: lang, {required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
+  Widget _buildSectorCard(lang = lang, {required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
     double progress = stickersCount / totalStickers;
     
     return Container(
