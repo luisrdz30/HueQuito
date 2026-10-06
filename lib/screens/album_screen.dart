@@ -80,7 +80,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(displayUser.name, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text(displayUser.gamification['title'] ?? 'Novato', style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
+                          Text(displayUser.gamification['title'] ?? (lang == 'es' ? 'Novato' : 'Rookie'), style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
                           SizedBox(height: 8),
                           Row(
                             children: [
@@ -112,7 +112,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                             boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
-                            child: Text('Cartillas por Hueca', style: TextStyle(
+                            child: Text(lang == 'es' ? 'Cartillas por Hueca' : 'Cards by Spot', style: TextStyle(
                               color: _selectedTab == 0 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
@@ -132,7 +132,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                             boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
-                            child: Text('Cromos por Sector', style: TextStyle(
+                            child: Text(lang == 'es' ? 'Cromos por Sector' : 'Stickers by Sector', style: TextStyle(
                               color: _selectedTab == 1 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
@@ -209,7 +209,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         );
       },
       loading: () => Center(child: CircularProgressIndicator()),
-      error: (e, s) => Center(child: Text('Error cargando cartillas')),
+      error: (e, s) => Center(child: Text(lang == 'es' ? 'Error cargando cartillas' : 'Error loading cards')),
     );
   }
 
