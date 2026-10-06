@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hue_quito/providers/auth_provider.dart';
 import '../repositories/hueca_repository.dart';
 import '../repositories/route_repository.dart';
 import '../repositories/user_repository.dart';
@@ -28,6 +29,8 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 });
 
 final currentUserProvider = FutureProvider<UserModel?>((ref) async {
+  // Watch authState so when login/logout happens, this provider rebuilds.
+  ref.watch(authStateProvider);
   final repository = ref.watch(userRepositoryProvider);
   return await repository.getCurrentUser();
 });

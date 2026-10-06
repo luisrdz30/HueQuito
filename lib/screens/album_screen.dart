@@ -1,3 +1,4 @@
+import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:flutter/material.dart';
@@ -176,10 +177,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             padding: EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               lang == 'es' 
-                ? 'Aún no tienes sellos en ninguna hueca.
-¡Empieza a explorar!'
-                : 'You have no stamps yet.
-Start exploring!',
+                ? 'Aún no tienes sellos en ninguna hueca.\\n¡Empieza a explorar!'
+                : 'You have no stamps yet.\\nStart exploring!',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textMedium, height: 1.5),
             ),
@@ -214,7 +213,7 @@ Start exploring!',
     );
   }
 
-  Widget _buildHuecaCard(lang = lang, {required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
+  Widget _buildHuecaCard({required String lang, required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
     bool isCompleted = currentStamps >= targetStamps;
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -302,7 +301,7 @@ Start exploring!',
     );
   }
 
-  Widget _buildSectorCard(lang = lang, {required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
+  Widget _buildSectorCard({required String lang, required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
     double progress = stickersCount / totalStickers;
     
     return Container(
