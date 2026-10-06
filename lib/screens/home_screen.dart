@@ -17,6 +17,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = \'\';
   String _selectedLocation = 'Todo Quito';
   String _selectedFilter = '🍲 Todos';
   final String _selectedSort = 'Más cerca (km)';
@@ -86,6 +88,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey[800] : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        setState(() { _searchQuery = val; });
+                      },
+                      decoration: InputDecoration(
+                        hintText: lang == 'es' ? 'Locales, platos y productos' : 'Places, dishes and products',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.search, color: AppTheme.textMedium),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  
+                  // Recomendaciones
+                  if (user != null && user.preferences.containsKey('persona'))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(lang == 'es' ? 'Nuestra recomendación para ti' : 'Recommended for you', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        SizedBox(height: 12),
+                        Builder(
+                          builder: (context) {
+                            String persona = user.preferences['persona'] ?? '';
+                            List<String> targetTags = [];
+                            if (persona == 'aventurero') targetTags = ['mercado', 'tradicional', 'tripa mishqui', 'guatita'];
+                            else if (persona == 'picador') targetTags = ['empanadas', 'snack', 'cafe', 'morocho'];
+                            else if (persona == 'carnivoro') targetTags = ['cerdo', 'hornado', 'fritada', 'asado', 'parrillada'];
+                            else if (persona == 'sopero') targetTags = ['sopa', 'caldo', 'locro', 'yahuarlocro', 'encebollado'];
+                            else if (persona == 'dulcero') targetTags = ['dulce', 'postre', 'helado', 'higos', 'pristiños'];
+                            else if (persona == 'callejero') targetTags = ['salchipapa', 'hamburguesa', 'pollo frito', 'comida rapida'];
+                            
+                            var recs = huecasAsync.value?.where((h) => 
+                              h.tags.any((t) => targetTags.any((tt) => t.toLowerCase().contains(tt)))
+                            ).toList() ?? [];
+                            
+                            if (recs.isEmpty) {
+                               recs = huecasAsync.value?.take(3).toList() ?? [];
+                            } else {
+                               recs.shuffle();
+                            }
+                            
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: recs.take(5).map((h) => SizedBox(width: 300, child: _buildHuecaCard(context, hueca: h, lang: lang, width: 280))).toList(),
+                              ),
+                            );
+                          }
+                        ),
+                        SizedBox(height: 24),
+                      ],
+                    ),
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
                 Text(lang == 'es' ? 'Explorar' : 'Explore', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
               ],
@@ -145,6 +208,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               if (_selectedLocation != 'Todo Quito' && _selectedLocation != 'All Quito') {
                 filtered = filtered.where((h) => h.sector.toLowerCase().contains(_selectedLocation.toLowerCase()) || h.address.toLowerCase().contains(_selectedLocation.toLowerCase())).toList();
               }
+              if (_searchQuery.isNotEmpty) {
+                filtered = filtered.where((h) => 
+                  h.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                  h.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                  h.tags.any((t) => t.toLowerCase().contains(_searchQuery.toLowerCase()))
+                ).toList();
+              }
+              
               if (!_selectedFilter.contains('Todos') && !_selectedFilter.contains('All')) {
                 String uiTag = _selectedFilter.split(' ').skip(1).join(' ').toLowerCase();
                 String targetTag = uiTag;
@@ -218,13 +289,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHuecaCard(BuildContext context, {required Hueca hueca, String lang = 'es'}) {
+  Widget _buildHuecaCard(BuildContext context, {required Hueca hueca, String lang = 'es', double? width}) {
     final user = ref.watch(currentUserProvider).value;
     final imageUrl = hueca.images.isNotEmpty ? hueca.images[0] : 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: width,
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
