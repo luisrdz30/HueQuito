@@ -158,7 +158,7 @@ class RouteDetailScreen extends ConsumerWidget {
                           }
                         }
                         return Chip(
-                          avatar: Icon(getIcon(tagData['icon']), size: 16, color: AppTheme.textMedium),
+                          avatar: Icon(getIcon(tagData['icon']), size: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                           label: Text(tagData['text']?[lang] ?? tagData['text']?['es'] ?? '', style: TextStyle(fontSize: 12)),
                           backgroundColor: Theme.of(context).cardColor,
                           side: BorderSide.none,
@@ -204,7 +204,7 @@ class RouteDetailScreen extends ConsumerWidget {
                               SizedBox(height: 4),
                               Text(
                                 route.recommendedSchedule['note']?[lang] ?? route.recommendedSchedule['note']?['es'] ?? '',
-                                style: TextStyle(color: AppTheme.textMedium, fontSize: 13),
+                                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 13),
                               ),
                             ],
                           ),
@@ -237,7 +237,7 @@ class RouteDetailScreen extends ConsumerWidget {
                         SizedBox(height: 8),
                         Text(
                           route.narrative[lang] ?? route.narrative['es'],
-                          style: TextStyle(color: AppTheme.textMedium, height: 1.5),
+                          style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
                         ),
                       ],
                     ),
@@ -376,11 +376,11 @@ class RouteDetailScreen extends ConsumerWidget {
                                               children: [
                                                 Row(
                                                   children: [
-                                                    Icon(Icons.schedule, size: 14, color: AppTheme.textMedium),
+                                                    Icon(Icons.schedule, size: 14, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                     SizedBox(width: 4),
                                                     Text(
                                                       hueca.schedule['monday'] ?? '',
-                                                      style: TextStyle(fontSize: 12, color: AppTheme.textMedium),
+                                                      style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                     ),
                                                   ],
                                                 ),
@@ -418,11 +418,11 @@ class RouteDetailScreen extends ConsumerWidget {
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.directions_walk, size: 14, color: AppTheme.textMedium),
+                                                Icon(Icons.directions_walk, size: 14, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                 SizedBox(width: 4),
                                                 Text(
                                                   '${stop['travelToNext']['duration']} (${stop['travelToNext']['distance']}) ${stop['travelToNext']['instruction'][lang] ?? stop['travelToNext']['instruction']['es']}',
-                                                  style: TextStyle(fontSize: 12, color: AppTheme.textMedium),
+                                                  style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                 ),
                                               ],
                                             ),
@@ -490,7 +490,7 @@ class RouteDetailScreen extends ConsumerWidget {
               child: Icon(icon, size: 16, color: AppTheme.primary),
             ),
             SizedBox(height: 8),
-            Text(label.toUpperCase(), style: TextStyle(fontSize: 10, color: AppTheme.textMedium, fontWeight: FontWeight.bold)),
+            Text(label.toUpperCase(), style: TextStyle(fontSize: 10, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontWeight: FontWeight.bold)),
             SizedBox(height: 2),
             Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ],

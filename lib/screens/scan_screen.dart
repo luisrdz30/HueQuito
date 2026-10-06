@@ -175,7 +175,7 @@ class _ScanScreenState extends State<ScanScreen> {
                           decoration: BoxDecoration(color: AppTheme.tertiary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                           child: Row(children: [Icon(Icons.circle, color: AppTheme.tertiary, size: 8), SizedBox(width: 4), Text('QR CONFIRMADO', style: TextStyle(color: AppTheme.tertiary, fontSize: 10, fontWeight: FontWeight.bold))]),
                         ),
-                        Row(children: [Icon(Icons.location_on, color: AppTheme.secondary, size: 12), SizedBox(width: 4), Text('GPS validado', style: TextStyle(color: AppTheme.textMedium, fontSize: 10))]),
+                        Row(children: [Icon(Icons.location_on, color: AppTheme.secondary, size: 12), SizedBox(width: 4), Text('GPS validado', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10))]),
                       ],
                     ),
                     SizedBox(height: 12),
@@ -191,7 +191,7 @@ class _ScanScreenState extends State<ScanScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Local ID: ${_scannedData!['business_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('Consumo registrado', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                                Text('Consumo registrado', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                               ],
                             ),
                           )
@@ -210,7 +210,7 @@ class _ScanScreenState extends State<ScanScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('+${_scannedData!['points']} Puntos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('Añadidos a tu Pasaporte Gastronómico', style: TextStyle(color: AppTheme.textMedium, fontSize: 10)),
+                                  Text('Añadidos a tu Pasaporte Gastronómico', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
                                 ],
                               ),
                             ),
@@ -227,7 +227,7 @@ class _ScanScreenState extends State<ScanScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('¡Has encontrado un cromo secreto!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('Cromo desbloqueado en el local', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                                Text('Cromo desbloqueado en el local', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                               ],
                             ),
                           )
@@ -246,7 +246,7 @@ class _ScanScreenState extends State<ScanScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Cromo: ${_scannedData!['cromo_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('Ve a la pestaña Álbum para verlo', style: TextStyle(color: AppTheme.textMedium, fontSize: 10)),
+                                  Text('Ve a la pestaña Álbum para verlo', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
                                 ],
                               ),
                             ),
@@ -269,7 +269,7 @@ class _ScanScreenState extends State<ScanScreen> {
                     SizedBox(height: 8),
                     GestureDetector(
                       onTap: _resetScanner,
-                      child: Center(child: Text('¿No es este puesto? Volver a enfocar', style: TextStyle(color: AppTheme.textMedium, fontSize: 12, decoration: TextDecoration.underline))),
+                      child: Center(child: Text('¿No es este puesto? Volver a enfocar', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12, decoration: TextDecoration.underline))),
                     ),
                   ],
                 ),

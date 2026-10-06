@@ -108,7 +108,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             children: [
               Text(
                 isEs ? 'Pregunta ${_currentPage + 1} de 4' : 'Question ${_currentPage + 1} of 4',
-                style: TextStyle(color: AppTheme.textMedium, fontWeight: FontWeight.bold),
+                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
               ClipRRect(
@@ -266,7 +266,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                 SizedBox(height: 8),
                 Text(
                   isEs ? 'Tu identidad gastronómica es:' : 'Your gastronomic identity is:',
-                  style: TextStyle(fontSize: 16, color: AppTheme.textMedium),
+                  style: TextStyle(fontSize: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                 ),
                 SizedBox(height: 24),
                 

@@ -236,15 +236,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                       Icon(Icons.star, color: Colors.amber, size: 16),
                                       SizedBox(width: 4),
                                       Text('${_selectedHueca!.rating}', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(' (${_selectedHueca!.reviewCount} reseñas)', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                                      Text(' (${_selectedHueca!.reviewCount} reseñas)', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                                     ],
                                   ),
                                   SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      Icon(Icons.location_on, color: AppTheme.textMedium, size: 14),
+                                      Icon(Icons.location_on, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), size: 14),
                                       SizedBox(width: 4),
-                                      Expanded(child: Text(_selectedHueca!.address, style: TextStyle(color: AppTheme.textMedium, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                      Expanded(child: Text(_selectedHueca!.address, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
                                     ],
                                   ),
                                 ],

@@ -50,7 +50,7 @@ class WelcomeScreen extends StatelessWidget {
                 'Listo para comenzar',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textMedium,
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                 ),
               ),
               Spacer(),

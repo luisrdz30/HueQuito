@@ -125,7 +125,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(lang['profile_title']!, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                Text(lang['profile_subtitle']!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
+                Text(lang['profile_subtitle']!, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
               ],
             )
           ],

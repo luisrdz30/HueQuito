@@ -15,7 +15,7 @@ class AuthUtils {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: AppTheme.textMedium)),
+              child: Text('Cancelar', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
             ),
             ElevatedButton(
               onPressed: () {

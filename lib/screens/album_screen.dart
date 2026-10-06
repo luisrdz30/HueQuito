@@ -34,7 +34,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                Text(lang == 'es' ? 'Mi Álbum' : 'My Album', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
+                Text(lang == 'es' ? 'Mi Álbum' : 'My Album', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
               ],
             )
           ],
@@ -113,7 +113,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           ),
                           child: Center(
                             child: Text('Cartillas por Hueca', style: TextStyle(
-                              color: _selectedTab == 0 ? AppTheme.primary : AppTheme.textMedium,
+                              color: _selectedTab == 0 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
                           ),
@@ -133,7 +133,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           ),
                           child: Center(
                             child: Text('Cromos por Sector', style: TextStyle(
-                              color: _selectedTab == 1 ? AppTheme.primary : AppTheme.textMedium,
+                              color: _selectedTab == 1 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
                           ),
@@ -180,7 +180,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 ? 'Aún no tienes sellos en ninguna hueca.\\n¡Empieza a explorar!'
                 : 'You have no stamps yet.\\nStart exploring!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textMedium, height: 1.5),
+              style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
             ),
           ),
         );
@@ -272,7 +272,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               SizedBox(width: 8),
               Text(
                 lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
-                style: TextStyle(color: AppTheme.textMedium, fontSize: 12),
+                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12),
               ),
             ],
           )
@@ -283,7 +283,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
 
   Widget _buildSectorList(List<dynamic> sectorAlbums, String lang) {
     if (sectorAlbums.isEmpty) {
-      return Center(child: Text(lang == 'es' ? 'Aún no tienes cromos por sector.' : 'No sector stickers yet.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textMedium)));
+      return Center(child: Text(lang == 'es' ? 'Aún no tienes cromos por sector.' : 'No sector stickers yet.', textAlign: TextAlign.center, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))));
     }
 
     return ListView.builder(
@@ -333,7 +333,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(lang == 'es' ? '$stickersCount de $totalStickers cromos' : '$stickersCount of $totalStickers stickers', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+              Text(lang == 'es' ? '$stickersCount de $totalStickers cromos' : '$stickersCount of $totalStickers stickers', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
               Text('${(progress * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ],
           ),

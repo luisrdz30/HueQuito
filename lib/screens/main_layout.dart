@@ -23,7 +23,7 @@ class MainLayout extends StatelessWidget {
     // Determine active color based on dark mode vs light mode context
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeColor = AppTheme.primary;
-    final inactiveColor = isDark ? Colors.white54 : AppTheme.textMedium.withValues(alpha: 0.5);
+    final inactiveColor = isDark ? Colors.white54 : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium).withValues(alpha: 0.5);
 
     return GestureDetector(
       onTap: () => _goBranch(context, index),

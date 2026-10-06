@@ -135,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   lang == 'es' ? 'Explorar' : 'Explore',
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium),
+                  ).textTheme.labelSmall?.copyWith(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                 ),
               ],
             ),
@@ -157,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 value: _selectedLocation,
                 icon: Icon(
                   Icons.keyboard_arrow_down,
-                  color: AppTheme.textMedium,
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                   size: 16,
                 ),
                 isDense: true,
@@ -214,7 +214,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         border: InputBorder.none,
                         prefixIcon: Icon(
                           Icons.search,
-                          color: AppTheme.textMedium,
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                         ),
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 20,
@@ -429,7 +429,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       lang == 'es'
                           ? 'No hay huecas con estos filtros.'
                           : 'No huecas match these filters.',
-                      style: TextStyle(color: AppTheme.textMedium),
+                      style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                     ),
                   ),
                 );
@@ -473,7 +473,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Text(
             text,
             style: TextStyle(
-              color: isSelected ? Colors.white : AppTheme.textMedium,
+              color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -674,7 +674,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             Text(
                               '(${hueca.reviewCount})',
                               style: TextStyle(
-                                color: AppTheme.textMedium,
+                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                                 fontSize: 10,
                               ),
                             ),
@@ -708,7 +708,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Text(
                         hueca.address,
                         style: TextStyle(
-                          color: AppTheme.textMedium,
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                           fontSize: 12,
                         ),
                         maxLines: 1,
@@ -744,7 +744,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ? 'PLATO INSIGNIA'
                                   : 'SIGNATURE DISH',
                               style: TextStyle(
-                                color: AppTheme.textMedium,
+                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -836,7 +836,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onPressed: () {
                           context.push('/hueca_detail', extra: hueca);
                         },
-                        style: ElevatedButton.styleFrom(elevation: 4),
+                        style: ElevatedButton.styleFrom(elevation: 4, backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

@@ -177,7 +177,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             ),
           IconButton(
             icon: Icon(Icons.share),
-            color: AppTheme.textMedium,
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
             onPressed: () {
               Share.share(lang == 'es' ? '¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nMira dónde queda aquí: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}' : 'Come visit ${_currentHueca.name} with me on Hue-Quito! 😋🥘\n\nSee where it is here: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}');
             },
@@ -238,7 +238,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                         child: Row(children: [Icon(Icons.star, color: AppTheme.primary, size: 16), SizedBox(width: 4), Text('4.8', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold))]),
                       ),
                       SizedBox(width: 8),
-                      Text('(124 reseñas)', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                      Text('(124 reseñas)', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                     ],
                   ),
                   SizedBox(height: 16),
@@ -250,7 +250,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       children: [
                         Expanded(child: Row(children: [Icon(Icons.near_me, color: AppTheme.primary, size: 16), SizedBox(width: 4), Expanded(child: Text(_currentHueca.sector, style: TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis))])),
                         SizedBox(width: 8),
-                        Text(_currentHueca.schedule[lang] ?? _currentHueca.schedule['es'] ?? '08:00 - 16:00', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                        Text(_currentHueca.schedule[lang] ?? _currentHueca.schedule['es'] ?? '08:00 - 16:00', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                       ],
                     ),
                   ),
@@ -329,7 +329,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               SizedBox(height: 16),
               Text(
                 _currentHueca.description[lang] ?? _currentHueca.description['es'] ?? 'Información no disponible.',
-                style: TextStyle(color: AppTheme.textMedium, height: 1.5),
+                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
               ),
             ],
           ),
@@ -344,7 +344,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               Row(children: [Icon(Icons.restaurant_menu, color: AppTheme.primary), SizedBox(width: 8), Text(lang == 'es' ? 'Menú' : 'Menu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
               SizedBox(height: 16),
               if (_currentHueca.menuItems.isEmpty)
-                Text(lang == 'es' ? 'Menú no disponible.' : 'Menu not available.', style: TextStyle(color: AppTheme.textMedium)),
+                Text(lang == 'es' ? 'Menú no disponible.' : 'Menu not available.', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
               ..._currentHueca.menuItems.map((item) {
                 final nameObj = item['name'];
                 final name = nameObj is Map ? (nameObj[lang] ?? nameObj['es'] ?? 'Plato') : (nameObj ?? 'Plato');
@@ -375,7 +375,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.map, color: AppTheme.textMedium),
+                  Icon(Icons.map, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                   SizedBox(width: 8),
                   Expanded(child: Text(_currentHueca.address, style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                 ],
@@ -406,7 +406,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.schedule, color: AppTheme.textMedium),
+                  Icon(Icons.schedule, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                   SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -432,7 +432,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang == 'es' ? 'Reseñas Quiteñas' : 'Reviews', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(lang == 'es' ? 'Calificación verificada por comensales' : 'Verified rating by diners', style: TextStyle(fontSize: 12, color: AppTheme.textMedium))])),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang == 'es' ? 'Reseñas Quiteñas' : 'Reviews', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(lang == 'es' ? 'Calificación verificada por comensales' : 'Verified rating by diners', style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)))])),
                   SizedBox(width: 8),
                   ElevatedButton(onPressed: () => _showReviewDialog(context), style: ElevatedButton.styleFrom(backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), foregroundColor: Theme.of(context).colorScheme.onSurface, elevation: 0), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.edit, size: 16, color: AppTheme.primary), SizedBox(width: 4), Text(lang == 'es' ? 'Opinar' : 'Review')])),
                 ],
@@ -450,7 +450,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                   
                   final allReviews = snapshot.data ?? [];
                   if (allReviews.isEmpty) {
-                    return Text(lang == 'es' ? 'Sé el primero en dejar una opinión sobre este local.' : 'Be the first to leave a review for this spot.', style: TextStyle(color: AppTheme.textMedium));
+                    return Text(lang == 'es' ? 'Sé el primero en dejar una opinión sobre este local.' : 'Be the first to leave a review for this spot.', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)));
                   }
                   
                   final goodReviews = allReviews.where((r) => r.rating >= 4).toList();
@@ -532,7 +532,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         margin: EdgeInsets.only(right: 8),
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(color: isActive ? AppTheme.tertiary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), borderRadius: BorderRadius.circular(20)),
-        child: Text(title, style: TextStyle(color: isActive ? Colors.white : AppTheme.textMedium, fontWeight: FontWeight.bold)),
+        child: Text(title, style: TextStyle(color: isActive ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -547,7 +547,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             children: [
               Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               SizedBox(height: 4),
-              Text(desc, style: TextStyle(color: AppTheme.textMedium, fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(desc, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
               SizedBox(height: 8),
               Text(price, style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 14)),
             ],
@@ -587,7 +587,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
           ),
           if (r.comment.isNotEmpty) ...[
             SizedBox(height: 8),
-            Text(r.comment, style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+            Text(r.comment, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
           ]
         ],
       ),

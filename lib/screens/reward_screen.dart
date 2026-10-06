@@ -77,7 +77,7 @@ class RewardScreen extends StatelessWidget {
                     '+ Medalla Coleccionable de Conocoto',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: AppTheme.textMedium,
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                       fontSize: 14,
                     ),
                   ),

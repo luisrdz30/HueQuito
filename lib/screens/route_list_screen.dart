@@ -55,7 +55,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSector,
-                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textMedium),
+                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                             onChanged: (String? newValue) {
                               if (newValue != null) setState(() => _selectedSector = newValue);
@@ -65,7 +65,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                                 value: value,
                                 child: Row(
                                   children: [
-                                    Icon(Icons.location_on, size: 14, color: AppTheme.textMedium),
+                                    Icon(Icons.location_on, size: 14, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                     SizedBox(width: 4),
                                     Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
                                   ],
@@ -83,7 +83,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             ),
             SizedBox(height: 16),
             Text(lang == 'es' ? 'Circuitos Gastronómicos' : 'Gastronomic Tours', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-            Text(lang == 'es' ? 'Recorridos para saborear Quito' : 'Tours to savor Quito', style: TextStyle(fontSize: 12, color: AppTheme.textMedium)),
+            Text(lang == 'es' ? 'Recorridos para saborear Quito' : 'Tours to savor Quito', style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
           ],
         ),
       ),
@@ -113,10 +113,10 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.list, size: 18, color: _selectedTab == 0 ? AppTheme.primary : AppTheme.textMedium),
+                            Icon(Icons.list, size: 18, color: _selectedTab == 0 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                             SizedBox(width: 8),
                             Text(lang == 'es' ? 'Lista de circuitos' : 'Tour List', style: TextStyle(
-                              color: _selectedTab == 0 ? Theme.of(context).colorScheme.onSurface : AppTheme.textMedium,
+                              color: _selectedTab == 0 ? Theme.of(context).colorScheme.onSurface : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                               fontSize: 13
                             )),
@@ -138,10 +138,10 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.map_outlined, size: 18, color: _selectedTab == 1 ? AppTheme.primary : AppTheme.textMedium),
+                            Icon(Icons.map_outlined, size: 18, color: _selectedTab == 1 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                             SizedBox(width: 8),
                             Text(lang == 'es' ? 'Mapa interactivo' : 'Interactive Map', style: TextStyle(
-                              color: _selectedTab == 1 ? Theme.of(context).colorScheme.onSurface : AppTheme.textMedium,
+                              color: _selectedTab == 1 ? Theme.of(context).colorScheme.onSurface : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                               fontSize: 13
                             )),
@@ -232,7 +232,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
               children: [
                 Text(lang == 'es' ? '¿Prefieres explorar libremente sin ruta fija?' : 'Prefer exploring freely without a fixed route?', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                 SizedBox(height: 4),
-                Text(lang == 'es' ? 'Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.' : 'Tap "Interactive Map" above or filter to see all spots directly on the map by sector.', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                Text(lang == 'es' ? 'Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.' : 'Tap "Interactive Map" above or filter to see all spots directly on the map by sector.', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
               ],
             ),
           )
@@ -292,7 +292,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: TextStyle(color: AppTheme.textMedium, fontSize: 13, height: 1.4)),
+                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 13, height: 1.4)),
                   SizedBox(height: 16),
                   
                   // Metrics Box
@@ -351,7 +351,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                                       style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
                                       children: [
                                         TextSpan(text: 'Especialidad: ', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                        TextSpan(text: hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'], style: TextStyle(color: AppTheme.textMedium)),
+                                        TextSpan(text: hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'], style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
                                       ]
                                     ),
                                   )

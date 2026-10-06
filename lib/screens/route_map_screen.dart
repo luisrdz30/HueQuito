@@ -277,7 +277,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                               ),
                               SizedBox(height: 4),
                               Text(_selectedHueca!.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text(_selectedHueca!.sector, style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+                              Text(_selectedHueca!.sector, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                             ],
                           ),
                         )

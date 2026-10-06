@@ -108,7 +108,7 @@ void _signInAnonymously() async {
               SizedBox(height: 8),
               Text(
                 'Descubre los mejores sabores de la capital',
-                style: TextStyle(fontSize: 16, color: AppTheme.textMedium),
+                style: TextStyle(fontSize: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 48),
@@ -163,7 +163,7 @@ void _signInAnonymously() async {
               Row(
                 children: [
                   Expanded(child: Divider()),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O', style: TextStyle(color: AppTheme.textMedium))),
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)))),
                   Expanded(child: Divider()),
                 ],
               ),
