@@ -6,7 +6,7 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 
 class AlbumScreen extends ConsumerStatefulWidget {
-  const AlbumScreen({super.key});
+  AlbumScreen({super.key});
 
   @override
   ConsumerState<AlbumScreen> createState() => _AlbumScreenState();
@@ -19,6 +19,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
     final huecasAsync = ref.watch(huecasProvider);
+    final lang = ref.watch(settingsProvider).language;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -32,7 +33,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                Text('Mi Álbum', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
+                Text(lang == 'es' ? 'Mi Álbum' : 'My Album', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppTheme.textMedium)),
               ],
             )
           ],
@@ -84,7 +85,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                             children: [
                               Icon(Icons.star, color: Colors.amber, size: 16),
                               SizedBox(width: 4),
-                              Text('$totalStamps Sellos Totales', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(lang == 'es' ? '$totalStamps Sellos Totales' : '$totalStamps Total Stamps', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ],
                           )
                         ],
@@ -147,8 +148,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               // Content List
               Expanded(
                 child: _selectedTab == 0
-                    ? _buildHuecasList(huecasAsync, displayUser, isGuest)
-                    : _buildSectorList(displayUser.sectorAlbums),
+                    ? _buildHuecasList(huecasAsync, displayUser, isGuest, lang)
+                    : _buildSectorList(displayUser.sectorAlbums, lang),
               ),
             ],
           );
@@ -159,10 +160,10 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildHuecasList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest) {
+  Widget _buildHuecasList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest, String lang) {
     return huecasAsync.when(
       data: (huecas) {
-        if (huecas.isEmpty) return Center(child: Text('No hay huecas disponibles'));
+        if (huecas.isEmpty) return Center(child: Text(lang == 'es' ? 'No hay huecas disponibles' : 'No huecas available'));
 
         var activeHuecas = huecas.where((Hueca h) {
           if (isGuest || user.gamification['huecaStamps'] == null) return false;
@@ -170,7 +171,20 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         }).toList();
 
         if (activeHuecas.isEmpty) {
-          return Center(child: Text('Aún no tienes sellos en ninguna hueca. ¡Empieza a explorar!'));
+          return Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              lang == 'es' 
+                ? 'Aún no tienes sellos en ninguna hueca.
+¡Empieza a explorar!'
+                : 'You have no stamps yet.
+Start exploring!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textMedium, height: 1.5),
+            ),
+          ),
+        );
         }
 
         return ListView.builder(
@@ -183,8 +197,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               currentStamps = user.gamification['huecaStamps'][hueca.id] ?? 0;
             }
             int targetStamps = hueca.loyaltyCard['targetStamps'] ?? 5;
-            String reward = hueca.loyaltyCard['reward'] ?? 'Recompensa sorpresa';
-            return _buildHuecaCard(
+            String reward = hueca.loyaltyCard['reward'] ?? lang == 'es' ? 'Recompensa sorpresa' : 'Surprise reward';
+            return _buildHuecaCard(lang: lang, 
               title: hueca.name,
               currentStamps: currentStamps,
               targetStamps: targetStamps,
@@ -200,7 +214,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildHuecaCard({required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
+  Widget _buildHuecaCard(lang: lang, {required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
     bool isCompleted = currentStamps >= targetStamps;
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -224,7 +238,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  isCompleted ? '¡Completado!' : '$currentStamps/$targetStamps Sellos',
+                  isCompleted ? (lang == 'es' ? '¡Completado!' : 'Completed!') : (lang == 'es' ? '$currentStamps/$targetStamps Sellos' : '$currentStamps/$targetStamps Stamps'),
                   style: TextStyle(color: isCompleted ? Colors.green[800] : AppTheme.secondary, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               )
@@ -258,7 +272,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
               SizedBox(width: 8),
               Text(
-                'Recompensa: $reward',
+                lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
                 style: TextStyle(color: AppTheme.textMedium, fontSize: 12),
               ),
             ],
@@ -268,9 +282,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildSectorList(List<dynamic> sectorAlbums) {
+  Widget _buildSectorList(List<dynamic> sectorAlbums, String lang) {
     if (sectorAlbums.isEmpty) {
-      return Center(child: Text('Aún no tienes cromos por sector.', style: TextStyle(color: AppTheme.textMedium)));
+      return Center(child: Text(lang == 'es' ? 'Aún no tienes cromos por sector.' : 'No sector stickers yet.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textMedium)));
     }
 
     return ListView.builder(
@@ -278,7 +292,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
       itemCount: sectorAlbums.length,
       itemBuilder: (context, index) {
         final album = sectorAlbums[index];
-        return _buildSectorCard(
+        return _buildSectorCard(lang: lang, 
           sectorName: album['sectorName'] ?? 'Sector',
           stickersCount: (album['foundStickers'] as List).length,
           totalStickers: 10, // hardcoded max for now
@@ -288,7 +302,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildSectorCard({required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
+  Widget _buildSectorCard(lang: lang, {required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
     double progress = stickersCount / totalStickers;
     
     return Container(
@@ -320,7 +334,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$stickersCount de $totalStickers cromos', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+              Text(lang == 'es' ? '$stickersCount de $totalStickers cromos' : '$stickersCount of $totalStickers stickers', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
               Text('${(progress * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ],
           ),
