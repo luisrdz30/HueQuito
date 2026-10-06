@@ -10,6 +10,7 @@ class UserModel {
   final Map<String, dynamic> preferences;
   final List<dynamic> sectorAlbums;
   final List<String> favoriteHuecas; // will populate later
+  final String role;
 
   UserModel({
     required this.uid,
@@ -20,6 +21,7 @@ class UserModel {
     required this.preferences,
     required this.sectorAlbums,
       this.favoriteHuecas = const [],
+      this.role = 'user',
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -28,6 +30,7 @@ class UserModel {
       uid: doc.id,
       name: data['name'] ?? 'Usuario',
       email: data['email'] ?? '',
+      role: data['role'] ?? 'user',
       profilePicUrl: data['profilePicUrl'] ?? 'https://via.placeholder.com/150',
       gamification: data['gamification'] ?? {'totalStamps': 0, 'level': 1, 'title': 'Novato'},
       preferences: data['preferences'] ?? {'favoriteDishes': [], 'dietaryRestrictions': []},
@@ -55,6 +58,7 @@ class UserRepository {
           'uid': user.uid,
           'name': user.displayName ?? 'Usuario',
           'email': user.email ?? '',
+          'role': 'user',
           'profilePicUrl': user.photoURL ?? 'https://ui-avatars.com/api/?name=${user.displayName ?? 'Usuario'}&background=random',
           'gamification': {'totalStamps': 0, 'level': 1, 'title': 'Novato'},
           'preferences': {'favoriteDishes': [], 'dietaryRestrictions': []},

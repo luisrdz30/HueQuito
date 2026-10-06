@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/auth_provider.dart';
+import 'package:hue_quito/providers/data_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +19,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isBusinessOwner = false;
   String? _errorMessage;
 
   void _signInWithEmail() async {
@@ -32,7 +35,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _isLoading = false;
     });
 
-    if (mounted) context.go('/home');
+
+    final userRepo = ref.read(userRepositoryProvider);
+    var userModel = await userRepo.getCurrentUser();
+
+    if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
+      await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
+      userModel = await userRepo.getCurrentUser();
+    }
+
+    if (mounted) {
+      if (userModel != null && userModel.role == 'business') {
+        context.go('/business/dashboard');
+      } else {
+        context.go('/home');
+      }
+    }
+
     }
   
   void _signInWithGoogle() async {
@@ -49,7 +68,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
-      if (mounted) context.go('/home');
+
+      final userRepo = ref.read(userRepositoryProvider);
+      var userModel = await userRepo.getCurrentUser();
+
+      if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
+        await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
+        userModel = await userRepo.getCurrentUser();
+      }
+
+      if (mounted) {
+        if (userModel != null && userModel.role == 'business') {
+          context.go('/business/dashboard');
+        } else {
+          context.go('/home');
+        }
+      }
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error Google: ${e.toString()}')));
@@ -72,7 +107,23 @@ void _signInAnonymously() async {
       _isLoading = false;
     });
 
-    if (mounted) context.go('/home');
+
+    final userRepo = ref.read(userRepositoryProvider);
+    var userModel = await userRepo.getCurrentUser();
+
+    if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
+      await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
+      userModel = await userRepo.getCurrentUser();
+    }
+
+    if (mounted) {
+      if (userModel != null && userModel.role == 'business') {
+        context.go('/business/dashboard');
+      } else {
+        context.go('/home');
+      }
+    }
+
     }
 
   @override
@@ -146,6 +197,18 @@ void _signInAnonymously() async {
                   onPressed: () {},
                   child: Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppTheme.secondary)),
                 ),
+              ),
+              SizedBox(height: 8),
+              CheckboxListTile(
+                title: Text('Ingresar como dueño de Hueca'),
+                value: _isBusinessOwner,
+                onChanged: (val) {
+                  setState(() {
+                    _isBusinessOwner = val ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: AppTheme.primary,
               ),
               SizedBox(height: 24),
               ElevatedButton(

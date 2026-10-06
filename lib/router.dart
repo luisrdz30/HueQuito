@@ -18,11 +18,39 @@ import 'package:hue_quito/screens/navigation_screen.dart';
 import 'package:hue_quito/screens/route_navigation_screen.dart';
 import 'package:hue_quito/screens/reward_screen.dart';
 import 'package:hue_quito/screens/main_layout.dart';
+import 'package:hue_quito/screens/business/business_layout.dart';
+import 'package:hue_quito/screens/business/dashboard_screen.dart';
+import 'package:hue_quito/screens/business/menu_management_screen.dart';
+import 'package:hue_quito/screens/business/qr_generator_screen.dart';
+import 'package:hue_quito/screens/business/profile_management_screen.dart';
+
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
       GoRoute(
         path: '/',
         builder: (context, state) => const WelcomeScreen(),
@@ -42,6 +70,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
               GoRoute(
                 path: '/home',
                 builder: (context, state) => const HomeScreen(),
@@ -51,6 +101,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
               GoRoute(
                 path: '/rutas', builder: (context, state) => const RouteListScreen(),
               ),
@@ -61,6 +133,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
               GoRoute(
                 path: '/scan',
                 builder: (context, state) => const ScanScreen(),
@@ -69,6 +163,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
               GoRoute(
                 path: '/album',
                 builder: (context, state) => const AlbumScreen(),
@@ -77,6 +193,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
+      ShellRoute(
+        builder: (context, state, child) => BusinessLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/business/dashboard',
+            builder: (context, state) => const BusinessDashboardScreen(),
+          ),
+          GoRoute(
+            path: '/business/menu',
+            builder: (context, state) => const BusinessMenuScreen(),
+          ),
+          GoRoute(
+            path: '/business/qr',
+            builder: (context, state) => const BusinessQrScreen(),
+          ),
+          GoRoute(
+            path: '/business/profile',
+            builder: (context, state) => const BusinessProfileScreen(),
+          ),
+        ],
+      ),
+
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
