@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import os
+
+filepath = 'lib/screens/preferences_screen.dart'
+new_code = """import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -169,3 +172,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     );
   }
 }
+"""
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(new_code)
