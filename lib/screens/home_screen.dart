@@ -18,7 +18,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = \'\';
+  String _searchQuery = '';
   String _selectedLocation = 'Todo Quito';
   String _selectedFilter = '🍲 Todos';
   final String _selectedSort = 'Más cerca (km)';
@@ -211,7 +211,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               if (_searchQuery.isNotEmpty) {
                 filtered = filtered.where((h) => 
                   h.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                  h.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                  (h.description[lang] ?? '').toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
                   h.tags.any((t) => t.toLowerCase().contains(_searchQuery.toLowerCase()))
                 ).toList();
               }
