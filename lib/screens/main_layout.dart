@@ -32,14 +32,14 @@ class MainLayout extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
+            duration: Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             padding: EdgeInsets.all(isActive ? 14 : 8),
             decoration: BoxDecoration(
               color: isActive ? activeColor : Colors.transparent,
               shape: BoxShape.circle,
               boxShadow: isActive ? [
-                BoxShadow(color: activeColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
+                BoxShadow(color: activeColor.withValues(alpha: 0.3), blurRadius: 10, offset: Offset(0, 4))
               ] : [],
             ),
             child: Icon(
@@ -48,7 +48,7 @@ class MainLayout extends StatelessWidget {
               size: isActive ? 26 : 24,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
@@ -67,15 +67,15 @@ class MainLayout extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        padding: EdgeInsets.only(top: 8, bottom: 24),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
-              offset: const Offset(0, -5),
+              offset: Offset(0, -5),
             ),
           ],
         ),

@@ -60,7 +60,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       });
 
       ref.invalidate(currentUserProvider);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto de perfil actualizada')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Foto de perfil actualizada')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al actualizar foto: ')));
     } finally {
@@ -78,7 +78,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           'name': _nameController.text.trim(),
         });
         ref.invalidate(currentUserProvider);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Perfil actualizado')));
         if (mounted) context.pop();
       }
     } catch (e) {
@@ -92,7 +92,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (email.isEmpty) return;
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Correo de recuperación enviado.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Correo de recuperación enviado.')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
@@ -102,14 +102,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar cuenta'),
-        content: const Text('¿Estás seguro de que deseas eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer y borrará todo tu progreso.'),
+        title: Text('Eliminar cuenta'),
+        content: Text('¿Estás seguro de que deseas eliminar tu cuenta de forma permanente? Esta acción no se puede deshacer y borrará todo tu progreso.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(context, true), 
-            child: const Text('Eliminar'),
+            child: Text('Eliminar'),
           ),
         ],
       )
@@ -132,11 +132,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final userAsync = ref.watch(currentUserProvider).value;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Perfil', style: TextStyle(color: AppTheme.primary)),
-        iconTheme: const IconThemeData(color: AppTheme.primary),
+        title: Text('Editar Perfil', style: TextStyle(color: AppTheme.primary)),
+        iconTheme: IconThemeData(color: AppTheme.primary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0),
         child: Column(
           children: [
             Center(
@@ -152,16 +152,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+                        child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
                       ),
                     )
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -169,7 +169,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             TextField(
               controller: _emailController,
               readOnly: true,
@@ -177,32 +177,32 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 labelText: 'Correo (No modificable)',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
-                fillColor: Colors.grey[200],
+                fillColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _updateProfile,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: _isLoading ? const CircularProgressIndicator() : const Text('Guardar Cambios'),
+                child: _isLoading ? CircularProgressIndicator() : Text('Guardar Cambios'),
               ),
             ),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
+            Divider(),
+            SizedBox(height: 24),
             ListTile(
-              leading: const Icon(Icons.lock_reset, color: AppTheme.primary),
-              title: const Text('Restablecer Contraseña'),
+              leading: Icon(Icons.lock_reset, color: AppTheme.primary),
+              title: Text('Restablecer Contraseña'),
               onTap: _resetPassword,
             ),
             ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.red)),
+              leading: Icon(Icons.delete_forever, color: Colors.red),
+              title: Text('Eliminar Cuenta', style: TextStyle(color: Colors.red)),
               onTap: _deleteAccount,
             ),
           ],

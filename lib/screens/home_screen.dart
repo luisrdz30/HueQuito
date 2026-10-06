@@ -81,8 +81,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Row(
           children: [
-            const Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
-            const SizedBox(width: 8),
+            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
+            SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -94,12 +94,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         actions: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(color: isDark ? Colors.grey[800] : Colors.grey[200], borderRadius: BorderRadius.circular(20)),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(color: isDark ? Colors.grey[800] : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), borderRadius: BorderRadius.circular(20)),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedLocation,
-                icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textMedium, size: 16),
+                icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.textMedium, size: 16),
                 isDense: true,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
@@ -109,32 +109,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 items: locations.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   );
                 }).toList(),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
         ],
       ),
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('¿Qué se te antoja hoy?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                  Text('¿Qué se te antoja hoy?', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 16),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: filters.map((f) => _buildFilterChip(f, _selectedFilter == f)).toList(),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -170,7 +170,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Center(
                     child: Text(
                       lang == 'es' ? 'No hay huecas con estos filtros.' : 'No huecas match these filters.',
-                      style: const TextStyle(color: AppTheme.textMedium),
+                      style: TextStyle(color: AppTheme.textMedium),
                     ),
                   ),
                 );
@@ -185,7 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+            loading: () => SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
             error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
           )
         ],
@@ -197,8 +197,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedFilter = text),
       child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: EdgeInsets.only(right: 8),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primary : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
@@ -224,7 +224,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -235,19 +235,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Container(
             height: 180,
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
             ),
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                 ),
               ),
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -258,10 +258,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start, 
                         children: hueca.tags.map((t) => Container(
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          margin: EdgeInsets.only(bottom: 4),
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(12)),
-                          child: Text(t, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          child: Text(t, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                         )).toList(),
                       ),
                       GestureDetector(
@@ -271,9 +271,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ref.invalidate(currentUserProvider);
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(color: Theme.of(context).cardColor.withOpacity(0.8), shape: BoxShape.circle),
-                          child: Icon((user?.favoriteHuecas.contains(hueca.id) ?? false) ? Icons.favorite : Icons.favorite_border, size: 18, color: (user?.favoriteHuecas.contains(hueca.id) ?? false) ? Colors.red : AppTheme.textDark),
+                          child: Icon((user?.favoriteHuecas.contains(hueca.id) ?? false) ? Icons.favorite : Icons.favorite_border, size: 18, color: (user?.favoriteHuecas.contains(hueca.id) ?? false) ? Colors.red : Theme.of(context).colorScheme.onSurface),
                         ),
                       )
                     ],
@@ -284,28 +284,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                            child: const Row(children: [Icon(Icons.near_me, color: AppTheme.primary, size: 12), SizedBox(width: 4), Text('2.5 km', style: TextStyle(color: Colors.white, fontSize: 10))]),
+                            child: Row(children: [Icon(Icons.near_me, color: AppTheme.primary, size: 12), SizedBox(width: 4), Text('2.5 km', style: TextStyle(color: Colors.white, fontSize: 10))]),
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                            child: Row(children: [const Icon(Icons.payments, color: Colors.white, size: 12), const SizedBox(width: 4), Text('\$${hueca.mainDish["price"] ?? "5.0"}', style: const TextStyle(color: Colors.white, fontSize: 10))]),
+                            child: Row(children: [Icon(Icons.payments, color: Colors.white, size: 12), SizedBox(width: 4), Text('\$${hueca.mainDish["price"] ?? "5.0"}', style: TextStyle(color: Colors.white, fontSize: 10))]),
                           ),
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(12)),
                         child: Row(
                           children: [
-                            const Icon(Icons.star, color: AppTheme.primary, size: 14),
-                            const SizedBox(width: 4),
-                            Text('${hueca.rating}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                            const SizedBox(width: 2),
-                            Text('(${hueca.reviewCount})', style: const TextStyle(color: AppTheme.textMedium, fontSize: 10)),
+                            Icon(Icons.star, color: AppTheme.primary, size: 14),
+                            SizedBox(width: 4),
+                            Text('${hueca.rating}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            SizedBox(width: 2),
+                            Text('(${hueca.reviewCount})', style: TextStyle(color: AppTheme.textMedium, fontSize: 10)),
                           ],
                         ),
                       )
@@ -316,27 +316,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(hueca.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: AppTheme.tertiary, size: 14),
-                    const SizedBox(width: 4),
-                    Expanded(child: Text(hueca.address, style: const TextStyle(color: AppTheme.textMedium, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Icon(Icons.location_on, color: AppTheme.tertiary, size: 14),
+                    SizedBox(width: 4),
+                    Expanded(child: Text(hueca.address, style: TextStyle(color: AppTheme.textMedium, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: isDark ? Colors.grey[800] : Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: isDark ? Colors.grey[800] : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     children: [
-                      Text('${hueca.mainDish["emoji"] ?? "🍲"}', style: const TextStyle(fontSize: 24)),
-                      const SizedBox(width: 8),
+                      Text('${hueca.mainDish["emoji"] ?? "🍲"}', style: TextStyle(fontSize: 24)),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,14 +350,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     : (hueca.mainDish['name'].toString().contains('es:') 
                                       ? hueca.mainDish['name'].toString().split('es:')[1].split('}')[0].trim() 
                                       : hueca.mainDish['name'].toString())), 
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                         ),
                       )
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -376,11 +376,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             }
                           }
                         },
-                        style: ElevatedButton.styleFrom(backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200], foregroundColor: AppTheme.secondary, elevation: 0),
+                        style: ElevatedButton.styleFrom(backgroundColor: isDark ? Colors.grey[800] : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), foregroundColor: AppTheme.secondary, elevation: 0),
                         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.directions, size: 16), SizedBox(width: 4), Text(lang == 'es' ? 'Cómo llegar' : 'Directions', style: TextStyle(fontSize: 12))]),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {

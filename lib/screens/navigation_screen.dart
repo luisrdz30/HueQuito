@@ -65,8 +65,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     if (dir != null && dir['polyline'] != null && mounted) {
       List<LatLng> polylineCoordinates = _decodePolyline(dir['polyline']);
       setState(() {
-        _polylines[const PolylineId('route')] = Polyline(
-          polylineId: const PolylineId('route'),
+        _polylines[PolylineId('route')] = Polyline(
+          polylineId: PolylineId('route'),
           color: AppTheme.primary,
           points: polylineCoordinates,
           width: 5,
@@ -164,7 +164,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('user'),
+          markerId: MarkerId('user'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         )
@@ -173,13 +173,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'es' ? 'A ${widget.targetHueca.name}' : 'To ${widget.targetHueca.name}', style: const TextStyle(fontSize: 16)),
+        title: Text(lang == 'es' ? 'A ${widget.targetHueca.name}' : 'To ${widget.targetHueca.name}', style: TextStyle(fontSize: 16)),
         backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textDark,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.map, color: AppTheme.primary),
+            icon: Icon(Icons.map, color: AppTheme.primary),
             onPressed: _openGoogleMaps,
             tooltip: 'Abrir en Google Maps',
           )
@@ -189,8 +189,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         children: [
           // Travel Mode Toggle
           Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Theme.of(context).cardColor,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -202,17 +202,17 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey[300]!)
+                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(lang == 'es' ? 'A pie' : 'Walking', style: TextStyle(
                             color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -222,7 +222,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -232,17 +232,17 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey[300]!)
+                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(lang == 'es' ? 'En carro' : 'Driving', style: TextStyle(
                             color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -279,7 +279,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
           Expanded(
             flex: 3,
             child: Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -314,7 +314,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openGoogleMaps,
         backgroundColor: AppTheme.primary,
-        icon: const Icon(Icons.directions),
+        icon: Icon(Icons.directions),
         label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: TextStyle(color: Colors.white)),
       ),
     );

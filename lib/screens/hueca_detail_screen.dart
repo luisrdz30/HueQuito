@@ -33,7 +33,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx2, setStateSB) {
@@ -43,7 +43,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(lang == 'es' ? 'Deja tu opinión' : 'Leave your review', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(5, (index) {
@@ -61,7 +61,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       );
                     }),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     decoration: InputDecoration(
                       hintText: '¿Qué te pareció? (Opcional)',
@@ -70,11 +70,11 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     maxLines: 3,
                     onChanged: (v) => comment = v,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       onPressed: rating == 0 ? null : () async {
                         Navigator.pop(context);
                         
@@ -95,7 +95,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       child: Text(lang == 'es' ? 'Enviar Reseña' : 'Submit Review'),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                 ],
               ),
             );
@@ -159,7 +159,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
           children: [
             Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
             SizedBox(width: 8),
-            Text(lang == 'es' ? 'Detalles de Hueca' : 'Spot Details', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.textDark, fontWeight: FontWeight.bold)),
+            Text(lang == 'es' ? 'Detalles de Hueca' : 'Spot Details', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -171,7 +171,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 await ref.read(userRepositoryProvider).toggleFavorite(_currentHueca.id);
                 ref.invalidate(currentUserProvider);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(!isFavorite ? (lang == 'es' ? 'Añadido a favoritos' : 'Added to favorites') : (lang == 'es' ? 'Eliminado de favoritos' : 'Removed from favorites')), duration: const Duration(seconds: 1)));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(!isFavorite ? (lang == 'es' ? 'Añadido a favoritos' : 'Added to favorites') : (lang == 'es' ? 'Eliminado de favoritos' : 'Removed from favorites')), duration: Duration(seconds: 1)));
                 }
               },
             ),
@@ -199,7 +199,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       return Image.network(
                         'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80',
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300], child: Icon(Icons.restaurant, size: 50, color: Colors.grey)),
+                        errorBuilder: (context, error, stackTrace) => Container(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300]), child: Icon(Icons.restaurant, size: 50, color: Colors.grey)),
                       );
                     },
                   ),
@@ -221,7 +221,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               transform: Matrix4.translationValues(0, -20, 0),
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
@@ -244,7 +244,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                   SizedBox(height: 16),
                   Container(
                     padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -271,7 +271,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                             final Uri launchUri = Uri(scheme: 'tel', path: '0991234567');
                             await launchUrl(launchUri);
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: AppTheme.textDark, elevation: 0),
+                          style: ElevatedButton.styleFrom(backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), foregroundColor: Theme.of(context).colorScheme.onSurface, elevation: 0),
                           child: Column(children: [Icon(Icons.call, size: 20), Text(lang == 'es' ? 'Llamar' : 'Call', style: TextStyle(fontSize: 10))]),
                         ),
                       ),
@@ -281,7 +281,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                           onPressed: () {
                             Share.share(lang == 'es' ? '¡Ven acompáñame a visitar ${_currentHueca.name} conmigo en Hue-Quito! 😋🥘\n\nMira dónde queda aquí: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}' : 'Come visit ${_currentHueca.name} with me on Hue-Quito! 😋🥘\n\nSee where it is here: https://maps.google.com/?q=${_currentHueca.location.latitude},${_currentHueca.location.longitude}');
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: AppTheme.textDark, elevation: 0),
+                          style: ElevatedButton.styleFrom(backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), foregroundColor: Theme.of(context).colorScheme.onSurface, elevation: 0),
                           child: Column(children: [Icon(Icons.share, size: 20), Text(lang == 'es' ? 'Enviar' : 'Share', style: TextStyle(fontSize: 10))]),
                         ),
                       ),
@@ -307,7 +307,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             
             // Content Sections
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: _buildSelectedTabContent(lang),
             )
           ],
@@ -320,31 +320,31 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
     switch (_selectedTabIndex) {
       case 0:
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [const Icon(Icons.info, color: AppTheme.primary), const SizedBox(width: 8), Text(lang == 'es' ? 'Sobre la Hueca' : 'About the Place', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-              const SizedBox(height: 16),
+              Row(children: [Icon(Icons.info, color: AppTheme.primary), SizedBox(width: 8), Text(lang == 'es' ? 'Sobre la Hueca' : 'About the Place', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+              SizedBox(height: 16),
               Text(
                 _currentHueca.description[lang] ?? _currentHueca.description['es'] ?? 'Información no disponible.',
-                style: const TextStyle(color: AppTheme.textMedium, height: 1.5),
+                style: TextStyle(color: AppTheme.textMedium, height: 1.5),
               ),
             ],
           ),
         );
       case 1:
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [const Icon(Icons.restaurant_menu, color: AppTheme.primary), const SizedBox(width: 8), Text(lang == 'es' ? 'Menú' : 'Menu', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-              const SizedBox(height: 16),
+              Row(children: [Icon(Icons.restaurant_menu, color: AppTheme.primary), SizedBox(width: 8), Text(lang == 'es' ? 'Menú' : 'Menu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+              SizedBox(height: 16),
               if (_currentHueca.menuItems.isEmpty)
-                Text(lang == 'es' ? 'Menú no disponible.' : 'Menu not available.', style: const TextStyle(color: AppTheme.textMedium)),
+                Text(lang == 'es' ? 'Menú no disponible.' : 'Menu not available.', style: TextStyle(color: AppTheme.textMedium)),
               ..._currentHueca.menuItems.map((item) {
                 final nameObj = item['name'];
                 final name = nameObj is Map ? (nameObj[lang] ?? nameObj['es'] ?? 'Plato') : (nameObj ?? 'Plato');
@@ -357,7 +357,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 return Column(
                   children: [
                     _buildMenuItem(name.toString(), desc.toString(), price.toString(), img.toString()),
-                    const Divider(),
+                    Divider(),
                   ],
                 );
               }),
@@ -366,21 +366,21 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         );
       case 2:
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [const Icon(Icons.location_on, color: AppTheme.primary), const SizedBox(width: 8), Text(lang == 'es' ? 'Ubicación & Horarios' : 'Location & Hours', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-              const SizedBox(height: 16),
+              Row(children: [Icon(Icons.location_on, color: AppTheme.primary), SizedBox(width: 8), Text(lang == 'es' ? 'Ubicación & Horarios' : 'Location & Hours', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+              SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.map, color: AppTheme.textMedium),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(_currentHueca.address, style: const TextStyle(color: AppTheme.textDark))),
+                  Icon(Icons.map, color: AppTheme.textMedium),
+                  SizedBox(width: 8),
+                  Expanded(child: Text(_currentHueca.address, style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               SizedBox(
                 height: 150,
                 width: double.infinity,
@@ -395,25 +395,25 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     myLocationButtonEnabled: false,
                     markers: {
                       Marker(
-                        markerId: const MarkerId('hueca'),
+                        markerId: MarkerId('hueca'),
                         position: LatLng(_currentHueca.location.latitude, _currentHueca.location.longitude),
                       )
                     },
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.schedule, color: AppTheme.textMedium),
-                  const SizedBox(width: 8),
+                  Icon(Icons.schedule, color: AppTheme.textMedium),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: _currentHueca.schedule.entries.isEmpty 
-                        ? [Text(lang == 'es' ? 'Horario no disponible' : 'Hours not available', style: const TextStyle(color: AppTheme.textDark))]
-                        : _currentHueca.schedule.entries.map((e) => Text('${e.key}: ${e.value}', style: const TextStyle(color: AppTheme.textDark))).toList(),
+                        ? [Text(lang == 'es' ? 'Horario no disponible' : 'Hours not available', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))]
+                        : _currentHueca.schedule.entries.map((e) => Text('${e.key}: ${e.value}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))).toList(),
                     ),
                   ),
                 ],
@@ -424,7 +424,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
       case 3:
       default:
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,16 +433,16 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang == 'es' ? 'Reseñas Quiteñas' : 'Reviews', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(lang == 'es' ? 'Calificación verificada por comensales' : 'Verified rating by diners', style: TextStyle(fontSize: 12, color: AppTheme.textMedium))])),
-                  const SizedBox(width: 8),
-                  ElevatedButton(onPressed: () => _showReviewDialog(context), style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: AppTheme.textDark, elevation: 0), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.edit, size: 16, color: AppTheme.primary), const SizedBox(width: 4), Text(lang == 'es' ? 'Opinar' : 'Review')])),
+                  SizedBox(width: 8),
+                  ElevatedButton(onPressed: () => _showReviewDialog(context), style: ElevatedButton.styleFrom(backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), foregroundColor: Theme.of(context).colorScheme.onSurface, elevation: 0), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.edit, size: 16, color: AppTheme.primary), SizedBox(width: 4), Text(lang == 'es' ? 'Opinar' : 'Review')])),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               FutureBuilder<List<Review>>(
                 future: ref.read(huecaRepositoryProvider).getReviews(_currentHueca.id),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
                     return Text(lang == 'es' ? 'Error al cargar reseñas.' : 'Error loading reviews.');
@@ -531,7 +531,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
       child: Container(
         margin: EdgeInsets.only(right: 8),
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(color: isActive ? AppTheme.tertiary : Colors.grey[200], borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: isActive ? AppTheme.tertiary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), borderRadius: BorderRadius.circular(20)),
         child: Text(title, style: TextStyle(color: isActive ? Colors.white : AppTheme.textMedium, fontWeight: FontWeight.bold)),
       ),
     );
@@ -554,16 +554,16 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
           ),
         ),
         SizedBox(width: 12),
-        ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(width: 60, height: 60, color: Colors.grey[300], child: Icon(Icons.fastfood, color: Colors.grey)))),
+        ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(imageUrl, width: 60, height: 60, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(width: 60, height: 60, color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300]), child: Icon(Icons.fastfood, color: Colors.grey)))),
       ],
     );
   }
 
   Widget _buildReviewItem(Review r) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -574,8 +574,8 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                 backgroundImage: r.userPic.isNotEmpty ? NetworkImage(r.userPic) : null,
                 child: r.userPic.isEmpty ? Text(r.userName.isNotEmpty ? r.userName[0].toUpperCase() : 'U') : null,
               ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(r.userName, style: const TextStyle(fontWeight: FontWeight.bold))),
+              SizedBox(width: 8),
+              Expanded(child: Text(r.userName, style: TextStyle(fontWeight: FontWeight.bold))),
               Row(
                 children: List.generate(5, (index) => Icon(
                   index < r.rating ? Icons.star : Icons.star_border, 
@@ -586,8 +586,8 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             ],
           ),
           if (r.comment.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(r.comment, style: const TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+            SizedBox(height: 8),
+            Text(r.comment, style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
           ]
         ],
       ),

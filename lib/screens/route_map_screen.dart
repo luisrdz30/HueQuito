@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hue_quito/theme/map_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hue_quito/theme/map_style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
@@ -121,7 +123,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
           // The Map
           huecasAsync.when(
             data: (huecas) {
-              return GoogleMap(
+              return GoogleMap(style: Theme.of(context).brightness == Brightness.dark ? darkMapStyle : null, 
                 onMapCreated: (c) => _mapController = c,
                 initialCameraPosition: CameraPosition(target: _quitoCenter, zoom: 14.0),
                 markers: _buildMarkers(huecas),
@@ -143,7 +145,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                 // Search Bar
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
                   ),
@@ -177,15 +179,15 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSector,
-                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textDark),
-                            style: TextStyle(fontSize: 13, color: AppTheme.textDark, fontWeight: FontWeight.bold),
+                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: Theme.of(context).colorScheme.onSurface),
+                            style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                             onChanged: (String? newValue) {
                               if (newValue != null) setState(() => _selectedSector = newValue);
                             },
@@ -212,7 +214,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
             top: 140, left: 16,
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)]),
+              decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)]),
               child: Row(
                 children: [
                   Icon(Icons.location_on, color: AppTheme.primary, size: 14),
@@ -241,7 +243,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
               child: Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: Offset(0, 10))],
                 ),
@@ -249,7 +251,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Handle for swipe down indicator
-                    Container(width: 40, height: 4, margin: EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                    Container(width: 40, height: 4, margin: EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300]), borderRadius: BorderRadius.circular(2))),
                     
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,7 +289,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                     // Info Row
                     Container(
                       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(8)),
                       child: Row(
                         children: [
                           Icon(Icons.restaurant_menu, size: 14, color: AppTheme.primary),
@@ -296,7 +298,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                             child: RichText(
                               maxLines: 1, overflow: TextOverflow.ellipsis,
                               text: TextSpan(
-                                style: TextStyle(fontSize: 11, color: AppTheme.textDark),
+                                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface),
                                 children: [
                                   TextSpan(text: 'Plato insignia: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                   TextSpan(text: _selectedHueca!.mainDish['name'][lang] ?? _selectedHueca!.mainDish['name']['es']),
@@ -337,7 +339,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                           flex: 4,
                           child: TextButton(
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.grey[100], 
+                              backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), 
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               padding: EdgeInsets.symmetric(vertical: 0)
                             ),
@@ -345,9 +347,9 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(lang == 'es' ? 'Ver Hueca' : 'View Spot', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textDark, fontSize: 11)),
+                                Text(lang == 'es' ? 'Ver Hueca' : 'View Spot', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 11)),
                                 SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.textDark),
+                                Icon(Icons.arrow_forward_ios, size: 10, color: Theme.of(context).colorScheme.onSurface),
                               ],
                             ),
                           ),
@@ -355,12 +357,12 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                         SizedBox(width: 6),
                         Container(
                           width: 40, height: 40,
-                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), shape: BoxShape.circle),
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
                               (user?.favoriteHuecas.contains(_selectedHueca!.id) ?? false) ? Icons.favorite : Icons.favorite_border, 
-                              color: (user?.favoriteHuecas.contains(_selectedHueca!.id) ?? false) ? Colors.red : AppTheme.textDark, 
+                              color: (user?.favoriteHuecas.contains(_selectedHueca!.id) ?? false) ? Colors.red : Theme.of(context).colorScheme.onSurface, 
                               size: 18
                             ),
                             onPressed: () async {

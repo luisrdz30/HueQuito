@@ -20,29 +20,29 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
-        title: const Text('Paso 2 de 2'),
+        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => context.pop()),
+        title: Text('Paso 2 de 2'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
+        padding: EdgeInsets.only(left: 16, right: 16, bottom: 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Tu Pasaporte Culinario', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text('¿Qué sabores te mueven el apetito?', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             
             Text('Tus antojitos preferidos', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _buildCravingItem('Sopas', Icons.ramen_dining, 'Locro de papa, Caldo de patas'),
             _buildCravingItem('Platos Fuertes', Icons.kebab_dining, 'Hornado, Fritada'),
             _buildCravingItem('Dulces', Icons.icecream, 'Helados de paila, Colada morada'),
             
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text('¿Qué zonas sueles recorrer?', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -54,26 +54,26 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               ],
             ),
             
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text('Ajustes de Exploración', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             SwitchListTile(
-              title: const Text('Ubicación precisa'),
-              subtitle: const Text('Para huecas y cromos cercanos'),
+              title: Text('Ubicación precisa'),
+              subtitle: Text('Para huecas y cromos cercanos'),
               value: _locationEnabled,
               onChanged: (v) => setState(() => _locationEnabled = v),
               activeThumbColor: AppTheme.primary,
             ),
             SwitchListTile(
-              title: const Text('Buscador de Tesoros'),
-              subtitle: const Text('Alértame de QRs escondidos'),
+              title: Text('Buscador de Tesoros'),
+              subtitle: Text('Alértame de QRs escondidos'),
               value: _treasureMode,
               onChanged: (v) => setState(() => _treasureMode = v),
               activeThumbColor: AppTheme.primary,
             ),
             SwitchListTile(
-              title: const Text('Modo Offline'),
-              subtitle: const Text('Guarda datos sin conexión'),
+              title: Text('Modo Offline'),
+              subtitle: Text('Guarda datos sin conexión'),
               value: _offlineMode,
               onChanged: (v) => setState(() => _offlineMode = v),
               activeThumbColor: AppTheme.primary,
@@ -83,13 +83,13 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: () {
               if (context.canPop()) {
                 // editing from profile
                 context.pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferencias guardadas exitosamente.')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Preferencias guardadas exitosamente.')));
               } else {
                 // onboarding
                 context.push('/login');
@@ -115,22 +115,22 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         });
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
+        margin: EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.tertiary : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? Colors.transparent : Colors.grey[300]!),
+          border: Border.all(color: isSelected ? Colors.transparent : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!),
         ),
         child: Row(
           children: [
             Icon(icon, color: isSelected ? Colors.white : AppTheme.tertiary),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(color: isSelected ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold)),
+                  Text(title, style: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                   Text(subtitle, style: TextStyle(color: isSelected ? Colors.white70 : AppTheme.textMedium, fontSize: 12)),
                 ],
               ),
@@ -157,7 +157,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         });
       },
       selectedColor: AppTheme.tertiary,
-      labelStyle: TextStyle(color: isSelected ? Colors.white : AppTheme.textDark),
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface),
       checkmarkColor: Colors.white,
     );
   }

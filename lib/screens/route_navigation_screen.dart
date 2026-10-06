@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hue_quito/theme/map_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hue_quito/theme/map_style.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -205,7 +207,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       appBar: AppBar(
         title: Text(name, style: TextStyle(fontSize: 16)),
         backgroundColor: Colors.white,
-        foregroundColor: AppTheme.textDark,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [
           IconButton(
@@ -218,7 +220,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       body: Column(
         children: [
           Container(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
@@ -235,7 +237,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       decoration: BoxDecoration(
                         color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey[300]!)
+                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -265,7 +267,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       decoration: BoxDecoration(
                         color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey[300]!)
+                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -288,7 +290,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
             flex: 4,
             child: Stack(
               children: [
-                GoogleMap(
+                GoogleMap(style: Theme.of(context).brightness == Brightness.dark ? darkMapStyle : null, 
                   onMapCreated: (c) => _mapController = c,
                   initialCameraPosition: CameraPosition(
                     target: LatLng(-0.22985, -78.52495), 
@@ -307,7 +309,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
           Expanded(
             flex: 3,
             child: Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -91,7 +91,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
-      builder: (_) => const PopScope(
+      builder: (_) => PopScope(
         canPop: false,
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -99,7 +99,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
     );
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(Duration(milliseconds: 1000));
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
     }
@@ -120,8 +120,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         toolbarHeight: 70,
         title: Row(
           children: [
-            const Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
-            const SizedBox(width: 8),
+            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
+            SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -133,7 +133,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       body: userAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Error: $e')),
         data: (user) {
           final isGuest = user == null;
@@ -152,60 +152,60 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           return SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Identidad
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                 child: Column(
                   children: [
                     Row(
                       children: [
                         CircleAvatar(radius: 36, backgroundImage: NetworkImage(displayUser.profilePicUrl)),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Text(displayUser.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                                  const SizedBox(width: 8),
+                                  Text(displayUser.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                  SizedBox(width: 8),
                                   if (!isGuest)
                                     IconButton(
-                                      icon: const Icon(Icons.edit, size: 20, color: AppTheme.primary),
+                                      icon: Icon(Icons.edit, size: 20, color: AppTheme.primary),
                                       onPressed: () => context.push('/edit_profile'),
                                       visualDensity: VisualDensity.compact,
                                     ),
                                 ],
                               ),
-                              Text(displayUser.email, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text(displayUser.email, style: TextStyle(color: Colors.grey, fontSize: 12)),
                             ],
                           ),
                         )
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Column(children: [const Icon(Icons.storefront, color: AppTheme.primary), Text('$visitedHuecas', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Huecas', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [const Icon(Icons.bookmark, color: AppTheme.secondary), Text('$favoriteCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Favoritos', style: TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Column(children: [const Icon(Icons.redeem, color: AppTheme.secondary), Text('$rewardsCount', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), const Text('Premios', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.storefront, color: AppTheme.primary), Text('$visitedHuecas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Huecas', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.bookmark, color: AppTheme.secondary), Text('$favoriteCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Favoritos', style: TextStyle(fontSize: 10, color: Colors.grey))]),
+                        Column(children: [Icon(Icons.redeem, color: AppTheme.secondary), Text('$rewardsCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Premios', style: TextStyle(fontSize: 10, color: Colors.grey))]),
                       ],
                     )
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Favoritos
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,30 +213,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(children: [const Icon(Icons.favorite, color: AppTheme.secondary), const SizedBox(width: 8), Text(lang['favorites']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                        Row(children: [Icon(Icons.favorite, color: AppTheme.secondary), SizedBox(width: 8), Text(lang['favorites']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
                         TextButton(
                           onPressed: () { setState(() { _isFavoritesExpanded = !_isFavoritesExpanded; }); },
-                          child: Text(_isFavoritesExpanded ? lang['see_less']! : lang['see_more']!, style: const TextStyle(color: AppTheme.primary)),
+                          child: Text(_isFavoritesExpanded ? lang['see_less']! : lang['see_more']!, style: TextStyle(color: AppTheme.primary)),
                         )
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     if (!_isFavoritesExpanded)
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
                             if (displayUser.favoriteHuecas.isEmpty)
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text('No tienes huecas favoritas.', style: TextStyle(color: Colors.grey)),
                               )
                             else
                               ...displayUser.favoriteHuecas.map((id) {
                                 final h = huecasList.where((hueca) => hueca.id == id).firstOrNull;
-                                if (h == null) return const SizedBox.shrink();
+                                if (h == null) return SizedBox.shrink();
                                 return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
+                                  padding: EdgeInsets.only(right: 8.0),
                                   child: _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector),
                                 );
                               }),
@@ -249,14 +249,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         runSpacing: 12,
                         children: [
                           if (displayUser.favoriteHuecas.isEmpty)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text('No tienes huecas favoritas.', style: TextStyle(color: Colors.grey)),
                             )
                           else
                             ...displayUser.favoriteHuecas.map((id) {
                               final h = huecasList.where((hueca) => hueca.id == id).firstOrNull;
-                              if (h == null) return const SizedBox.shrink();
+                              if (h == null) return SizedBox.shrink();
                               return _buildFavoriteCard(context, h.images.isNotEmpty ? h.images.first : 'https://placehold.co/150x150.png', h.name, h.sector);
                             }),
                         ],
@@ -265,20 +265,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Preferencias
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [const Icon(Icons.tune, color: AppTheme.primary), const SizedBox(width: 8), Text(lang['preferences']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
-                    const SizedBox(height: 12),
+                    Row(children: [Icon(Icons.tune, color: AppTheme.primary), SizedBox(width: 8), Text(lang['preferences']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                    SizedBox(height: 12),
                     _buildPreferenceItem(context, Icons.local_fire_department, 'Nivel de Picante', displayUser.preferences['spiceLevel']?.toString() ?? 'Medio'),
                     _buildPreferenceItem(context, Icons.dinner_dining, 'Platos Favoritos Elegidos', (displayUser.preferences['favoriteDishes'] as List<dynamic>? ?? []).isEmpty ? 'Ninguno' : (displayUser.preferences['favoriteDishes'] as List<dynamic>).join(', ')),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {
                       context.push('/preferences');
                     }, child: Text(lang['edit_preferences']!))),
@@ -286,73 +286,73 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Configuracion y Experiencia
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [const Icon(Icons.settings, color: AppTheme.primary), const SizedBox(width: 8), Text(lang['settings']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
-                    const SizedBox(height: 24),
-                    Text(lang['language']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    const SizedBox(height: 8),
+                    Row(children: [Icon(Icons.settings, color: AppTheme.primary), SizedBox(width: 8), Text(lang['settings']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                    SizedBox(height: 24),
+                    Text(lang['language']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(child: _buildToggleButton(context, 'es', 'Español (EC)', settings.language == 'es', () { 
                             _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('es'));
                           })),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Expanded(child: _buildToggleButton(context, 'en', 'English', settings.language == 'en', () { 
                             _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setLanguage('en'));
                           })),
                       ]
                     ),
-                    const SizedBox(height: 24),
-                    Text(lang['accessibility']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 24),
+                    Text(lang['accessibility']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(24)),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(24)),
                       child: Row(
                         children: [
-                          const Icon(Icons.text_fields, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(lang['text_size']!, style: const TextStyle(fontSize: 14))),
+                          Icon(Icons.text_fields, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Text(lang['text_size']!, style: TextStyle(fontSize: 14))),
                           GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('A-')); }, child: Text('A-', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A-' ? AppTheme.primary : Colors.grey))),
-                          const SizedBox(width: 12),
-                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('Normal')); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.textSize == 'Normal' ? AppTheme.secondary : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Text('Normal', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'Normal' ? Colors.white : Colors.grey)))),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('Normal')); }, child: Container(padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.textSize == 'Normal' ? AppTheme.secondary : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Text('Normal', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'Normal' ? Colors.white : Colors.grey)))),
+                          SizedBox(width: 12),
                           GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).setTextSize('A+')); }, child: Text('A+', style: TextStyle(fontWeight: FontWeight.bold, color: settings.textSize == 'A+' ? AppTheme.primary : Colors.grey))),
                         ],
                       )
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(24)),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(24)),
                       child: Row(
                         children: [
-                          const Icon(Icons.palette, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(lang['theme']!, style: const TextStyle(fontSize: 14))),
-                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(false)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: !settings.isDarkMode ? AppTheme.secondary.withValues(alpha:0.2) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.light_mode, size: 14, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey), const SizedBox(width: 4), Text(lang['light']!, style: TextStyle(fontWeight: FontWeight.bold, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey))]))),
-                          const SizedBox(width: 4),
-                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(true)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.isDarkMode ? Colors.grey.withValues(alpha:0.4) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.dark_mode, size: 14, color: settings.isDarkMode ? Colors.white : Colors.grey), const SizedBox(width: 4), Text(lang['dark']!, style: TextStyle(fontWeight: FontWeight.bold, color: settings.isDarkMode ? Colors.white : Colors.grey))]))),
+                          Icon(Icons.palette, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Text(lang['theme']!, style: TextStyle(fontSize: 14))),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(false)); }, child: Container(padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: !settings.isDarkMode ? AppTheme.secondary.withValues(alpha:0.2) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.light_mode, size: 14, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey), SizedBox(width: 4), Text(lang['light']!, style: TextStyle(fontWeight: FontWeight.bold, color: !settings.isDarkMode ? AppTheme.secondary : Colors.grey))]))),
+                          SizedBox(width: 4),
+                          GestureDetector(onTap: (){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleDarkMode(true)); }, child: Container(padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: settings.isDarkMode ? Colors.grey.withValues(alpha:0.4) : Colors.transparent, borderRadius: BorderRadius.circular(12)), child: Row(children: [Icon(Icons.dark_mode, size: 14, color: settings.isDarkMode ? Colors.white : Colors.grey), SizedBox(width: 4), Text(lang['dark']!, style: TextStyle(fontWeight: FontWeight.bold, color: settings.isDarkMode ? Colors.white : Colors.grey))]))),
                         ],
                       )
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(24)),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(24)),
                       child: Row(
                         children: [
-                          const Icon(Icons.contrast, color: AppTheme.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang['high_contrast']!, style: const TextStyle(fontSize: 14)), Text(lang['high_contrast_desc']!, style: const TextStyle(fontSize: 10, color: Colors.grey))])),
+                          Icon(Icons.contrast, color: AppTheme.primary, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(lang['high_contrast']!, style: TextStyle(fontSize: 14)), Text(lang['high_contrast_desc']!, style: TextStyle(fontSize: 10, color: Colors.grey))])),
                           Switch(value: settings.isHighContrast, onChanged: (v){ _applySettingWithRestart(() => ref.read(settingsProvider.notifier).toggleHighContrast(v)); }, activeThumbColor: AppTheme.primary),
                         ],
                       )
@@ -361,56 +361,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Gestion de Cuenta
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(lang['account']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 16),
+                    Text(lang['account']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(24)),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(24)),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(4), 
+                            padding: EdgeInsets.all(4), 
                             decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle), 
-                            child: const Icon(Icons.g_mobiledata, size: 32, color: Colors.blue)
+                            child: Icon(Icons.g_mobiledata, size: 32, color: Colors.blue)
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start, 
                               children: [
-                                Text(lang['connected']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), 
+                                Text(lang['connected']!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), 
                                 Text(displayUser.email, style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis)
                               ]
                             )
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.check_circle_outline, color: Colors.green),
+                          SizedBox(width: 8),
+                          Icon(Icons.check_circle_outline, color: Colors.green),
                         ],
                       )
                     ),
-                    const SizedBox(height: 12),
-                    ListTile(leading: const Icon(Icons.support_agent), title: Text(lang['support']!, style: const TextStyle(fontSize: 14)), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FaqScreen()))),
-                    ListTile(leading: const Icon(Icons.policy), title: Text(lang['terms']!, style: const TextStyle(fontSize: 14)), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen()))),
-                    ListTile(leading: const Icon(Icons.share), title: Text(lang['invite']!, style: const TextStyle(fontSize: 14)), trailing: const Icon(Icons.chevron_right), onTap: () => _showInviteDialog(context)),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
+                    ListTile(leading: Icon(Icons.support_agent), title: Text(lang['support']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FaqScreen()))),
+                    ListTile(leading: Icon(Icons.policy), title: Text(lang['terms']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TermsScreen()))),
+                    ListTile(leading: Icon(Icons.share), title: Text(lang['invite']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => _showInviteDialog(context)),
+                    SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () async {
                       await ref.read(authRepositoryProvider).signOut();
                       ref.invalidate(currentUserProvider);
                       if (context.mounted) context.go('/login');
-                    }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.logout), const SizedBox(width: 8), Text(lang['logout']!)]))),
-                    const SizedBox(height: 16),
-                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => seedRoutes(context), child: const Text('Seed 3 Routes (Dev)'))),
-                    const SizedBox(height: 16),
-                    const Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
+                    }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.logout), SizedBox(width: 8), Text(lang['logout']!)]))),
+                    SizedBox(height: 16),
+                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => seedRoutes(context), child: Text('Seed 3 Routes (Dev)'))),
+                    SizedBox(height: 16),
+                    Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
                   ],
                 ),
               ),
@@ -428,9 +428,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100]),
+          color: isSelected ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100])),
           borderRadius: BorderRadius.circular(24)
         ),
         child: Column(
@@ -446,18 +446,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildFavoriteCard(BuildContext context, String imageUrl, String title, String location) {
     return Container(
       width: 140,
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
+          ClipRRect(borderRadius: BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(location, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(location, style: TextStyle(color: Colors.grey, fontSize: 10)),
               ],
             ),
           )
@@ -468,15 +468,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildPreferenceItem(BuildContext context, IconData icon, String title, String value) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 16, color: AppTheme.primary), const SizedBox(width: 8), Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey))]),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Row(children: [Icon(icon, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 12, color: Colors.grey))]),
+          SizedBox(height: 4),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         ],
       ),
     );

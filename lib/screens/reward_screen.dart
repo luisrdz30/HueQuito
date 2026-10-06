@@ -11,19 +11,19 @@ class RewardScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const Spacer(),
+            Spacer(),
             // Confetti/Icon
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: Theme.of(context).cardColor.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.stars, color: Colors.amber, size: 100),
+              child: Icon(Icons.stars, color: Colors.amber, size: 100),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             // Texts
-            const Text(
+            Text(
               '¡FELICIDADES!',
               style: TextStyle(
                 color: Colors.white,
@@ -32,8 +32,8 @@ class RewardScreen extends StatelessWidget {
                 letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 16),
-            const Padding(
+            SizedBox(height: 16),
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
                 'Has desbloqueado el Gran Premio de Sector Conocoto',
@@ -44,13 +44,13 @@ class RewardScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             // Reward details
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 32),
-              padding: const EdgeInsets.all(24),
+              margin: EdgeInsets.symmetric(horizontal: 32),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -59,7 +59,7 @@ class RewardScreen extends StatelessWidget {
                   )
                 ],
               ),
-              child: const Column(
+              child: Column(
                 children: [
                   Icon(Icons.restaurant, color: AppTheme.secondary, size: 48),
                   SizedBox(height: 16),
@@ -67,7 +67,7 @@ class RewardScreen extends StatelessWidget {
                     '1 Plato Típico Tradicional',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: AppTheme.textDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -84,10 +84,10 @@ class RewardScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const Spacer(),
+            Spacer(),
             // Button
             Padding(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(32),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -100,7 +100,7 @@ class RewardScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Reclamar y Ver en Álbum',
                     style: TextStyle(
                       fontSize: 16,

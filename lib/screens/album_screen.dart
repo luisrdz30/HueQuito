@@ -26,8 +26,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         toolbarHeight: 70,
         title: Row(
           children: [
-            const Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
-            const SizedBox(width: 8),
+            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
+            SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -58,12 +58,12 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             children: [
               // User Status Section
               Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
+                margin: EdgeInsets.all(16),
+                padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: [AppTheme.primary, AppTheme.primary.withOpacity(0.8)]),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6))],
+                  boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 12, offset: Offset(0, 6))],
                 ),
                 child: Row(
                   children: [
@@ -72,19 +72,19 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                       backgroundImage: NetworkImage(displayUser.profilePicUrl),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(displayUser.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(displayUser.name, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                           Text(displayUser.gamification['title'] ?? 'Novato', style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
-                              const SizedBox(width: 4),
-                              Text('$totalStamps Sellos Totales', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Icon(Icons.star, color: Colors.amber, size: 16),
+                              SizedBox(width: 4),
+                              Text('$totalStamps Sellos Totales', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ],
                           )
                         ],
@@ -96,16 +96,16 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
 
               // Tabs
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
                     Expanded(
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedTab = 0),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 0 ? Colors.white : Colors.grey[200],
+                            color: _selectedTab == 0 ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
@@ -118,14 +118,14 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedTab = 1),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 1 ? Colors.white : Colors.grey[200],
+                            color: _selectedTab == 1 ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
@@ -142,7 +142,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Content List
               Expanded(
@@ -153,7 +153,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
@@ -162,7 +162,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
   Widget _buildHuecasList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest) {
     return huecasAsync.when(
       data: (huecas) {
-        if (huecas.isEmpty) return const Center(child: Text('No hay huecas disponibles'));
+        if (huecas.isEmpty) return Center(child: Text('No hay huecas disponibles'));
 
         var activeHuecas = huecas.where((Hueca h) {
           if (isGuest || user.gamification['huecaStamps'] == null) return false;
@@ -170,11 +170,11 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         }).toList();
 
         if (activeHuecas.isEmpty) {
-          return const Center(child: Text('Aún no tienes sellos en ninguna hueca. ¡Empieza a explorar!'));
+          return Center(child: Text('Aún no tienes sellos en ninguna hueca. ¡Empieza a explorar!'));
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+          padding: EdgeInsets.only(left: 16, right: 16, bottom: 80),
           itemCount: activeHuecas.length,
           itemBuilder: (context, index) {
             final hueca = activeHuecas[index];
@@ -195,16 +195,16 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => const Center(child: Text('Error cargando cartillas')),
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (e, s) => Center(child: Text('Error cargando cartillas')),
     );
   }
 
   Widget _buildHuecaCard({required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
     bool isCompleted = currentStamps >= targetStamps;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -216,9 +216,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+              Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: isCompleted ? AppTheme.accentGreen.withOpacity(0.2) : AppTheme.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -230,7 +230,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               )
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // Stamp visualization
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -241,25 +241,25 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 height: 45,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isStamped ? AppTheme.primary.withOpacity(0.1) : Colors.grey[200],
-                  border: Border.all(color: isStamped ? AppTheme.primary : Colors.grey[300]!, width: 2),
+                  color: isStamped ? AppTheme.primary.withOpacity(0.1) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
+                  border: Border.all(color: isStamped ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!, width: 2),
                 ),
                 child: Center(
                   child: isStamped 
-                    ? const Icon(Icons.check_circle, color: AppTheme.primary, size: 28)
+                    ? Icon(Icons.check_circle, color: AppTheme.primary, size: 28)
                     : Icon(Icons.restaurant, color: Colors.grey[400], size: 20),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
-              const SizedBox(width: 8),
+              Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
+              SizedBox(width: 8),
               Text(
                 'Recompensa: $reward',
-                style: const TextStyle(color: AppTheme.textMedium, fontSize: 12),
+                style: TextStyle(color: AppTheme.textMedium, fontSize: 12),
               ),
             ],
           )
@@ -270,11 +270,11 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
 
   Widget _buildSectorList(List<dynamic> sectorAlbums) {
     if (sectorAlbums.isEmpty) {
-      return const Center(child: Text('Aún no tienes cromos por sector.', style: TextStyle(color: AppTheme.textMedium)));
+      return Center(child: Text('Aún no tienes cromos por sector.', style: TextStyle(color: AppTheme.textMedium)));
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: 80),
       itemCount: sectorAlbums.length,
       itemBuilder: (context, index) {
         final album = sectorAlbums[index];
@@ -292,8 +292,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     double progress = stickersCount / totalStickers;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -307,31 +307,31 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.map, color: AppTheme.primary),
-                  const SizedBox(width: 8),
-                  Text(sectorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Icon(Icons.map, color: AppTheme.primary),
+                  SizedBox(width: 8),
+                  Text(sectorName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
               if (isCompleted)
-                const Icon(Icons.verified, color: AppTheme.accentGreen)
+                Icon(Icons.verified, color: AppTheme.accentGreen)
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$stickersCount de $totalStickers cromos', style: const TextStyle(color: AppTheme.textMedium, fontSize: 12)),
-              Text('${(progress * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+              Text('$stickersCount de $totalStickers cromos', style: TextStyle(color: AppTheme.textMedium, fontSize: 12)),
+              Text('${(progress * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.grey[200],
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+              backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
             ),
           )
         ],
