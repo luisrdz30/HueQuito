@@ -320,7 +320,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           context,
                                           hueca: h,
                                           lang: lang,
-                                          width: 280,
+                                          width: 260,
                                         ),
                                       ),
                                     )
@@ -822,10 +822,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Icon(Icons.directions, size: 16),
                             SizedBox(width: 4),
-                            Text(
-                              lang == 'es' ? 'Cómo llegar' : 'Directions',
-                              style: TextStyle(fontSize: 12),
-                            ),
+                            Expanded(child: Text(lang == 'es' ? 'Cómo llegar' : 'Directions', style: TextStyle(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
                           ],
                         ),
                       ),
@@ -840,10 +837,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              lang == 'es' ? 'Ver Hueca' : 'View Spot',
-                              style: TextStyle(fontSize: 12),
-                            ),
+                            Expanded(child: Text(lang == 'es' ? 'Ver Hueca' : 'View Spot', style: TextStyle(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
                             SizedBox(width: 4),
                             Icon(Icons.arrow_forward, size: 16),
                           ],
