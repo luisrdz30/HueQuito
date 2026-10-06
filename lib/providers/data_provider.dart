@@ -34,3 +34,15 @@ final currentUserProvider = FutureProvider<UserModel?>((ref) async {
   final repository = ref.watch(userRepositoryProvider);
   return await repository.getCurrentUser();
 });
+
+
+final myHuecaProvider = FutureProvider<Hueca?>((ref) async {
+  final user = await ref.watch(currentUserProvider.future);
+  if (user == null) return null;
+  final huecas = await ref.watch(huecasProvider.future);
+  try {
+    return huecas.firstWhere((h) => h.ownerId == user.uid);
+  } catch (e) {
+    return null;
+  }
+});

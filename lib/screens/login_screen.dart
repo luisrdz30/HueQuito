@@ -28,31 +28,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _errorMessage = null;
     });
 
-    final authRepo = ref.read(authRepositoryProvider);
-    final user = await authRepo.signInWithEmail(_emailController.text, _passwordController.text);
-    
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      final user = await authRepo.signInWithEmail(_emailController.text, _passwordController.text);
+      
+      final userRepo = ref.read(userRepositoryProvider);
+      var userModel = await userRepo.getCurrentUser();
 
+      if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
+        await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
+        userModel = await userRepo.getCurrentUser();
+      }
 
-    final userRepo = ref.read(userRepositoryProvider);
-    var userModel = await userRepo.getCurrentUser();
-
-    if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
-      await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
-      userModel = await userRepo.getCurrentUser();
-    }
-
-    if (mounted) {
-      if (userModel != null && userModel.role == 'business') {
-        context.go('/business/dashboard');
-      } else {
-        context.go('/home');
+      if (mounted) {
+        if (userModel != null && userModel.role == 'business') {
+          context.go('/business/dashboard');
+        } else {
+          context.go('/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Error al iniciar sesión: $e';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
-
-    }
+  }
   
   void _signInWithGoogle() async {
     setState(() => _isLoading = true);

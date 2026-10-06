@@ -20,6 +20,7 @@ class Hueca {
   final List<String> images;
   final String ownerId;
   final bool isActive;
+  final Map<String, dynamic> metrics;
 
   Hueca({
     required this.id,
@@ -41,6 +42,7 @@ class Hueca {
     required this.images,
     required this.ownerId,
     required this.isActive,
+    required this.metrics,
   });
 
   factory Hueca.fromFirestore(DocumentSnapshot doc) {
@@ -65,6 +67,12 @@ class Hueca {
       images: List<String>.from(data['images'] ?? []),
       ownerId: data['ownerId'] ?? '',
       isActive: data['isActive'] ?? true,
+      metrics: data['metrics'] ?? {
+        'viewCount': 0,
+        'favoriteCount': 0,
+        'routeAdditions': 0,
+        'stampsGiven': 0,
+      },
     );
   }
 }
