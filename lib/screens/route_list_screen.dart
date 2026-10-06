@@ -83,7 +83,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             ),
             SizedBox(height: 16),
             Text(lang == 'es' ? 'Circuitos Gastronómicos' : 'Gastronomic Tours', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-            Text(lang == 'es' ? 'Recorridos a pie curados para saborear Quito' : 'Curated walking tours to savor Quito', style: TextStyle(fontSize: 12, color: AppTheme.textMedium)),
+            Text(lang == 'es' ? 'Recorridos para saborear Quito' : 'Tours to savor Quito', style: TextStyle(fontSize: 12, color: AppTheme.textMedium)),
           ],
         ),
       ),
