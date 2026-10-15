@@ -1,12 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hue_quito/providers/data_provider.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
+  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userRepo = ref.read(userRepositoryProvider);
+        final userModel = await userRepo.getCurrentUser();
+
+        if (userModel != null && userModel.role == 'business') {
+          // Check last login for business
+          final prefs = await SharedPreferences.getInstance();
+          final lastLogin = prefs.getInt('last_login_time') ?? 0;
+          final now = DateTime.now().millisecondsSinceEpoch;
+
+          if (now - lastLogin > 24 * 60 * 60 * 1000) {
+            // More than 24 hours, log out
+            await FirebaseAuth.instance.signOut();
+            setState(() {
+              _isLoading = false;
+            });
+            return;
+          } else {
+            // Still valid
+            if (mounted) context.go('/business/dashboard');
+            return;
+          }
+        } else {
+          // Normal user, persistent
+          if (mounted) context.go('/home');
+          return;
+        }
+      } catch (e) {
+        // Error fetching user data, stay on welcome screen
+      }
+    }
+
+    // Not logged in or logged out
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -27,10 +94,12 @@ class WelcomeScreen extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: Offset(0, 10),
-                    )
+                    ),
                   ],
                   image: DecorationImage(
-                    image: NetworkImage('https://images.unsplash.com/photo-1541518763669-27fef04b14ea?q=80&w=600&auto=format&fit=crop'),
+                    image: NetworkImage(
+                      'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?q=80&w=600&auto=format&fit=crop',
+                    ),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -50,7 +119,9 @@ class WelcomeScreen extends StatelessWidget {
                 'Listo para comenzar',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                  color: (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white70
+                      : AppTheme.textMedium),
                 ),
               ),
               Spacer(),

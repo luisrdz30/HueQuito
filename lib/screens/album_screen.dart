@@ -195,13 +195,30 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             if (!isGuest && user.gamification['huecaStamps'] != null) {
               currentStamps = user.gamification['huecaStamps'][hueca.id] ?? 0;
             }
-            int targetStamps = hueca.loyaltyCard['targetStamps'] ?? 5;
-            String reward = hueca.loyaltyCard['reward'] ?? lang == 'es' ? 'Recompensa sorpresa' : 'Surprise reward';
-            return _buildHuecaCard(lang: lang, 
+            int targetStamps = hueca.loyaltyCard['maxStamps'] ?? hueca.loyaltyCard['targetStamps'] ?? 5;
+            String reward = '';
+            if (hueca.loyaltyCard['rewardText'] is Map) {
+              reward = hueca.loyaltyCard['rewardText'][lang]?.toString() ?? hueca.loyaltyCard['rewardText']['es']?.toString() ?? '';
+            } else if (hueca.loyaltyCard['rewardText'] != null) {
+              reward = hueca.loyaltyCard['rewardText'].toString();
+            } else if (hueca.loyaltyCard['reward'] != null) {
+              reward = hueca.loyaltyCard['reward'].toString();
+            }
+            if (reward.isEmpty) {
+              reward = lang == 'es' ? 'Recompensa sorpresa' : 'Surprise reward';
+            }
+            final stampImageUrl = hueca.loyaltyCard['stampImage']?.toString() ??
+                (hueca.loyaltyCard['image']?.toString() ?? '');
+            final rewardImageUrl = hueca.loyaltyCard['rewardImage']?.toString() ?? '';
+
+            return _buildHuecaCard(
+              lang: lang, 
               title: hueca.name,
               currentStamps: currentStamps,
               targetStamps: targetStamps,
               reward: reward,
+              stampImageUrl: stampImageUrl.isNotEmpty ? stampImageUrl : null,
+              rewardImageUrl: rewardImageUrl.isNotEmpty ? rewardImageUrl : null,
               isGuest: isGuest,
               context: context,
             );
@@ -213,7 +230,17 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildHuecaCard({required String lang, required String title, required int currentStamps, required int targetStamps, required String reward, required bool isGuest, required BuildContext context}) {
+  Widget _buildHuecaCard({
+    required String lang,
+    required String title,
+    required int currentStamps,
+    required int targetStamps,
+    required String reward,
+    String? stampImageUrl,
+    String? rewardImageUrl,
+    required bool isGuest,
+    required BuildContext context,
+  }) {
     bool isCompleted = currentStamps >= targetStamps;
     return Container(
       margin: EdgeInsets.only(bottom: 16),
@@ -259,7 +286,17 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 ),
                 child: Center(
                   child: isStamped 
-                    ? Icon(Icons.check_circle, color: AppTheme.primary, size: 28)
+                    ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
+                        ? ClipOval(
+                            child: Image.network(
+                              stampImageUrl,
+                              width: 38,
+                              height: 38,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(Icons.check_circle, color: AppTheme.primary, size: 28),
+                            ),
+                          )
+                        : Icon(Icons.check_circle, color: AppTheme.primary, size: 28))
                     : Icon(Icons.restaurant, color: Colors.grey[400], size: 20),
                 ),
               );
@@ -268,11 +305,33 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
-              SizedBox(width: 8),
-              Text(
-                lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
-                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12),
+              if (rewardImageUrl != null && rewardImageUrl.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.network(
+                    rewardImageUrl,
+                    width: 22,
+                    height: 22,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
+                  ),
+                ),
+                SizedBox(width: 8),
+              ] else ...[
+                Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
+                SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Text(
+                  lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
+                  style: TextStyle(
+                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           )

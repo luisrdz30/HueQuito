@@ -171,17 +171,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text(displayUser.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                                  SizedBox(width: 8),
-                                  if (!isGuest)
+                                  Expanded(
+                                    child: Text(
+                                      displayUser.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (!isGuest) ...[
+                                    const SizedBox(width: 4),
                                     IconButton(
                                       icon: Icon(Icons.edit, size: 20, color: AppTheme.primary),
                                       onPressed: () => context.push('/edit_profile'),
                                       visualDensity: VisualDensity.compact,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
                                     ),
+                                  ],
                                 ],
                               ),
-                              Text(displayUser.email, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              const SizedBox(height: 2),
+                              Text(
+                                displayUser.email,
+                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ],
                           ),
                         )
@@ -201,6 +217,144 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
 
               SizedBox(height: 16),
+
+              // Banner de acceso directo a Negocio / Sucursal si administra una hueca
+              ref.watch(myHuecaProvider).when(
+                data: (managedHueca) {
+                  if (managedHueca == null) return const SizedBox.shrink();
+                  final branch = ref.watch(currentManagedBranchProvider).value;
+                  final title = branch != null
+                      ? 'Administrar ${branch.name}'
+                      : 'Administrar ${managedHueca.name}';
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.store, color: Colors.white, size: 28),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                branch != null ? 'Sucursal asignada' : 'Portal de tu Negocio',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => context.go('/business/dashboard'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppTheme.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                          child: const Text('Entrar', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+
+              // Admin Banner
+              if (displayUser.role == 'admin')
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E293B), Color(0xFF334155)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.admin_panel_settings, color: Colors.amber, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Panel de Administración',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Gestión global de la plataforma',
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => context.push('/admin/dashboard'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber,
+                          foregroundColor: Colors.black87,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        ),
+                        child: const Text('Entrar', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Favoritos
               Container(
@@ -400,6 +554,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ListTile(leading: Icon(Icons.support_agent), title: Text(lang['support']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FaqScreen()))),
                     ListTile(leading: Icon(Icons.policy), title: Text(lang['terms']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TermsScreen()))),
                     ListTile(leading: Icon(Icons.share), title: Text(lang['invite']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => _showInviteDialog(context)),
+                    ListTile(
+                      leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blueGrey),
+                      title: const Text('Panel Admin (Aprobar Notificaciones)', style: TextStyle(fontSize: 14)),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/admin/notifications'),
+                    ),
                     SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () async {
                       await ref.read(authRepositoryProvider).signOut();

@@ -6,7 +6,14 @@ class FaqScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ayuda y Soporte Quiteño')),
+      appBar: AppBar(
+        title: const Text('Ayuda y Soporte Quiteño'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Volver',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [

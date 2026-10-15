@@ -11,8 +11,9 @@ class BusinessLayout extends StatelessWidget {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/business/dashboard')) return 0;
     if (location.startsWith('/business/menu')) return 1;
-    if (location.startsWith('/business/qr')) return 2;
-    if (location.startsWith('/business/profile')) return 3;
+    if (location.startsWith('/business/notifications')) return 2;
+    if (location.startsWith('/business/qr')) return 3;
+    if (location.startsWith('/business/profile')) return 4;
     return 0;
   }
 
@@ -25,9 +26,12 @@ class BusinessLayout extends StatelessWidget {
         context.go('/business/menu');
         break;
       case 2:
-        context.go('/business/qr');
+        context.go('/business/notifications');
         break;
       case 3:
+        context.go('/business/qr');
+        break;
+      case 4:
         context.go('/business/profile');
         break;
     }
@@ -51,6 +55,10 @@ class BusinessLayout extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_menu),
             label: 'Menú',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.campaign),
+            label: 'Avisos',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.qr_code),

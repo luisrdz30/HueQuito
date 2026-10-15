@@ -9,6 +9,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hue_quito/utils/map_navigation_helper.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -661,23 +662,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.star, color: AppTheme.primary, size: 14),
-                            SizedBox(width: 4),
-                            Text(
-                              '${hueca.rating}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                            if (hueca.reviewCount > 0) ...[
+                              Icon(Icons.star, color: AppTheme.primary, size: 14),
+                              SizedBox(width: 4),
+                              Text(
+                                '${hueca.rating}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 2),
-                            Text(
-                              '(${hueca.reviewCount})',
-                              style: TextStyle(
-                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-                                fontSize: 10,
+                              SizedBox(width: 2),
+                              Text(
+                                '(${hueca.reviewCount})',
+                                style: TextStyle(
+                                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                  fontSize: 10,
+                                ),
                               ),
-                            ),
+                            ] else ...[
+                              Icon(Icons.star_border, color: AppTheme.primary, size: 14),
+                              SizedBox(width: 3),
+                              Text(
+                                lang == 'es' ? 'Nuevo' : 'New',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -790,23 +804,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () async {
-                          final availableMaps = await MapLauncher.installedMaps;
-                          if (availableMaps.isNotEmpty) {
-                            availableMaps.first.showMarker(
-                              coords: Coords(
-                                hueca.location.latitude,
-                                hueca.location.longitude,
-                              ),
-                              title: hueca.name,
-                            );
-                          } else {
-                            final url =
-                                'https://www.google.com/maps/search/?api=1&query=${hueca.location.latitude},${hueca.location.longitude}';
-                            if (await canLaunchUrl(Uri.parse(url))) {
-                              await launchUrl(Uri.parse(url));
-                            }
-                          }
+                        onPressed: () {
+                          MapNavigationHelper.openDirections(
+                            context: context,
+                            hueca: hueca,
+                            language: lang,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isDark

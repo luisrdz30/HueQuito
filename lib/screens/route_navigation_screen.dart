@@ -95,8 +95,14 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       });
 
       if (polylineCoordinates.isNotEmpty && _mapController != null) {
-        LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        try {
+          LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
+          _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+        } catch (_) {
+          try {
+            _mapController!.animateCamera(CameraUpdate.newLatLngZoom(polylineCoordinates.first, 14));
+          } catch (_) {}
+        }
       }
     } else {
       if (mounted) setState(() => _isLoading = false);

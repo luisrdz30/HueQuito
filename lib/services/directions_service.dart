@@ -2,9 +2,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class DirectionsService {
-  static const String _apiKey = 'AIzaSyDcxM0KCwFiiZBUj555w2K4xT8czajL8ms';
+  // Las claves se configuran en tiempo de compilación mediante --dart-define=MAPS_API_KEY=...
+  // para no exponer credenciales privadas en el código fuente.
+  static const String _apiKey = String.fromEnvironment('MAPS_API_KEY', defaultValue: '');
 
   static Future<Map<String, dynamic>?> getDirections(double startLat, double startLng, double endLat, double endLng, {String mode = 'walking', List<Map<String, double>> waypoints = const []}) async {
+    if (_apiKey.isEmpty) {
+      return null;
+    }
+
     final String url = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
     final travelMode = mode == 'driving' ? 'DRIVE' : 'WALK';

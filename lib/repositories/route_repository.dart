@@ -22,17 +22,38 @@ class RouteModel {
   });
 
   factory RouteModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = (doc.data() as Map<String, dynamic>?) ?? {};
+    Map<String, dynamic> parseLangMap(dynamic val, String defaultText) {
+      if (val is Map) return Map<String, dynamic>.from(val);
+      if (val is String) return {'es': val, 'en': val};
+      return {'es': defaultText, 'en': defaultText};
+    }
+
     return RouteModel(
       id: doc.id,
-      name: data['name'] ?? {'es': 'Sin nombre', 'en': 'No name'},
-      narrative: data['narrative'] ?? {'es': '', 'en': ''},
-      bannerImageUrl: data['bannerImageUrl'] ?? 'https://via.placeholder.com/800x400',
-      tags: data['tags'] ?? [],
-      metrics: data['metrics'] ?? {'distance': '0 km', 'estimatedTime': '0 min'},
-      recommendedSchedule: data['recommendedSchedule'] ?? {'time': {'es': '', 'en': ''}, 'note': {'es': '', 'en': ''}},
-      stops: data['stops'] ?? [],
+      name: parseLangMap(data['name'], 'Sin nombre'),
+      narrative: parseLangMap(data['narrative'], ''),
+      bannerImageUrl: data['bannerImageUrl']?.toString() ?? 'https://via.placeholder.com/800x400',
+      tags: data['tags'] is List ? List<dynamic>.from(data['tags']) : [],
+      metrics: data['metrics'] is Map ? Map<String, dynamic>.from(data['metrics']) : {'distance': '0 km', 'estimatedTime': '0 min'},
+      recommendedSchedule: data['recommendedSchedule'] is Map
+          ? Map<String, dynamic>.from(data['recommendedSchedule'])
+          : {'time': {'es': '', 'en': ''}, 'note': {'es': '', 'en': ''}},
+      stops: data['stops'] is List ? List<dynamic>.from(data['stops']) : [],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'narrative': narrative,
+      'bannerImageUrl': bannerImageUrl,
+      'tags': tags,
+      'metrics': metrics,
+      'recommendedSchedule': recommendedSchedule,
+      'stops': stops,
+    };
   }
 }
 
@@ -49,7 +70,27 @@ class RouteRepository {
     }
   }
 
+  Stream<List<RouteModel>> streamRoutes() {
+    return _db.collection('routes').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => RouteModel.fromFirestore(doc)).toList();
+    });
+  }
+
   Future<void> addRoute(Map<String, dynamic> routeData) async {
-    await _db.collection('routes').doc(routeData['id']).set(routeData);
+    final String id = routeData['id'] ?? _db.collection('routes').doc().id;
+    routeData['id'] = id;
+    await _db.collection('routes').doc(id).set(routeData);
+  }
+
+  Future<void> saveRoute(Map<String, dynamic> routeData) async {
+    final String id = (routeData['id'] != null && routeData['id'].toString().isNotEmpty)
+        ? routeData['id'].toString()
+        : _db.collection('routes').doc().id;
+    routeData['id'] = id;
+    await _db.collection('routes').doc(id).set(routeData, SetOptions(merge: true));
+  }
+
+  Future<void> deleteRoute(String routeId) async {
+    await _db.collection('routes').doc(routeId).delete();
   }
 }

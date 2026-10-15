@@ -7,6 +7,8 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hue_quito/repositories/user_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +21,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isBusinessOwner = false;
+  bool _obscurePassword = true;
   String? _errorMessage;
 
   void _signInWithEmail() async {
@@ -30,47 +32,100 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final authRepo = ref.read(authRepositoryProvider);
-      final user = await authRepo.signInWithEmail(_emailController.text, _passwordController.text);
-      
+      await authRepo.signInWithEmail(
+        _emailController.text,
+        _passwordController.text,
+      );
+
       final userRepo = ref.read(userRepositoryProvider);
       var userModel = await userRepo.getCurrentUser();
-
-      if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
-        await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
-        userModel = await userRepo.getCurrentUser();
-      }
-
-      if (mounted) {
-        if (userModel != null && userModel.role == 'business') {
-          context.go('/business/dashboard');
-        } else {
-          context.go('/home');
-        }
-      }
+      await _handlePostLoginNavigation(userModel);
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error al iniciar sesión: $e';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
     }
   }
-  
+
+  Future<void> _handlePostLoginNavigation(UserModel? userModel) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(
+      'last_login_time',
+      DateTime.now().millisecondsSinceEpoch,
+    );
+
+    if (!mounted) return;
+
+    if (userModel != null) {
+      bool isBusinessOrManager = false;
+
+      try {
+        final userEmail = userModel.email.trim().toLowerCase();
+        final userUid = userModel.uid;
+        final huecasSnap = await FirebaseFirestore.instance.collection('huecas').get();
+
+        for (var doc in huecasSnap.docs) {
+          final data = doc.data();
+          if (data['ownerId'] == userUid) {
+            isBusinessOrManager = true;
+            break;
+          }
+          final branchesList = data['branches'] as List<dynamic>?;
+          if (branchesList != null) {
+            for (var b in branchesList) {
+              if (b is Map && (b['managerEmail']?.toString().trim().toLowerCase() == userEmail)) {
+                isBusinessOrManager = true;
+                break;
+              }
+            }
+          }
+          if (isBusinessOrManager) break;
+        }
+
+        if (isBusinessOrManager) {
+          if (userModel.role != 'business') {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userModel.uid)
+                .update({'role': 'business'});
+          }
+          await FirebaseFirestore.instance
+              .collection('branch_invitations')
+              .doc(userEmail)
+              .update({'status': 'active'}).catchError((_) {});
+        } else if (userModel.role == 'business') {
+          // Ya no administra ninguna sucursal ni es dueño: revocar rol
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userModel.uid)
+              .update({'role': 'user'});
+        }
+      } catch (_) {}
+
+      if (isBusinessOrManager) {
+        context.go('/business/dashboard');
+        return;
+      }
+    }
+
+    context.go('/home');
+  }
+
   void _signInWithGoogle() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         setState(() => _isLoading = false);
-        return;
+        return; // User canceled
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -79,181 +134,128 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final userRepo = ref.read(userRepositoryProvider);
       var userModel = await userRepo.getCurrentUser();
-
-      if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
-        await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
-        userModel = await userRepo.getCurrentUser();
-      }
-
-      if (mounted) {
-        if (userModel != null && userModel.role == 'business') {
-          context.go('/business/dashboard');
-        } else {
-          context.go('/home');
-        }
-      }
-
+      await _handlePostLoginNavigation(userModel);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error Google: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error Google: ${e.toString()}')),
+        );
         setState(() => _isLoading = false);
       }
     }
   }
-  
-  
-void _signInAnonymously() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
 
-    final authRepo = ref.read(authRepositoryProvider);
-    final user = await authRepo.signInAnonymously();
-    
-    setState(() {
-      _isLoading = false;
-    });
-
-
-    final userRepo = ref.read(userRepositoryProvider);
-    var userModel = await userRepo.getCurrentUser();
-
-    if (_isBusinessOwner && userModel != null && userModel.role != 'business') {
-      await FirebaseFirestore.instance.collection('users').doc(userModel.uid).update({'role': 'business'});
-      userModel = await userRepo.getCurrentUser();
-    }
-
-    if (mounted) {
-      if (userModel != null && userModel.role == 'business') {
-        context.go('/business/dashboard');
-      } else {
-        context.go('/home');
-      }
-    }
-
-    }
+  void _skipLogin() {
+    context.go('/home');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
+      body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 40),
-              Center(
-                child: Hero(
-                  tag: 'app_logo',
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.restaurant, size: 80, color: AppTheme.primary),
-                  ),
+              Icon(Icons.restaurant, size: 80, color: AppTheme.primary),
+              SizedBox(height: 16),
+              Text(
+                'HueQuito',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primary,
                 ),
               ),
-              SizedBox(height: 24),
-              Text(
-                '¡Bienvenido a Hue-Quito!',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Descubre los mejores sabores de la capital',
-                style: TextStyle(fontSize: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 48),
+              SizedBox(height: 32),
 
               if (_errorMessage != null)
-                Container(
-                  padding: EdgeInsets.all(12),
-                  margin: EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(8)),
-                  child: Text(_errorMessage!, style: TextStyle(color: Colors.red.shade900)),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
 
+              // Email
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Correo electrónico',
-                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  labelText: 'Correo Electrónico',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               SizedBox(height: 16),
+
+              // Password
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
-                  prefixIcon: Icon(Icons.lock_outline, color: AppTheme.primary),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
-                  child: Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppTheme.secondary)),
-                ),
-              ),
-              SizedBox(height: 8),
-              CheckboxListTile(
-                title: Text('Ingresar como dueño de Hueca'),
-                value: _isBusinessOwner,
-                onChanged: (val) {
-                  setState(() {
-                    _isBusinessOwner = val ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-                activeColor: AppTheme.primary,
-              ),
+
               SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _signInWithEmail,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                child: _isLoading 
-                    ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Theme.of(context).cardColor, strokeWidth: 2))
-                    : Text('Iniciar Sesión', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)))),
-                  Expanded(child: Divider()),
-                ],
-              ),
-              SizedBox(height: 24),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  elevation: 1,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
+
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _signInWithEmail,
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Iniciar Sesión',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+
+              SizedBox(height: 16),
+              OutlinedButton.icon(
+                icon: Icon(Icons.g_mobiledata, size: 24),
+                label: Text('Ingresar con Google'),
                 onPressed: _isLoading ? null : _signInWithGoogle,
-                icon: Icon(Icons.g_mobiledata, size: 32, color: Colors.red),
-                label: Text('Continuar con Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                ),
               ),
-              SizedBox(height: 12),
+
+              SizedBox(height: 16),
               TextButton(
-                onPressed: _isLoading ? null : _signInAnonymously,
-                child: Text('Explorar como Invitado (Sin guardar progreso)'),
+                onPressed: _skipLogin,
+                child: Text('Continuar como Invitado'),
+              ),
+              SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.push('/register'),
+                child: Text(
+                  '¿Aún no tienes cuenta? Regístrate aquí',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),

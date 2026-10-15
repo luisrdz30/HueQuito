@@ -115,7 +115,9 @@ class RouteDetailScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          route.name[lang] ?? route.name['es'],
+                          route.name is Map
+                              ? (route.name[lang] ?? route.name['es'] ?? route.name['en'] ?? route.name.values.firstOrNull ?? '').toString()
+                              : route.name.toString(),
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -236,7 +238,9 @@ class RouteDetailScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          route.narrative[lang] ?? route.narrative['es'],
+                          route.narrative is Map
+                              ? (route.narrative[lang] ?? route.narrative['es'] ?? route.narrative['en'] ?? route.narrative.values.firstOrNull ?? '').toString()
+                              : route.narrative.toString(),
                           style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
                         ),
                       ],
@@ -349,7 +353,13 @@ class RouteDetailScreen extends ConsumerWidget {
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
                                                       Text(
-                                                        hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'],
+                                                        () {
+                                                          if (hueca.mainDish['name'] is Map) {
+                                                            final m = hueca.mainDish['name'] as Map;
+                                                            return (m[lang] ?? m['es'] ?? m['en'] ?? m.values.firstOrNull ?? '').toString();
+                                                          }
+                                                          return hueca.mainDish['name']?.toString() ?? '';
+                                                        }(),
                                                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                                                         maxLines: 2,
                                                         overflow: TextOverflow.ellipsis,
@@ -421,7 +431,20 @@ class RouteDetailScreen extends ConsumerWidget {
                                                 Icon(Icons.directions_walk, size: 14, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                 SizedBox(width: 4),
                                                 Text(
-                                                  '${stop['travelToNext']['duration']} (${stop['travelToNext']['distance']}) ${stop['travelToNext']['instruction'][lang] ?? stop['travelToNext']['instruction']['es']}',
+                                                  () {
+                                                    final t = stop['travelToNext'];
+                                                    if (t == null) return '';
+                                                    final dur = t['duration']?.toString() ?? '';
+                                                    final dist = t['distance']?.toString() ?? '';
+                                                    String instr = '';
+                                                    if (t['instruction'] is Map) {
+                                                      final m = t['instruction'] as Map;
+                                                      instr = (m[lang] ?? m['es'] ?? m['en'] ?? m.values.firstOrNull ?? '').toString();
+                                                    } else if (t['instruction'] != null) {
+                                                      instr = t['instruction'].toString();
+                                                    }
+                                                    return '$dur ($dist) $instr'.trim();
+                                                  }(),
                                                   style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
                                                 ),
                                               ],

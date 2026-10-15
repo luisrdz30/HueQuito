@@ -2,15 +2,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hue_quito/providers/data_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
 
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  ConsumerState<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends ConsumerState<ScanScreen> {
   final MobileScannerController _controller = MobileScannerController();
   Map<String, dynamic>? _scannedData;
   bool _isProcessing = false;
@@ -40,6 +43,104 @@ class _ScanScreenState extends State<ScanScreen> {
         });
       }
     }
+  }
+
+  Future<void> _saveScannedData() async {
+    if (_scannedData == null) return;
+    
+    setState(() => _isProcessing = true);
+    
+    try {
+      final userRepo = ref.read(userRepositoryProvider);
+      final user = await userRepo.getCurrentUser();
+      if (user == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inicia sesión para guardar sellos')));
+        _resetScanner();
+        return;
+      }
+      
+      if (_scannedData!['type'] == 'points') {
+        final huecaId = _scannedData!['business_id'];
+        final stamps = _scannedData!['points'];
+        final branchId = _scannedData!['branch_id'] ?? 'matriz';
+        final branchName = _scannedData!['branch_name'] ?? 'Matriz Principal';
+        
+        final currentStamps = (user.gamification['huecaStamps'] ?? {})[huecaId] ?? 0;
+        final currentPoints = user.gamification['points'] ?? 0;
+        
+        Map<String, dynamic> updatedGamification = Map.from(user.gamification);
+        updatedGamification['huecaStamps'] = Map<String, dynamic>.from(user.gamification['huecaStamps'] ?? {});
+        updatedGamification['huecaStamps'][huecaId] = currentStamps + stamps;
+        updatedGamification['points'] = currentPoints + (stamps * 10);
+        
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'gamification': updatedGamification
+        });
+        
+        await FirebaseFirestore.instance.collection('huecas').doc(huecaId).collection('stamp_history').add({
+          'userId': user.uid,
+          'stamps': stamps,
+          'branchId': branchId,
+          'branchName': branchName,
+          'date': FieldValue.serverTimestamp(),
+        });
+        
+        await FirebaseFirestore.instance.collection('huecas').doc(huecaId).update({
+          'metrics.stampsGiven': FieldValue.increment(stamps)
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('¡Sello de $branchName guardado exitosamente!'),
+            backgroundColor: Colors.green,
+          ));
+        }
+      } else if (_scannedData!['type'] == 'secret_sticker' || _scannedData!['type'] == 'cromo') {
+        final huecaId = _scannedData!['business_id'] ?? '';
+        final branchId = _scannedData!['branch_id'] ?? 'matriz';
+        final branchName = _scannedData!['branch_name'] ?? 'Matriz Principal';
+        final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? 'Sticker Secreto';
+        
+        final stickerKey = '${huecaId}_$branchId';
+        final currentPoints = user.gamification['points'] ?? 0;
+        
+        Map<String, dynamic> updatedGamification = Map.from(user.gamification);
+        List<dynamic> collected = List.from(user.gamification['collectedStickers'] ?? []);
+        bool isNew = !collected.contains(stickerKey);
+        if (isNew) {
+          collected.add(stickerKey);
+          updatedGamification['points'] = currentPoints + 50; // +50 bonus points
+        }
+        updatedGamification['collectedStickers'] = collected;
+        
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'gamification': updatedGamification
+        });
+        
+        if (huecaId.isNotEmpty) {
+          await FirebaseFirestore.instance.collection('huecas').doc(huecaId).collection('sticker_history').add({
+            'userId': user.uid,
+            'branchId': branchId,
+            'branchName': branchName,
+            'stickerName': stickerName,
+            'date': FieldValue.serverTimestamp(),
+          });
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(isNew 
+                ? '¡Nuevo sticker secreto "$stickerName" coleccionado! (+50 pts)' 
+                : '¡Sticker "$stickerName" registrado!'),
+            backgroundColor: Colors.green,
+          ));
+        }
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+    }
+    
+    _resetScanner();
   }
 
   void _resetScanner() {
@@ -190,7 +291,7 @@ class _ScanScreenState extends State<ScanScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Local ID: ${_scannedData!['business_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(_scannedData!['branch_name'] != null ? 'Local: ${_scannedData!['branch_name']}' : 'Local ID: ${_scannedData!['business_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                 Text('Consumo registrado', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
                               ],
                             ),
@@ -217,7 +318,7 @@ class _ScanScreenState extends State<ScanScreen> {
                           ],
                         ),
                       ),
-                    ] else if (_scannedData!['type'] == 'cromo') ...[
+                    ] else if (_scannedData!['type'] == 'cromo' || _scannedData!['type'] == 'secret_sticker') ...[
                       Row(
                         children: [
                           Container(width: 48, height: 48, decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(Icons.military_tech, color: AppTheme.secondary)),
@@ -226,8 +327,13 @@ class _ScanScreenState extends State<ScanScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('¡Has encontrado un cromo secreto!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('Cromo desbloqueado en el local', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
+                                Text('¡Has encontrado un Sticker Secreto!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(
+                                  _scannedData!['branch_name'] != null
+                                      ? 'Local: ${_scannedData!['branch_name']}'
+                                      : 'Sticker exclusivo descubierto',
+                                  style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12),
+                                ),
                               ],
                             ),
                           )
@@ -245,8 +351,8 @@ class _ScanScreenState extends State<ScanScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Cromo: ${_scannedData!['cromo_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('Ve a la pestaña Álbum para verlo', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
+                                  Text('${_scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? "Sticker Secreto"} (+50 pts)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Text('Se añadirá a tu colección de cromos', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
                                 ],
                               ),
                             ),
@@ -262,8 +368,8 @@ class _ScanScreenState extends State<ScanScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _resetScanner,
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.verified), SizedBox(width: 8), Text('Aceptar y continuar')]),
+                        onPressed: _saveScannedData,
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.verified), SizedBox(width: 8), Text('Canjear y Guardar')]),
                       ),
                     ),
                     SizedBox(height: 8),

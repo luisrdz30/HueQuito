@@ -1,5 +1,8 @@
 allprojects {
     repositories {
+        maven {
+            url = uri("${rootDir}/local-maven")
+        }
         google()
         mavenCentral()
     }

@@ -58,6 +58,9 @@ dependencies:
   intl_phone_field: ^3.2.0
   image_picker: ^1.2.3
   confetti: ^0.8.0
+  shared_preferences: ^2.5.5
+  google_mlkit_text_recognition: ^0.16.0
+  flutter_local_notifications: ^22.3.2
 
 dev_dependencies:
   flutter_test:

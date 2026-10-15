@@ -78,6 +78,24 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     _confettiController.play();
   }
 
+  void _skipQuiz() {
+    final user = ref.read(currentUserProvider).value;
+    if (user != null) {
+      Map<String, dynamic> newPrefs = Map.from(user.preferences);
+      newPrefs['persona'] = 'aventurero';
+      ref.read(userRepositoryProvider).updatePreferences(newPrefs).then((_) {
+         ref.invalidate(currentUserProvider);
+      });
+    }
+    
+    if (mounted) {
+      if (context.canPop()) {
+        context.pop();
+      }
+      context.push('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(settingsProvider).language;
@@ -85,11 +103,17 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
+            appBar: AppBar(
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => context.pop()),
         title: Text(isEs ? 'Quiz Gastronómico' : 'Gastronomic Quiz'),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: _skipQuiz,
+            child: Text(isEs ? 'Saltar' : 'Skip', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+          )
+        ],
       ),
       body: _resultProfile == null 
         ? _buildQuiz(isEs) 

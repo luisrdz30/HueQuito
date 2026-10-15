@@ -19,13 +19,28 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
   int _selectedTab = 0; // 0 for List, 1 for Map
   String _selectedSector = 'Todos';
 
+  String _cleanStr(String str) {
+    return str.toLowerCase().trim()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
+  }
+
   @override
   Widget build(BuildContext context) {
     final routesAsync = ref.watch(routesProvider);
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
-    if (_selectedSector == 'Todos' || _selectedSector == 'All') {
-      _selectedSector = lang == 'es' ? 'Todos' : 'All';
+    final defaultAll = lang == 'es' ? 'Todos' : 'All';
+    final isCurrentAll = _cleanStr(_selectedSector) == 'todos' ||
+        _cleanStr(_selectedSector) == 'all' ||
+        _cleanStr(_selectedSector).contains('todos') ||
+        _cleanStr(_selectedSector).contains('all');
+    if (isCurrentAll) {
+      _selectedSector = defaultAll;
     }
 
     return Scaffold(
@@ -47,7 +62,29 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                 if (_selectedTab == 0)
                   huecasAsync.when(
                     data: (huecasList) {
-                      final sectors = [lang == 'es' ? 'Todos' : 'All', ...huecasList.map((h) => h.sector).toSet().toList()..sort()];
+                      final allSectorSet = <String>{};
+                      for (var h in huecasList) {
+                        if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
+                        for (var b in h.allBranches) {
+                          if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());
+                        }
+                      }
+                      final sectors = [
+                        defaultAll,
+                        ...allSectorSet.toList()..sort(),
+                      ];
+                      if (isCurrentAll) {
+                        _selectedSector = defaultAll;
+                      } else {
+                        final matchingSector = sectors.firstWhere(
+                          (s) => _cleanStr(s) == _cleanStr(_selectedSector),
+                          orElse: () => defaultAll,
+                        );
+                        _selectedSector = matchingSector;
+                      }
+                      if (!sectors.contains(_selectedSector)) {
+                        _selectedSector = defaultAll;
+                      }
                       return Container(
                         height: 32,
                         padding: EdgeInsets.symmetric(horizontal: 12),
@@ -164,12 +201,14 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                         data: (huecasList) {
                           // Filter routes by selected sector
                           List<RouteModel> filteredRoutes = routes;
-                          if (_selectedSector != 'Todos' && _selectedSector != 'All') {
+                          if (!isCurrentAll) {
+                            final selSec = _cleanStr(_selectedSector);
                             filteredRoutes = routes.where((route) {
-                              // Check if any stop in the route belongs to the selected sector
                               return route.stops.any((stop) {
-                                final hueca = huecasList.firstWhere((h) => h.id == stop['huecaId'], orElse: () => huecasList.first);
-                                return hueca.sector == _selectedSector;
+                                final hueca = huecasList.where((h) => h.id == stop['huecaId']).firstOrNull;
+                                if (hueca == null) return false;
+                                return _cleanStr(hueca.sector) == selSec ||
+                                    hueca.allBranches.any((b) => _cleanStr(b.sector) == selSec);
                               });
                             }).toList();
                           }
@@ -198,7 +237,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                     loading: () => Center(child: CircularProgressIndicator()),
                     error: (err, stack) => Center(child: Text('Error: $err')),
                   )
-                : RouteMapScreen(), // Display Map Screen here!
+                : RouteMapScreen(initialSector: _selectedSector), // Display Map Screen here!
           ),
         ],
       ),
@@ -345,15 +384,25 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                                       Text(hueca.sector, style: TextStyle(fontSize: 10, color: Colors.grey)),
                                     ],
                                   ),
-                                  SizedBox(height: 4),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
-                                      children: [
-                                        TextSpan(text: 'Especialidad: ', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                        TextSpan(text: hueca.mainDish['name'][lang] ?? hueca.mainDish['name']['es'], style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
-                                      ]
-                                    ),
+                                  Builder(
+                                    builder: (context) {
+                                      final dishName = () {
+                                        if (hueca.mainDish['name'] is Map) {
+                                          final m = hueca.mainDish['name'] as Map;
+                                          return (m[lang] ?? m['es'] ?? m['en'] ?? m.values.firstOrNull ?? '').toString();
+                                        }
+                                        return hueca.mainDish['name']?.toString() ?? '';
+                                      }();
+                                      return RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                                          children: [
+                                            TextSpan(text: lang == 'es' ? 'Especialidad: ' : 'Specialty: ', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                            TextSpan(text: dishName, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
+                                          ]
+                                        ),
+                                      );
+                                    },
                                   )
                                 ],
                               ),
