@@ -216,6 +216,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                             'phone': req.phone,
                             'priceLevel': priceLevel,
                             'isActive': true,
+                            'isSectorConfirmed': true,
                             'ownerId': '', // se asignará con el usuario
                             'location': const GeoPoint(-0.2200, -78.5120),
                             'schedule': {

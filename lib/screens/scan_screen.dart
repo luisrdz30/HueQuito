@@ -211,6 +211,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             });
           } catch (_) {}
 
+          ref.invalidate(currentUserProvider);
+          ref.invalidate(huecasProvider);
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isEn
@@ -250,6 +253,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             } catch (_) {}
           }
 
+          ref.invalidate(currentUserProvider);
+          ref.invalidate(huecasProvider);
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isNew
@@ -269,18 +275,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
 
       if (_scannedData!['type'] == 'points') {
-        final huecaId = _scannedData!['business_id'];
-        final stamps = _scannedData!['points'];
-        final branchId = _scannedData!['branch_id'] ?? 'matriz';
+        final huecaId = _scannedData!['business_id']?.toString().trim() ?? '';
+        final stamps = (_scannedData!['points'] as num?)?.toInt() ?? 1;
+        final branchId = _scannedData!['branch_id']?.toString().trim() ?? 'matriz';
         final branchName = _scannedData!['branch_name'] ?? (isEn ? 'Main Branch' : 'Matriz Principal');
         
-        final currentStamps = (user.gamification['huecaStamps'] ?? {})[huecaId] ?? 0;
-        final currentPoints = user.gamification['points'] ?? 0;
+        final huecaStampsMap = Map<String, dynamic>.from(user.gamification['huecaStamps'] ?? {});
+        final currentStamps = (huecaStampsMap[huecaId] as num?)?.toInt() ?? 0;
+        final currentPoints = (user.gamification['points'] as num?)?.toInt() ?? 0;
+        final currentTotalStamps = ((user.gamification['totalStamps'] as num?)?.toInt() ?? 0);
         
         Map<String, dynamic> updatedGamification = Map.from(user.gamification);
-        updatedGamification['huecaStamps'] = Map<String, dynamic>.from(user.gamification['huecaStamps'] ?? {});
-        updatedGamification['huecaStamps'][huecaId] = currentStamps + stamps;
+        huecaStampsMap[huecaId] = currentStamps + stamps;
+        updatedGamification['huecaStamps'] = huecaStampsMap;
         updatedGamification['points'] = currentPoints + (stamps * 10);
+        updatedGamification['totalStamps'] = currentTotalStamps + stamps;
         
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
           'gamification': updatedGamification
@@ -297,6 +306,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         await FirebaseFirestore.instance.collection('huecas').doc(huecaId).update({
           'metrics.stampsGiven': FieldValue.increment(stamps)
         });
+
+        // Refrescar estado Riverpod de inmediato para Mi Álbum y Perfil
+        ref.invalidate(currentUserProvider);
+        ref.invalidate(huecasProvider);
+        ref.invalidate(allHuecasStreamProvider);
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -337,6 +351,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             'date': FieldValue.serverTimestamp(),
           });
         }
+
+        // Refrescar estado Riverpod de inmediato
+        ref.invalidate(currentUserProvider);
+        ref.invalidate(huecasProvider);
+        ref.invalidate(allHuecasStreamProvider);
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(

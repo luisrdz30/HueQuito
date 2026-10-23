@@ -23,6 +23,12 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
   void initState() {
     super.initState();
     _loadGuestGamification();
+    // Auto-sincronizar datos frescos del usuario al abrir el álbum
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.invalidate(currentUserProvider);
+      }
+    });
   }
 
   Future<void> _loadGuestGamification() async {
@@ -32,6 +38,33 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         _guestGamification = data;
       });
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    ref.invalidate(currentUserProvider);
+    ref.invalidate(huecasProvider);
+    await Future.wait([
+      ref.read(currentUserProvider.future),
+      ref.read(huecasProvider.future),
+      _loadGuestGamification(),
+    ]);
+  }
+
+  int _getUserStampsForHueca(Map<String, dynamic>? stampsMap, String huecaId) {
+    if (stampsMap == null) return 0;
+    final cleanId = huecaId.trim();
+    if (stampsMap.containsKey(cleanId)) {
+      return (stampsMap[cleanId] as num?)?.toInt() ?? 0;
+    }
+    if (stampsMap.containsKey(huecaId)) {
+      return (stampsMap[huecaId] as num?)?.toInt() ?? 0;
+    }
+    for (final entry in stampsMap.entries) {
+      if (entry.key.toString().trim() == cleanId) {
+        return (entry.value as num?)?.toInt() ?? 0;
+      }
+    }
+    return 0;
   }
 
   @override
@@ -67,7 +100,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           ],
         ),
       ),
-      body: userAsync.when(
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: userAsync.when(
         data: (user) {
           final isGuest = user == null;
 
@@ -90,18 +125,14 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
 
           // Filtrar y calcular sellos exclusivamente de huecas activas y confirmadas
           final allHuecas = huecasAsync.value ?? [];
-          final confirmedHuecaMap = {
-            for (final h in allHuecas.where((h) => h.isActive && h.isSectorConfirmed))
-              h.id: h
-          };
+          final userHuecaStamps = displayUser.gamification['huecaStamps'] is Map
+              ? Map<String, dynamic>.from(displayUser.gamification['huecaStamps'])
+              : null;
 
-          final userHuecaStamps = Map<String, dynamic>.from(displayUser.gamification['huecaStamps'] ?? {});
           int totalConfirmedStamps = 0;
-          userHuecaStamps.forEach((hId, count) {
-            if (confirmedHuecaMap.containsKey(hId)) {
-              totalConfirmedStamps += (count as num?)?.toInt() ?? 0;
-            }
-          });
+          for (final h in allHuecas.where((h) => h.isActive && h.isSectorConfirmed)) {
+            totalConfirmedStamps += _getUserStampsForHueca(userHuecaStamps, h.id);
+          }
 
           final int totalStamps = huecasAsync.value != null
               ? totalConfirmedStamps
@@ -235,69 +266,89 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             ],
           );
         },
-        loading: () => Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
+      )),
     );
   }
 
   Widget _buildHuecasList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest, String lang) {
     return huecasAsync.when(
       data: (huecas) {
-        if (huecas.isEmpty) return Center(child: Text(lang == 'es' ? 'No hay huecas disponibles' : 'No huecas available'));
-
-        var activeHuecas = huecas.where((Hueca h) {
-          // Los sellos de huecas no confirmadas o inactivas no deben salir ni contarse
-          if (!h.isSectorConfirmed || !h.isActive) return false;
-          if (user.gamification['huecaStamps'] == null) return false;
-          return ((user.gamification['huecaStamps'][h.id] as num?)?.toInt() ?? 0) > 0;
-        }).toList();
-
-        if (activeHuecas.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.loyalty_outlined,
-                    size: 64,
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    lang == 'es' ? '¡Tu cartilla está esperando!' : 'Your card is waiting!',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    lang == 'es'
-                        ? 'Aún no tienes sellos en ninguna hueca.\n¡Visita un local y empieza a coleccionar!'
-                        : 'You have no stamps yet in any spot.\nVisit a local and start collecting!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
-                      height: 1.4,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
+        if (huecas.isEmpty) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Container(
+              height: 300,
+              alignment: Alignment.center,
+              child: Text(lang == 'es' ? 'No hay huecas disponibles' : 'No huecas available'),
             ),
           );
         }
 
+        final userStampsMap = user.gamification['huecaStamps'] is Map
+            ? Map<String, dynamic>.from(user.gamification['huecaStamps'])
+            : null;
+
+        var activeHuecas = huecas.where((Hueca h) {
+          // Los sellos de huecas no confirmadas o inactivas no deben salir ni contarse
+          if (!h.isSectorConfirmed || !h.isActive) return false;
+          return _getUserStampsForHueca(userStampsMap, h.id) > 0;
+        }).toList();
+
+        if (activeHuecas.isEmpty) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.loyalty_outlined,
+                            size: 64,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            lang == 'es' ? '¡Tu cartilla está esperando!' : 'Your card is waiting!',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            lang == 'es'
+                                ? 'Aún no tienes sellos en ninguna hueca.\n¡Visita un local y empieza a coleccionar!'
+                                : 'You have no stamps yet in any spot.\nVisit a local and start collecting!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
+                              height: 1.4,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
         return ListView.builder(
-          padding: EdgeInsets.only(left: 16, right: 16, bottom: 80),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
           itemCount: activeHuecas.length,
           itemBuilder: (context, index) {
             final hueca = activeHuecas[index];
-            int currentStamps = 0;
-            if (user.gamification['huecaStamps'] != null) {
-              currentStamps = (user.gamification['huecaStamps'][hueca.id] as num?)?.toInt() ?? 0;
-            }
+            final currentStamps = _getUserStampsForHueca(userStampsMap, hueca.id);
             int targetStamps = hueca.loyaltyCard['maxStamps'] ?? hueca.loyaltyCard['targetStamps'] ?? 5;
             String reward = '';
             if (hueca.loyaltyCard['rewardText'] is Map) {
@@ -855,38 +906,48 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         final sortedSectorNames = sectorsMap.keys.toList()..sort();
 
         if (sortedSectorNames.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.map_outlined,
-                    size: 64,
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    lang == 'es' ? 'Sin cromos por sector' : 'No sector stickers yet',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    lang == 'es'
-                        ? 'Aún no tienes cromos por sector.\n¡Explora diferentes zonas de Quito para desbloquearlos!'
-                        : 'You have no stickers by sector yet.\nExplore different zones of Quito to unlock them!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
-                      height: 1.4,
-                      fontSize: 13,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.map_outlined,
+                            size: 64,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            lang == 'es' ? 'Sin cromos por sector' : 'No sector stickers yet',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            lang == 'es'
+                                ? 'Aún no tienes cromos por sector.\n¡Explora diferentes zonas de Quito para desbloquearlos!'
+                                : 'You have no stickers by sector yet.\nExplore different zones of Quito to unlock them!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
+                              height: 1.4,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         }
 

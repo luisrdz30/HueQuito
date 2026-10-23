@@ -467,7 +467,7 @@ class Hueca {
       images: List<String>.from(data['images'] ?? []),
       ownerId: data['ownerId'] ?? '',
       isActive: _parseBool(data['isActive']),
-      isSectorConfirmed: data['isSectorConfirmed'] ?? false,
+      isSectorConfirmed: data['isSectorConfirmed'] ?? (data['isActive'] == true && !data.containsKey('isSectorConfirmed')),
       branches: parsedBranches,
       metrics: data['metrics'] ?? {
         'viewCount': 0,

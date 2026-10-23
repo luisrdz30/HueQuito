@@ -1198,6 +1198,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
         'phone': _phoneController.text.trim(),
         'priceLevel': _priceLevel,
         'isActive': _isActive,
+        'isSectorConfirmed': true,
         'ownerId': _selectedOwnerId ?? '',
         'location': GeoPoint(lat, lng),
         'schedule': _schedule,
