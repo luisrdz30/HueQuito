@@ -11,7 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key});
+  final Map<String, dynamic>? initialScannedDataForTesting;
+  const ScanScreen({super.key, this.initialScannedDataForTesting});
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -21,6 +22,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   final MobileScannerController _controller = MobileScannerController();
   Map<String, dynamic>? _scannedData;
   bool _isProcessing = false;
+  String? _lastScannedCode;
+  DateTime? _cooldownUntil;
 
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing || _scannedData != null) return;
@@ -35,6 +38,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
     }
     if (rawCode == null || rawCode.isEmpty) return;
+
+    // Evitar que el mismo código se vuelva a escanear inmediatamente al cerrarse o canjearse
+    if (_lastScannedCode == rawCode && _cooldownUntil != null && DateTime.now().isBefore(_cooldownUntil!)) {
+      return;
+    }
 
     final lang = ref.read(settingsProvider).language;
     final isEn = lang == 'en';
@@ -138,6 +146,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     }
 
     setState(() {
+      _lastScannedCode = rawCode;
       _scannedData = parsed;
       _isProcessing = false;
     });
@@ -571,12 +580,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
     }
     
-    _resetScanner();
+    _resetScanner(6);
   }
 
-  void _resetScanner() {
+  void _resetScanner([int cooldownSeconds = 4]) {
     if (mounted) {
       setState(() {
+        if (_lastScannedCode != null) {
+          _cooldownUntil = DateTime.now().add(Duration(seconds: cooldownSeconds));
+        }
         _scannedData = null;
         _isProcessing = false;
       });
@@ -587,7 +599,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   void initState() {
     super.initState();
     _isProcessing = false;
-    _scannedData = null;
+    _scannedData = widget.initialScannedDataForTesting;
   }
 
   @override
@@ -721,53 +733,97 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
           
           // Detection Result Sheet
-          if (_scannedData != null)
+          if (_scannedData != null) ...[
+            // Fondo oscuro interactivo: al tocar fuera de la tarjeta, se cierra la ventana
+            Positioned.fill(
+              child: GestureDetector(
+                key: const Key('scan_backdrop_dismiss'),
+                behavior: HitTestBehavior.opaque,
+                onTap: _isProcessing ? null : () => _resetScanner(),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+
+            // Tarjeta de confirmación
             Positioned(
               bottom: 16, left: 16, right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.tertiary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.circle, color: AppTheme.tertiary, size: 8),
-                              const SizedBox(width: 4),
-                              Text(
-                                isEn ? 'QR CONFIRMED' : 'QR CONFIRMADO',
-                                style: const TextStyle(color: AppTheme.tertiary, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, color: AppTheme.secondary, size: 12),
-                            const SizedBox(width: 4),
-                            Text(
-                              isEn ? 'GPS validated' : 'GPS validado',
-                              style: TextStyle(
-                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-                                fontSize: 10,
-                              ),
+              child: GestureDetector(
+                onTap: () {}, // Evita que toques dentro de la tarjeta la cierren
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.tertiary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.circle, color: AppTheme.tertiary, size: 8),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isEn ? 'QR CONFIRMED' : 'QR CONFIRMADO',
+                                        style: const TextStyle(color: AppTheme.tertiary, fontSize: 10, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.location_on, color: AppTheme.secondary, size: 12),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isEn ? 'GPS validated' : 'GPS validado',
+                                      style: TextStyle(
+                                        color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                          IconButton(
+                            key: const Key('scan_close_button'),
+                            icon: const Icon(Icons.close),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87,
+                            iconSize: 20,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            tooltip: isEn ? 'Close' : 'Cerrar',
+                            onPressed: _isProcessing ? null : () => _resetScanner(),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 12),
                     
                     // Specific UI depending on QR payload
@@ -899,7 +955,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                                   width: 44,
                                   height: 44,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
+                                  errorBuilder: (context, error, stackTrace) => Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: AppTheme.primary.withValues(alpha: 0.1),
@@ -1011,9 +1067,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   ],
                 ),
               ),
-            )
+            ),
+          ),
         ],
-      ),
-    );
+      ],
+    ),
+  );
   }
 }
