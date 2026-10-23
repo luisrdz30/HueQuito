@@ -578,9 +578,16 @@ class HuecaRepository {
       final huecaDoc = await huecaRef.get();
       final huecaData = huecaDoc.data();
       final ownerId = huecaData?['ownerId'] as String?;
+      final branchesList = (huecaData?['branches'] as List<dynamic>?) ?? [];
+      final branchIds = <String>{huecaId};
+      for (var b in branchesList) {
+        if (b is Map && b['id'] != null) {
+          branchIds.add(b['id'].toString());
+        }
+      }
 
-      // 1. Eliminar subcolecciones (reviews, stamp_history, sticker_history)
-      final subcollections = ['reviews', 'stamp_history', 'sticker_history'];
+      // 1. Eliminar subcolecciones (reviews, stamp_history, sticker_history, redemptions)
+      final subcollections = ['reviews', 'stamp_history', 'sticker_history', 'redemptions'];
       for (final sub in subcollections) {
         try {
           final subSnap = await huecaRef.collection(sub).get();
@@ -620,14 +627,6 @@ class HuecaRepository {
 
       // 4. Limpiar paradas en rutas que contengan esta hueca o sus sucursales
       try {
-        final branchesList = (huecaData?['branches'] as List<dynamic>?) ?? [];
-        final branchIds = <String>{huecaId};
-        for (var b in branchesList) {
-          if (b is Map && b['id'] != null) {
-            branchIds.add(b['id'].toString());
-          }
-        }
-
         final routesSnap = await _db.collection('routes').get();
         for (final rDoc in routesSnap.docs) {
           final rData = rDoc.data();
@@ -677,6 +676,59 @@ class HuecaRepository {
         }
       } catch (_) {}
 
+      // 5b. Eliminar registros de tokens de QR canjeados vinculados a esta hueca
+      try {
+        final tokensSnap = await _db
+            .collection('redeemed_qr_tokens')
+            .where('huecaId', isEqualTo: huecaId)
+            .get();
+        for (final tDoc in tokensSnap.docs) {
+          await tDoc.reference.delete();
+        }
+      } catch (_) {}
+
+      // 5c. Limpiar sellos y cromos de la hueca eliminada en el perfil de todos los usuarios
+      try {
+        final usersSnap = await _db.collection('users').get();
+        for (final uDoc in usersSnap.docs) {
+          final uData = uDoc.data();
+          if (uData['gamification'] is Map) {
+            final gam = Map<String, dynamic>.from(uData['gamification']);
+            bool changed = false;
+
+            // Limpiar sellos de la hueca
+            if (gam['huecaStamps'] is Map) {
+              final hs = Map<String, dynamic>.from(gam['huecaStamps']);
+              if (hs.containsKey(huecaId)) {
+                hs.remove(huecaId);
+                gam['huecaStamps'] = hs;
+                changed = true;
+              }
+            }
+
+            // Limpiar cromos de la hueca o sus sucursales
+            if (gam['collectedStickers'] is List) {
+              final cs = List.from(gam['collectedStickers']);
+              final initialLen = cs.length;
+              cs.removeWhere((s) {
+                final sStr = s.toString();
+                return sStr == huecaId ||
+                    sStr.startsWith('${huecaId}_') ||
+                    branchIds.contains(sStr);
+              });
+              if (cs.length != initialLen) {
+                gam['collectedStickers'] = cs;
+                changed = true;
+              }
+            }
+
+            if (changed) {
+              await uDoc.reference.update({'gamification': gam});
+            }
+          }
+        }
+      } catch (_) {}
+
       // 6. Si el propietario tenía rol 'business', cambiarlo a 'user' y desvincular hueca
       if (ownerId != null && ownerId.isNotEmpty) {
         try {
@@ -691,7 +743,6 @@ class HuecaRepository {
       }
 
       // También revocar rol 'business' a los encargados de sucursales de esta hueca
-      final branchesList = (huecaData?['branches'] as List<dynamic>?) ?? [];
       for (var b in branchesList) {
         if (b is Map && b['managerEmail'] != null) {
           final mEmail = b['managerEmail'].toString().trim().toLowerCase();

@@ -62,6 +62,7 @@ class _DeleteHuecaDialogContentState extends State<_DeleteHuecaDialogContent> {
           .deleteHueca(widget.hueca.id);
 
       // Invalidate all providers so the app reflects that the hueca no longer exists
+      widget.ref.invalidate(allHuecasStreamProvider);
       widget.ref.invalidate(huecasProvider);
       widget.ref.invalidate(myHuecaProvider);
       widget.ref.invalidate(currentUserProvider);

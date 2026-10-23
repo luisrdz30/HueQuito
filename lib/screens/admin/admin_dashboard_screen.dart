@@ -14,6 +14,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     final pendingNotifsAsync = ref.watch(pendingNotificationsProvider);
     final pendingRequestsAsync = ref.watch(pendingHuecaRequestsProvider);
     final newSupportAsync = ref.watch(newSupportMessagesProvider);
+    final quizQuestionsAsync = ref.watch(quizQuestionsStreamProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -25,6 +26,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           ref.invalidate(pendingNotificationsProvider);
           ref.invalidate(pendingHuecaRequestsProvider);
           ref.invalidate(newSupportMessagesProvider);
+          ref.invalidate(quizQuestionsStreamProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -167,8 +169,35 @@ class AdminDashboardScreen extends ConsumerWidget {
                       title: 'Sectores y Cromos',
                       icon: Icons.collections_bookmark,
                       iconColor: Colors.teal.shade700,
-                      value: '22',
-                      subtitle: 'Álbum y mapa',
+                      value: huecasAsync.when(
+                        data: (h) {
+                          int totalCromos = 0;
+                          for (final hueca in h) {
+                            totalCromos++;
+                            for (final b in hueca.branches) {
+                              final bs = b.secretSticker;
+                              if (bs != null && bs.isNotEmpty) {
+                                totalCromos++;
+                              }
+                            }
+                          }
+                          return '$totalCromos';
+                        },
+                        loading: () => '...',
+                        error: (_, __) => '0',
+                      ),
+                      subtitle: huecasAsync.when(
+                        data: (h) {
+                          final distinctSectors = h
+                              .map((x) => x.sector.trim())
+                              .where((s) => s.isNotEmpty && s != 'Todo Quito')
+                              .toSet()
+                              .length;
+                          return '$distinctSectors ${distinctSectors == 1 ? "sector" : "sectores"} • ${h.length} ${h.length == 1 ? "hueca" : "huecas"}';
+                        },
+                        loading: () => 'Cargando...',
+                        error: (_, __) => 'Error',
+                      ),
                       onTap: () => context.push('/admin/sectors'),
                     ),
                   ),
@@ -249,8 +278,16 @@ class AdminDashboardScreen extends ConsumerWidget {
                       title: 'Quiz y ADN',
                       icon: Icons.quiz,
                       iconColor: Colors.pink.shade700,
-                      value: '4',
-                      subtitle: 'Preguntas activas',
+                      value: quizQuestionsAsync.when(
+                        data: (q) => '${q.length}',
+                        loading: () => '...',
+                        error: (_, __) => '0',
+                      ),
+                      subtitle: quizQuestionsAsync.when(
+                        data: (q) => '${q.length} preguntas activas',
+                        loading: () => 'Cargando...',
+                        error: (_, __) => 'Preguntas activas',
+                      ),
                       onTap: () => context.push('/admin/quiz'),
                     ),
                   ),

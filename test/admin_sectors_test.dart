@@ -9,6 +9,7 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/screens/admin/admin_sectors_screen.dart';
+import 'package:hue_quito/screens/admin/admin_dashboard_screen.dart';
 import 'package:hue_quito/screens/album_screen.dart';
 
 class _FakeHttpOverrides extends HttpOverrides {
@@ -305,6 +306,105 @@ void main() {
       // Verificar contenido del modal interactivo
       expect(find.text('Cromos de Centro Histórico'), findsOneWidget);
       expect(find.text('Cromo Balcón Colonial'), findsOneWidget);
+    });
+
+    testWidgets('AdminDashboardScreen Sectors & Cromos KPI reflects exact dynamic count', (tester) async {
+      final threeHuecas = [
+        Hueca(
+          id: 'h1',
+          name: 'Hueca 1',
+          description: {},
+          address: 'Calle 1',
+          sector: 'La Mariscal',
+          location: const GeoPoint(-0.20, -78.49),
+          phone: '',
+          schedule: {},
+          mainDish: {},
+          loyaltyCard: {},
+          secretSticker: {'name': 'Cromo 1'},
+          menuItems: [],
+          tags: [],
+          priceLevel: '\$',
+          rating: 4.5,
+          reviewCount: 1,
+          images: [],
+          ownerId: 'u1',
+          isActive: true,
+          isSectorConfirmed: true,
+          metrics: {},
+        ),
+        Hueca(
+          id: 'h2',
+          name: 'Hueca 2',
+          description: {},
+          address: 'Calle 2',
+          sector: 'Centro Histórico',
+          location: const GeoPoint(-0.22, -78.51),
+          phone: '',
+          schedule: {},
+          mainDish: {},
+          loyaltyCard: {},
+          secretSticker: {'name': 'Cromo 2'},
+          menuItems: [],
+          tags: [],
+          priceLevel: '\$',
+          rating: 4.5,
+          reviewCount: 1,
+          images: [],
+          ownerId: 'u2',
+          isActive: true,
+          isSectorConfirmed: true,
+          metrics: {},
+        ),
+        Hueca(
+          id: 'h3',
+          name: 'Hueca 3',
+          description: {},
+          address: 'Calle 3',
+          sector: 'La Floresta',
+          location: const GeoPoint(-0.21, -78.48),
+          phone: '',
+          schedule: {},
+          mainDish: {},
+          loyaltyCard: {},
+          secretSticker: {'name': 'Cromo 3'},
+          menuItems: [],
+          tags: [],
+          priceLevel: '\$',
+          rating: 4.5,
+          reviewCount: 1,
+          images: [],
+          ownerId: 'u3',
+          isActive: true,
+          isSectorConfirmed: true,
+          metrics: {},
+        ),
+      ];
+
+      await tester.binding.setSurfaceSize(const Size(450, 950));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            allHuecasStreamProvider.overrideWith((ref) => Stream.value(threeHuecas)),
+            allUsersStreamProvider.overrideWith((ref) => Stream.value([])),
+            pendingNotificationsProvider.overrideWith((ref) => Stream.value([])),
+            pendingHuecaRequestsProvider.overrideWith((ref) => Stream.value([])),
+            newSupportMessagesProvider.overrideWith((ref) => Stream.value([])),
+            quizQuestionsStreamProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          child: const MaterialApp(
+            home: AdminDashboardScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // "Sectores y Cromos" debe mostrar dinámicamente "3" y no el viejo "22"
+      expect(find.text('3'), findsNWidgets(2)); // Huecas KPI = 3, Sectores y Cromos KPI = 3
+      expect(find.text('22'), findsNothing);
+      expect(find.text('3 sectores • 3 huecas'), findsOneWidget);
     });
   });
 }
