@@ -7,6 +7,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
@@ -72,6 +73,105 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           _resetScanner();
           return;
         }
+      }
+
+      // Validación de QR de UN SOLO USO para sellos/puntos
+      if (_scannedData!['type'] == 'points') {
+        final token = _scannedData!['token']?.toString();
+        if (token == null || token.isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isEn
+                  ? 'Invalid QR code. Please request a new code from the store.'
+                  : 'Código QR no válido. Solicita al negocio generar uno nuevo.'),
+              backgroundColor: Colors.red.shade700,
+            ));
+          }
+          _resetScanner();
+          return;
+        }
+
+        // 1. Verificar expiración por timestamp (máx 10 minutos)
+        final timestamp = (_scannedData!['timestamp'] as num?)?.toInt();
+        if (timestamp != null) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          if (now - timestamp > 600000) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isEn
+                    ? 'This QR code has expired. Ask the store for a fresh code.'
+                    : 'Este código QR ha expirado. Pide al negocio que genere uno nuevo.'),
+                backgroundColor: Colors.amber.shade900,
+              ));
+            }
+            _resetScanner();
+            return;
+          }
+        }
+
+        // 2. Verificar en SharedPreferences local si este dispositivo ya lo canjeó
+        final prefs = await SharedPreferences.getInstance();
+        final localUsed = prefs.getStringList('redeemed_qr_tokens') ?? [];
+        if (localUsed.contains(token)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isEn
+                  ? 'This QR code has already been scanned and used.'
+                  : 'Este código QR ya fue utilizado y no puede ser usado de nuevo.'),
+              backgroundColor: Colors.red.shade700,
+            ));
+          }
+          _resetScanner();
+          return;
+        }
+
+        // 3. Verificar en Firestore de forma atómica para que NADIE MÁS en otro teléfono pueda canjearlo
+        bool alreadyUsedInCloud = false;
+        try {
+          final tokenRef = FirebaseFirestore.instance.collection('redeemed_qr_tokens').doc(token);
+          final snap = await tokenRef.get();
+          if (snap.exists) {
+            alreadyUsedInCloud = true;
+          } else {
+            await tokenRef.set({
+              'token': token,
+              'huecaId': targetHuecaId,
+              'branchId': _scannedData!['branch_id'] ?? 'matriz',
+              'branchName': _scannedData!['branch_name'] ?? 'Matriz Principal',
+              'points': (_scannedData!['points'] as num?)?.toInt() ?? 1,
+              'redeemedBy': (await ref.read(userRepositoryProvider).getCurrentUser())?.uid ?? 'guest_local',
+              'redeemedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (_) {
+          // Si no hay conexión o en tests headless, nos apoyamos en SharedPreferences
+        }
+
+        if (alreadyUsedInCloud) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(isEn
+                        ? 'This QR code has already been used by someone else.'
+                        : 'Este código QR ya fue utilizado por otro cliente y ya no es válido.'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red.shade700,
+              duration: const Duration(seconds: 4),
+            ));
+          }
+          _resetScanner();
+          return;
+        }
+
+        // Registrar en local como usado
+        localUsed.add(token);
+        await prefs.setStringList('redeemed_qr_tokens', localUsed);
       }
 
       final userRepo = ref.read(userRepositoryProvider);

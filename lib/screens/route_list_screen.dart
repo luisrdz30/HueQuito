@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,19 +79,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Row(
-          children: [
-            const Icon(Icons.restaurant, color: AppTheme.primary, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              'Hue-Quito',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ],
-        ),
+        title: const HueQuitoLogo(height: 32),
         actions: [
           if (_selectedTab == 0)
             Padding(

@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,8 +124,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_add, size: 80, color: AppTheme.primary),
-              SizedBox(height: 16),
+              const HueQuitoLogo.symbol(height: 75),
+              const SizedBox(height: 16),
               Text(
                 'Únete a HueQuito',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -146,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 decoration: InputDecoration(
                   labelText: 'Nombre y Apellido',
                   prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(9999)),
                 ),
               ),
               SizedBox(height: 16),
@@ -157,7 +158,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 decoration: InputDecoration(
                   labelText: 'Correo Electrónico',
                   prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(9999)),
                 ),
               ),
               SizedBox(height: 16),
@@ -173,7 +174,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(9999)),
                 ),
               ),
               SizedBox(height: 16),
@@ -189,7 +190,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(9999)),
                 ),
               ),
               SizedBox(height: 32),
@@ -202,7 +203,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         onPressed: _registerWithEmail,
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
                         ),
                         child: Text('Registrarse', style: TextStyle(fontSize: 16)),
                       ),

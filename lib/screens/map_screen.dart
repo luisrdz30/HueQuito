@@ -1,3 +1,4 @@
+import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -97,7 +98,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  List<Marker> _getMarkers(List<Hueca> huecas) {
+  List<Marker> _getMarkers(List<Hueca> huecas, UserModel? user) {
     List<Marker> markers = [];
     for (var hueca in huecas) {
       if (!hueca.isActive) continue;
@@ -130,11 +131,27 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         bool isSelected = _selectedHueca != null && 
                           _selectedHueca!.id == hueca.id && 
                           (_selectedBranch == null || _selectedBranch!.id == branch.id);
+        final bool isRewarded = (user?.gamification['huecaStamps']?[hueca.id] ?? 0) > 0;
+
+        String markerAsset = 'assets/icons/marker_active.png';
+        double markerWidth = 42;
+        double markerHeight = 48;
+
+        if (isSelected) {
+          markerAsset = 'assets/icons/marker_selected.png';
+          markerWidth = 54;
+          markerHeight = 60;
+        } else if (isRewarded) {
+          markerAsset = 'assets/icons/marker_rewarded.png';
+          markerWidth = 46;
+          markerHeight = 52;
+        }
+
         markers.add(
           Marker(
             point: LatLng(branch.location.latitude, branch.location.longitude),
-            width: isSelected ? 50 : 40,
-            height: isSelected ? 50 : 40,
+            width: markerWidth,
+            height: markerHeight,
             alignment: Alignment.topCenter,
             child: GestureDetector(
               onTap: () {
@@ -147,20 +164,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   16.0,
                 );
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.secondary : Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.primary, width: isSelected ? 3 : 2),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: isSelected ? 8 : 4, offset: const Offset(0, 4))
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    (hueca.mainDish is Map ? hueca.mainDish['emoji'] : null) ?? '🍲',
-                    style: TextStyle(fontSize: isSelected ? 24 : 18),
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 250),
+                scale: isSelected ? 1.15 : 1.0,
+                child: Image.asset(
+                  markerAsset,
+                  width: markerWidth,
+                  height: markerHeight,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppTheme.secondary : AppTheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.restaurant, color: Colors.white, size: 20),
                   ),
                 ),
               ),
@@ -262,7 +279,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     errorImage: const NetworkImage('https://tile.openstreetmap.org/0/0/0.png'),
                   ),
                   MarkerLayer(
-                    markers: _getMarkers(huecas),
+                    markers: _getMarkers(huecas, ref.watch(currentUserProvider).value),
                   ),
                 ],
               ),
@@ -395,7 +412,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         const SizedBox(width: 4),
                         Text(lang == 'es' ? 'Mostrando' : 'Showing', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         const SizedBox(width: 8),
-                        Text('${_getMarkers(huecas).length} ${lang == 'es' ? 'resultados' : 'results'}', style: const TextStyle(color: AppTheme.tertiary, fontSize: 10)),
+                        Text('${_getMarkers(huecas, ref.watch(currentUserProvider).value).length} ${lang == 'es' ? 'resultados' : 'results'}', style: const TextStyle(color: AppTheme.tertiary, fontSize: 10)),
                       ],
                     ),
                   ),

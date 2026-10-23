@@ -262,293 +262,161 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
         data: (settings) {
           _initSettingsControllers(settings);
 
-          return Column(
-            children: [
-              // Header y TabBar integrado
-              Container(
-                color: const Color(0xFF0F172A),
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFBBF24),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'ADMIN',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Suscripciones y Pagos',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Actualizar',
-                      icon: const Icon(Icons.refresh, color: Colors.white70, size: 20),
-                      onPressed: () {
-                        ref.invalidate(subscriptionSettingsProvider);
-                        ref.invalidate(huecasProvider);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                color: const Color(0xFF0F172A),
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorColor: const Color(0xFFFBBF24),
-                  indicatorWeight: 3,
-                  labelColor: const Color(0xFFFBBF24),
-                  unselectedLabelColor: Colors.white70,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  tabs: [
-                    Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.pending_actions, size: 16),
-                          const SizedBox(width: 6),
-                          const Text('Por Validar'),
-                          if (underReviewCount > 0) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                              child: Text('$underReviewCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.verified, size: 16),
-                          SizedBox(width: 6),
-                          Text('Al Día'),
-                        ],
-                      ),
-                    ),
-                    const Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.warning_amber, size: 16),
-                          SizedBox(width: 6),
-                          Text('En Gracia / Corte'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Gráfica de Huecas Próximas al Cobro Mensual
-              _buildProximityToChargeCard(huecasAsync.value ?? [], settings, isDark),
-
-              // Panel Colapsable de Configuración de Suscripción
-              Container(
-                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade300),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.settings, color: AppTheme.primary),
-                      title: const Text(
-                        'Tarifas y Datos Bancarios',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      subtitle: Text(
-                        '\$${settings.monthlyPrice.toStringAsFixed(2)}/mes • Meta: ${settings.freeTierMaxStamps} sellos • Gracia: ${settings.gracePeriodDays} días',
-                        style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : AppTheme.textMedium),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(_isSettingsExpanded ? Icons.expand_less : Icons.expand_more),
-                        onPressed: () => setState(() => _isSettingsExpanded = !_isSettingsExpanded),
-                      ),
-                    ),
-                    if (_isSettingsExpanded) ...[
-                      const Divider(height: 1),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
+          return NestedScrollView(
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Container(
+                        color: const Color(0xFF0F172A),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _priceController,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    decoration: const InputDecoration(
-                                      labelText: 'Precio Mensual (\$)',
-                                      prefixText: '\$ ',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _freeStampsController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Meta Sellos Gratis',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _graceDaysController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Días de Gracia',
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _bankNameController,
-                                    decoration: const InputDecoration(labelText: 'Banco', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _accountTypeController,
-                                    decoration: const InputDecoration(labelText: 'Tipo de Cuenta', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _accountNumController,
-                                    decoration: const InputDecoration(labelText: 'Número de Cuenta', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _accountHolderController,
-                                    decoration: const InputDecoration(labelText: 'Titular', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _idNumController,
-                                    decoration: const InputDecoration(labelText: 'Cédula / RUC', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _emailController,
-                                    decoration: const InputDecoration(labelText: 'Correo Pagos', border: OutlineInputBorder()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _isSavingSettings ? null : _saveSettings,
-                                icon: const Icon(Icons.save),
-                                label: Text(_isSavingSettings ? 'Guardando...' : 'Guardar Ajustes de Suscripción'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primary,
-                                  foregroundColor: Colors.white,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFBBF24),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'ADMIN',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF0F172A),
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Suscripciones y Pagos',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Actualizar',
+                              icon: const Icon(Icons.refresh, color: Colors.white70, size: 20),
+                              onPressed: () {
+                                ref.invalidate(subscriptionSettingsProvider);
+                                ref.invalidate(huecasProvider);
+                              },
+                            ),
                           ],
                         ),
                       ),
+
+                      // Gráfica de Huecas Próximas al Cobro Mensual
+                      _buildProximityToChargeCard(huecasAsync.value ?? [], settings, isDark),
+
+                      // Panel Colapsable de Configuración de Suscripción
+                      _buildSettingsPanel(context, settings, isDark),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-
-              // Contenido de las pestañas
-              Expanded(
-                child: huecasAsync.when(
-                  data: (huecas) {
-                    final pendingHuecas = <Hueca>[];
-                    final activeHuecas = <Hueca>[];
-                    final graceOrSuspendedHuecas = <Hueca>[];
-
-                    for (final h in huecas) {
-                      final info = subRepo.evaluateHuecaSubscription(hueca: h, settings: settings);
-                      if (info.state == HuecaSubscriptionState.underReview) {
-                        pendingHuecas.add(h);
-                      } else if (info.state == HuecaSubscriptionState.active) {
-                        activeHuecas.add(h);
-                      } else if (info.state == HuecaSubscriptionState.gracePeriod || info.state == HuecaSubscriptionState.suspended) {
-                        graceOrSuspendedHuecas.add(h);
-                      }
-                    }
-
-                    return TabBarView(
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SliverTabBarDelegate(
+                    TabBar(
                       controller: _tabController,
-                      children: [
-                        // Tab 1: Pendientes de revisión
-                        _buildPendingTab(pendingHuecas, isDark),
-
-                        // Tab 2: Al día / Activas
-                        _buildActiveTab(activeHuecas, isDark),
-
-                        // Tab 3: En gracia o suspendidas
-                        _buildGraceOrSuspendedTab(graceOrSuspendedHuecas, isDark),
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      indicatorColor: const Color(0xFFFBBF24),
+                      indicatorWeight: 3,
+                      labelColor: const Color(0xFFFBBF24),
+                      unselectedLabelColor: Colors.white70,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      tabs: [
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.pending_actions, size: 16),
+                              const SizedBox(width: 6),
+                              const Text('Por Validar'),
+                              if (underReviewCount > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                  child: Text('$underReviewCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.verified, size: 16),
+                              SizedBox(width: 6),
+                              Text('Al Día'),
+                            ],
+                          ),
+                        ),
+                        const Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.warning_amber, size: 16),
+                              SizedBox(width: 6),
+                              Text('En Gracia / Corte'),
+                            ],
+                          ),
+                        ),
                       ],
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Error cargando huecas: $e')),
+                    ),
+                    backgroundColor: const Color(0xFF0F172A),
+                  ),
                 ),
-              ),
-            ],
+              ];
+            },
+            body: huecasAsync.when(
+              data: (huecas) {
+                final pendingHuecas = <Hueca>[];
+                final activeHuecas = <Hueca>[];
+                final graceOrSuspendedHuecas = <Hueca>[];
+
+                for (final h in huecas) {
+                  final info = subRepo.evaluateHuecaSubscription(hueca: h, settings: settings);
+                  if (info.state == HuecaSubscriptionState.underReview) {
+                    pendingHuecas.add(h);
+                  } else if (info.state == HuecaSubscriptionState.active) {
+                    activeHuecas.add(h);
+                  } else if (info.state == HuecaSubscriptionState.gracePeriod || info.state == HuecaSubscriptionState.suspended) {
+                    graceOrSuspendedHuecas.add(h);
+                  }
+                }
+
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Tab 1: Pendientes de revisión
+                    _buildPendingTab(pendingHuecas, isDark),
+
+                    // Tab 2: Al día / Activas
+                    _buildActiveTab(activeHuecas, isDark),
+
+                    // Tab 3: En gracia o suspendidas
+                    _buildGraceOrSuspendedTab(graceOrSuspendedHuecas, isDark),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error cargando huecas: $e')),
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -557,18 +425,170 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
     );
   }
 
+  Widget _buildSettingsPanel(BuildContext context, SubscriptionSettings settings, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
+        ],
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.settings, color: AppTheme.primary),
+            title: const Text(
+              'Tarifas y Datos Bancarios',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: Text(
+              '\$${settings.monthlyPrice.toStringAsFixed(2)}/mes • Meta: ${settings.freeTierMaxStamps} sellos • Gracia: ${settings.gracePeriodDays} días',
+              style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : AppTheme.textMedium),
+            ),
+            trailing: IconButton(
+              icon: Icon(_isSettingsExpanded ? Icons.expand_less : Icons.expand_more),
+              onPressed: () => setState(() => _isSettingsExpanded = !_isSettingsExpanded),
+            ),
+          ),
+          if (_isSettingsExpanded) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _priceController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                            labelText: 'Precio Mensual (\$)',
+                            prefixText: '\$ ',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _freeStampsController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Meta Sellos Gratis',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _graceDaysController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Días de Gracia',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _bankNameController,
+                          decoration: const InputDecoration(labelText: 'Banco', border: OutlineInputBorder()),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _accountTypeController,
+                          decoration: const InputDecoration(labelText: 'Tipo de Cuenta', border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _accountNumController,
+                          decoration: const InputDecoration(labelText: 'Número de Cuenta', border: OutlineInputBorder()),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _accountHolderController,
+                          decoration: const InputDecoration(labelText: 'Titular', border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _idNumController,
+                          decoration: const InputDecoration(labelText: 'Cédula / RUC', border: OutlineInputBorder()),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(labelText: 'Correo Pagos', border: OutlineInputBorder()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isSavingSettings ? null : _saveSettings,
+                      icon: const Icon(Icons.save),
+                      label: Text(_isSavingSettings ? 'Guardando...' : 'Guardar Ajustes de Suscripción'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildPendingTab(List<Hueca> huecas, bool isDark) {
     if (huecas.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.done_all_rounded, size: 54, color: Colors.green.shade400),
-            const SizedBox(height: 12),
-            const Text('No hay comprobantes pendientes de validar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 4),
-            Text('Todas las transferencias están al día', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-          ],
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.done_all_rounded, size: 54, color: Colors.green.shade400),
+              const SizedBox(height: 12),
+              const Text('No hay comprobantes pendientes de validar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center),
+              const SizedBox(height: 4),
+              Text('Todas las transferencias están al día', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+            ],
+          ),
         ),
       );
     }
@@ -701,7 +721,21 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
 
   Widget _buildActiveTab(List<Hueca> huecas, bool isDark) {
     if (huecas.isEmpty) {
-      return const Center(child: Text('No hay huecas con suscripción activa actualmente'));
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.verified_outlined, size: 54, color: Colors.blueGrey.shade300),
+              const SizedBox(height: 12),
+              const Text('No hay huecas con suscripción activa actualmente', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
     }
 
     return ListView.builder(
@@ -724,7 +758,21 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
 
   Widget _buildGraceOrSuspendedTab(List<Hueca> huecas, bool isDark) {
     if (huecas.isEmpty) {
-      return const Center(child: Text('No hay huecas en periodo de corte o suspendidas'));
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.check_circle_outline, size: 54, color: Colors.green.shade400),
+              const SizedBox(height: 12),
+              const Text('No hay huecas en periodo de corte o suspendidas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
     }
 
     return ListView.builder(
@@ -826,12 +874,16 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
                       children: [
                         const Row(
                           children: [
-                            Text(
-                              'Gráfica: Próximos a Cobro',
-                              style: TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                            Flexible(
+                              child: Text(
+                                'Gráfica: Próximos a Cobro',
+                                style: TextStyle(
+                                  color: Color(0xFF0F172A),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             SizedBox(width: 6),
@@ -1022,36 +1074,17 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      hueca.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey.shade50,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.blueGrey.shade200, width: 0.5),
-                    ),
-                    child: Text(
-                      hueca.sector,
-                      style: TextStyle(color: Colors.blueGrey.shade700, fontSize: 9.5, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ],
+              child: Text(
+                '${hueca.name} • ${hueca.sector}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 8),
             Text(
-              '$stamps / $maxFree sellos ($percent%)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: statusColor),
+              '$stamps/$maxFree ($percent%)',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: statusColor),
             ),
           ],
         ),
@@ -1106,5 +1139,31 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
           ),
       ],
     );
+  }
+}
+
+
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverTabBarDelegate(this._tabBar, {required this.backgroundColor});
+
+  final TabBar _tabBar;
+  final Color backgroundColor;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: backgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
+    return oldDelegate._tabBar != _tabBar || oldDelegate.backgroundColor != backgroundColor;
   }
 }

@@ -6,6 +6,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/models/notification_model.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/ai_generation_service.dart';
+import 'package:hue_quito/widgets/brand_logo.dart';
 
 class BusinessNotificationScreen extends ConsumerStatefulWidget {
   const BusinessNotificationScreen({super.key});
@@ -33,6 +34,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
   String _historyTimeFilter = 'recent'; // 'recent', 'month', 'older', 'all'
 
   final List<Map<String, String>> _categories = [
+    {'id': 'menu_del_dia', 'label': 'Menú del Día', 'emoji': '🍛', 'desc': 'Almuerzos diarios (sopa, segundo y bebida)'},
     {'id': 'promocion', 'label': 'Promoción', 'emoji': '🏷️', 'desc': 'Descuentos, 2x1 y combos'},
     {'id': 'noticia', 'label': 'Noticia', 'emoji': '📢', 'desc': 'Novedades y avisos'},
     {'id': 'nuevo_plato', 'label': 'Nuevo Plato', 'emoji': '🍲', 'desc': 'Lanzamiento de platillos'},
@@ -288,6 +290,641 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     );
   }
 
+  void _openMenuDelDiaDialog(Hueca hueca, HuecaBranch? managedBranch) {
+    final sopaCtrl = TextEditingController();
+    final segundoCtrl = TextEditingController();
+    bool isReviewStep = false;
+    bool isPublishing = false;
+
+    // Extraer datos si ya había un menú del día escrito previamente
+    if (_titleController.text.contains(':')) {
+      final parts = _titleController.text.split(':');
+      if (parts.length > 1) {
+        final subparts = parts[1].split('+');
+        if (subparts.isNotEmpty) sopaCtrl.text = subparts[0].trim();
+        if (subparts.length > 1) segundoCtrl.text = subparts[1].trim();
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            return Container(
+              height: MediaQuery.of(ctx).size.height * 0.85,
+              decoration: BoxDecoration(
+                color: Theme.of(ctx).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                16,
+                20,
+                MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primary, Color(0xFFE3A82C)],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          isReviewStep ? Icons.visibility_rounded : Icons.lunch_dining,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isReviewStep ? 'Vista Previa del Aviso' : 'Menú del Día',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              isReviewStep
+                                  ? 'Revisa cómo se verá la notificación en el celular'
+                                  : 'Ingresa las opciones del almuerzo de hoy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white60 : AppTheme.textMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  Expanded(
+                    child: isReviewStep
+                        ? _buildMenuReviewStep(
+                            hueca: hueca,
+                            managedBranch: managedBranch,
+                            sopa: sopaCtrl.text.trim(),
+                            segundo: segundoCtrl.text.trim(),
+                            isDark: isDark,
+                            isPublishing: isPublishing,
+                            onEdit: () {
+                              setModalState(() => isReviewStep = false);
+                            },
+                            onPublish: () async {
+                              setModalState(() => isPublishing = true);
+                              await _submitMenuDelDiaFromDialog(
+                                hueca: hueca,
+                                managedBranch: managedBranch,
+                                sopa: sopaCtrl.text.trim(),
+                                segundo: segundoCtrl.text.trim(),
+                                modalCtx: ctx,
+                              );
+                            },
+                          )
+                        : _buildMenuInputStep(
+                            sopaCtrl: sopaCtrl,
+                            segundoCtrl: segundoCtrl,
+                            isDark: isDark,
+                            onConfirm: () {
+                              final s = sopaCtrl.text.trim();
+                              final seg = segundoCtrl.text.trim();
+                              if (s.isEmpty && seg.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('⚠️ Por favor escribe al menos la sopa o el segundo del almuerzo.'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+                              setModalState(() => isReviewStep = true);
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuInputStep({
+    required TextEditingController sopaCtrl,
+    required TextEditingController segundoCtrl,
+    required bool isDark,
+    required VoidCallback onConfirm,
+  }) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          const Text(
+            '🍲 Sopa',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Escribe la o las opciones de sopa:',
+            style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white60 : AppTheme.textMedium),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: sopaCtrl,
+            maxLines: 2,
+            minLines: 1,
+            decoration: InputDecoration(
+              hintText: 'Ej. Locro de papa o Caldo de patas',
+              filled: true,
+              fillColor: isDark ? AppTheme.surfaceDark : Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 22),
+          const Text(
+            '🍛 Segundo (Plato Fuerte)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Escribe la o las opciones de plato fuerte:',
+            style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white60 : AppTheme.textMedium),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: segundoCtrl,
+            maxLines: 2,
+            minLines: 1,
+            decoration: InputDecoration(
+              hintText: 'Ej. Seco de pollo, Chuleta asada o Pescado frito',
+              filled: true,
+              fillColor: isDark ? AppTheme.surfaceDark : Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: onConfirm,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+              label: const Text(
+                'Confirmar y Ver Vista Previa',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuReviewStep({
+    required Hueca hueca,
+    required HuecaBranch? managedBranch,
+    required String sopa,
+    required String segundo,
+    required bool isDark,
+    required bool isPublishing,
+    required VoidCallback onEdit,
+    required VoidCallback onPublish,
+  }) {
+    final title = 'Menú del Día de ${hueca.name}';
+
+    final buf = StringBuffer();
+    if (sopa.isNotEmpty) buf.writeln('🍲 Sopa: $sopa');
+    if (segundo.isNotEmpty) buf.writeln('🍛 Segundo: $segundo');
+    buf.write('¡Almuerzo listo y calientito! Te esperamos.');
+    final message = buf.toString().trim();
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          Text(
+            'Así verán la notificación tus clientes en su celular:',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : AppTheme.textMedium,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Tarjeta de simulación Heads-Up Notification
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1410) : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark ? Colors.white12 : AppTheme.chulpiCream,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.black26 : const Color(0xFFFBF8F4),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.notifications_active, size: 12, color: AppTheme.primary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'VISTA PREVIA DE NOTIFICACIÓN',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                          color: isDark ? Colors.white54 : AppTheme.textMedium,
+                        ),
+                      ),
+                      const Spacer(),
+                      const Text(
+                        'ahora',
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.restaurant, size: 14, color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Hue-Quito • ahora',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE3A82C).withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(9999),
+                              border: Border.all(color: const Color(0xFFE3A82C), width: 1),
+                            ),
+                            child: const Text(
+                              'Menú de Hoy',
+                              style: TextStyle(
+                                color: Color(0xFFB45309),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '🍛 $title',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        message,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Mensaje de confirmación
+          Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Si todo se ve bien, confirma para enviar tu aviso a publicación.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white60 : AppTheme.textMedium,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Botones de Acción
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: isPublishing ? null : onPublish,
+              icon: isPublishing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send_rounded, size: 20),
+              label: Text(
+                isPublishing ? 'Enviando aviso...' : 'Enviar para Publicación',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: OutlinedButton.icon(
+              onPressed: isPublishing ? null : onEdit,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: const Text(
+                'Corregir o Modificar Opciones',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: isDark ? Colors.white70 : AppTheme.textDark,
+                side: BorderSide(color: isDark ? Colors.white24 : AppTheme.chulpiCream),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitMenuDelDiaFromDialog({
+    required Hueca hueca,
+    required HuecaBranch? managedBranch,
+    required String sopa,
+    required String segundo,
+    required BuildContext modalCtx,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Debes haber iniciado sesión para enviar notificaciones.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final title = 'Menú del Día de ${hueca.name}';
+
+    final buf = StringBuffer();
+    if (sopa.isNotEmpty) buf.writeln('🍲 Sopa: $sopa');
+    if (segundo.isNotEmpty) buf.writeln('🍛 Segundo: $segundo');
+    buf.write('¡Almuerzo listo y calientito! Te esperamos.');
+    final message = buf.toString().trim();
+
+    try {
+      final repo = ref.read(notificationRepositoryProvider);
+      String? branchId = managedBranch?.id;
+      String? branchName = managedBranch?.name;
+
+      await repo.submitNotificationRequest(
+        huecaId: hueca.id,
+        huecaName: hueca.name,
+        branchId: branchId,
+        branchName: branchName,
+        category: 'menu_del_dia',
+        title: title,
+        message: message,
+        discountTag: null,
+        scheduledFor: null,
+        createdBy: user.uid,
+      );
+
+      if (mounted) {
+        setState(() {
+          _selectedCategory = 'menu_del_dia';
+          _titleController.text = title;
+          _messageController.text = message;
+        });
+
+        Navigator.of(modalCtx).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 ¡Menú del Día enviado para publicación con éxito! 🚀'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // Switch to history tab to view pending status
+        _tabController.animateTo(1);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al enviar el aviso: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildMenuDelDiaQuickCard(Hueca hueca, HuecaBranch? managedBranch, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF381F16), const Color(0xFF26150E)]
+              : [const Color(0xFFFFF7ED), const Color(0xFFFAF6F0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppTheme.primary.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primary, Color(0xFFE3A82C)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.lunch_dining, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Menú del Día',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(9999),
+                          ),
+                          child: const Text(
+                            '⚡ Almuerzos',
+                            style: TextStyle(
+                              color: AppTheme.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Escribe la sopa y el segundo del día y publícalo en 2 pasos sencillos.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: isDark ? Colors.white70 : AppTheme.textMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _openMenuDelDiaDialog(hueca, managedBranch),
+              icon: const Icon(Icons.edit_note_rounded, size: 20),
+              label: const Text(
+                'Armar Menú de Hoy',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submitRequest(Hueca hueca, HuecaBranch? managedBranch) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -380,17 +1017,25 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Row(
+        centerTitle: false,
+        titleSpacing: 16,
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.campaign, color: Colors.white, size: 26),
-            SizedBox(width: 10),
-            Text('Notificaciones', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const HueQuitoLogo.symbol(height: 26),
+            const SizedBox(width: 10),
+            const Text(
+              'Notificaciones',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
           ],
         ),
         backgroundColor: AppTheme.primary,
         elevation: 0,
-        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -439,6 +1084,9 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Asistente Destacado: Menú del Día para Huecas con Almuerzo
+            _buildMenuDelDiaQuickCard(hueca, managedBranch, isDark),
+
             // Info Banner
             Container(
               padding: const EdgeInsets.all(14),
@@ -844,7 +1492,11 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
   }
 
   Widget _buildNotificationPreview(String huecaName, bool isDark) {
-    final emoji = _categories.firstWhere((c) => c['id'] == _selectedCategory)['emoji'] ?? '📢';
+    final cat = _categories.firstWhere(
+      (c) => c['id'] == _selectedCategory,
+      orElse: () => _categories.first,
+    );
+    final emoji = cat['emoji'] ?? '📢';
     final title = _titleController.text.trim().isNotEmpty
         ? _titleController.text.trim()
         : 'Título de tu anuncio aquí';
@@ -854,15 +1506,17 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     final tag = _tagController.text.trim();
 
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        color: isDark ? const Color(0xFF1E1410) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? Colors.white12 : AppTheme.chulpiCream,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -870,56 +1524,97 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.restaurant, size: 14, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Hue-Quito • ahora',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-              const Spacer(),
-              if (tag.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+          // Barra de simulación Android Heads-up
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.black26 : const Color(0xFFFBF8F4),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.notifications_active, size: 12, color: AppTheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'VISTA PREVIA EN DISPOSITIVO',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                    color: isDark ? Colors.white54 : AppTheme.textMedium,
                   ),
-                  child: Text(
-                    tag,
-                    style: const TextStyle(
-                      color: Colors.deepOrange,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+                ),
+                const Spacer(),
+                const Text(
+                  'ahora',
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.restaurant, size: 14, color: Colors.white),
                     ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Hue-Quito • ahora',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white70 : AppTheme.textDark,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (tag.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3A82C).withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(9999),
+                          border: Border.all(color: const Color(0xFFE3A82C), width: 1),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(
+                            color: Color(0xFFB45309),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '$emoji $huecaName: $title',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.textLight : AppTheme.textDark,
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '$emoji $huecaName: $title',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.white70 : Colors.black87,
-              height: 1.25,
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1260,6 +1955,37 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _titleController.text = item.title;
+                    _messageController.text = item.message;
+                    _tagController.text = item.discountTag ?? '';
+                    if (_categories.any((c) => c['id'] == item.category)) {
+                      _selectedCategory = item.category;
+                    }
+                  });
+                  _tabController.animateTo(0);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✨ ¡Datos cargados en el formulario para editar o reenviar!'),
+                      backgroundColor: AppTheme.primary,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.replay_rounded, size: 16, color: AppTheme.primary),
+                label: const Text(
+                  'Usar como plantilla',
+                  style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 12.5),
+                ),
+              ),
+            ),
           ],
         ),
       ),

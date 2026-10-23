@@ -745,13 +745,14 @@ class HuecaRepository {
         }
       }
 
-      // 2. Conteo real de rutas que contienen esta hueca o sus sucursales
-      int realRoutes = 0;
+      // 2. Conteo de veces que los comensales han incluido la hueca en sus tours personalizados
+      int realRoutes = (data['metrics']?['routeAdditions'] as int?) ?? 0;
       try {
-        final routesSnap = await _db.collection('routes').get();
+        final customToursSnap = await _db.collectionGroup('custom_tours').get();
         final huecaName = (data['name']?.toString() ?? '').toLowerCase().trim();
+        int customCount = 0;
 
-        for (var rDoc in routesSnap.docs) {
+        for (var rDoc in customToursSnap.docs) {
           final rData = rDoc.data();
           final stops = rData['stops'] as List<dynamic>?;
           if (stops != null) {
@@ -768,10 +769,14 @@ class HuecaRepository {
               }
               return false;
             });
-            if (hasHueca) realRoutes++;
+            if (hasHueca) customCount++;
           }
         }
+        if (customCount > 0 || customToursSnap.docs.isNotEmpty) {
+          realRoutes = customCount;
+        }
       } catch (e) {
+        // Fallback robusto al contador acumulado en metrics['routeAdditions']
         realRoutes = (data['metrics']?['routeAdditions'] as int?) ?? 0;
       }
 

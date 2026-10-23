@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -277,29 +278,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        title: Row(
-          children: [
-            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
-            SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hue-Quito',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  lang == 'es' ? 'Explorar' : 'Explore',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                ),
-              ],
-            ),
-          ],
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleSpacing: 16,
+        title: const Align(
+          alignment: Alignment.centerLeft,
+          child: HueQuitoLogo(height: 36, alignment: Alignment.centerLeft),
         ),
         actions: [
           Container(
@@ -642,8 +627,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             loading: () => SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (err, stack) =>
-                SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+            error: (err, stack) => SliverFillRemaining(
+              child: Center(child: Text('Error: ')),
+            ),
           ),
         ],
       ),
@@ -652,28 +638,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildFilterChip(String text, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => setState(() {
         _selectedFilter = text;
         _userManuallyChangedFilter = true;
       }),
-      child: Container(
-        margin: EdgeInsets.only(right: 8),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
-          ],
+          color: isSelected
+              ? AppTheme.primary
+              : (isDark ? AppTheme.surfaceDark : AppTheme.chulpiCream.withValues(alpha: 0.45)),
+          borderRadius: BorderRadius.circular(9999),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.primary
+                : (isDark ? Colors.white12 : AppTheme.chulpiCream),
+            width: 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  )
+                ]
+              : [],
         ),
         child: Center(
           child: Text(
             text,
             style: TextStyle(
-              color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? AppTheme.textLight : AppTheme.textDark),
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              fontSize: 13,
             ),
           ),
         ),

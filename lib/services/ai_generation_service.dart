@@ -62,6 +62,13 @@ class AiGenerationService {
           '¡Por tiempo limitado! Pásate por $cleanHueca y aprovecha "$cleanTitle"$branchText$tagText. ¡Te esperamos con el calor del fogón tradicional!'
         ];
 
+      case 'menu_del_dia':
+        return [
+          '🍽️ ¡Almuerzo completo de hoy en ' + cleanHueca + '! ' + cleanTitle + branchText + tagText + '. ¡Sopa calientita, segundo contundente y jugo fresco esperándote!',
+          '🍲 Sabor casero de primera en ' + cleanHueca + ': ' + cleanTitle + branchText + tagText + '. ¡Ven a recargar energías al mediodía con auténtica sazón tradicional!',
+          '✨ ¿Pensando qué almorzar hoy? En ' + cleanHueca + ' tenemos listo: ' + cleanTitle + branchText + tagText + '. ¡Comida fresca hecha con cariño de la abuela!'
+        ];
+
       case 'nuevo_plato':
         return [
           '¡Estreno en nuestro menú! 🎉 Ven a descubrir nuestra nueva creación en $cleanHueca: $cleanTitle$branchText. ¡Pura tradición e innovación para tu paladar!',

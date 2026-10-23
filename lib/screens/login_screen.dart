@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -171,15 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.restaurant, size: 80, color: AppTheme.primary),
-              SizedBox(height: 16),
-              Text(
-                'HueQuito',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primary,
-                ),
-              ),
+              const HueQuitoLogo.stacked(height: 120),
               SizedBox(height: 32),
 
               if (_errorMessage != null)
@@ -198,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   labelText: 'Correo Electrónico',
                   prefixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(9999),
                   ),
                 ),
               ),
@@ -221,7 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(9999),
                   ),
                 ),
               ),
@@ -237,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(9999),
                           ),
                         ),
                         child: Text(

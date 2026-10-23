@@ -55,20 +55,34 @@ class RewardScreen extends ConsumerWidget {
             // Reward details
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 32),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 20,
+                    offset: const Offset(0, 8),
                   )
                 ],
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.restaurant, color: AppTheme.secondary, size: 48),
+                  // Mobile Loyalty Card Artwork from Brand Identity
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/images/loyalty_ticket.png',
+                      height: 130,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.card_giftcard,
+                        color: AppTheme.secondary,
+                        size: 60,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     isEn ? '1 Traditional Dish' : '1 Plato Típico Tradicional',
@@ -81,7 +95,7 @@ class RewardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isEn ? '+ Collectible Sector Badge' : '+ Medalla Coleccionable del Sector',
+                    isEn ? '+ Collectible Sector Badge & 15% OFF' : '+ Medalla Coleccionable & 15% OFF',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
@@ -101,17 +115,19 @@ class RewardScreen extends ConsumerWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    foregroundColor: AppTheme.primary,
+                    backgroundColor: AppTheme.secondary,
+                    foregroundColor: AppTheme.earthBrownDark,
+                    elevation: 4,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(9999),
                     ),
                   ),
                   child: Text(
-                    isEn ? 'Claim & View in Album' : 'Reclamar y Ver en Álbum',
+                    isEn ? 'REDEEM REWARD' : 'CANJEAR PREMIO',
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
                     ),
                   ),
                 ),

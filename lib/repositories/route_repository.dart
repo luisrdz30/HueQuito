@@ -247,6 +247,22 @@ class RouteRepository {
         print('Error saving user tour to Firestore: $e');
       }
     }
+
+    // 3. Registrar impacto en las métricas de las huecas agregadas a este tour personalizado
+    for (final stop in tour.stops) {
+      if (stop is Map) {
+        final hId = (stop['huecaId'] ?? stop['id'])?.toString();
+        if (hId != null && hId.isNotEmpty) {
+          try {
+            await _db.collection('huecas').doc(hId).set({
+              'metrics': {
+                'routeAdditions': FieldValue.increment(1),
+              }
+            }, SetOptions(merge: true));
+          } catch (_) {}
+        }
+      }
+    }
   }
 
   /// Elimina un tour personalizado creado por el usuario

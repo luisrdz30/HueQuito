@@ -97,6 +97,8 @@ class NotificationModel {
         return 'Promoción';
       case 'evento':
         return 'Evento Especial';
+      case 'menu_del_dia':
+        return 'Menú del Día';
       case 'nuevo_plato':
         return 'Nuevo Plato';
       case 'noticia':
@@ -111,6 +113,8 @@ class NotificationModel {
         return '🏷️';
       case 'evento':
         return '📅';
+      case 'menu_del_dia':
+        return '🍛';
       case 'nuevo_plato':
         return '🍲';
       case 'noticia':

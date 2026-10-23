@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -122,7 +123,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         toolbarHeight: 70,
         title: Row(
           children: [
-            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
+            const HueQuitoLogo.symbol(height: 30),
             SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

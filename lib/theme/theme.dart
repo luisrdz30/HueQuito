@@ -2,19 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Colores principales (Design System)
-  static const Color primary = Color(0xFFF47B20); // Naranjilla
-  static const Color primaryDark = Color(0xFF994700);
-  static const Color secondary = Color(0xFFC84B31); // Terracota
-  static const Color tertiary = Color(0xFF2D4238); // Verde Páramo
-  static const Color accentRed = Color(0xFFD32F2F); // Rojo Quito/Ají
-  static const Color accentGreen = Colors.green;
-  static const Color backgroundDark = Color(0xFF121212);
-  
-  static const Color backgroundLight = Color(0xFFF9F9F9); // Blanco humo
+  // Colores principales de Identidad de Marca (HueQuito Brand Identity)
+  static const Color primary = Color(0xFFD35436); // Terracotta Orange (#D35436)
+  static const Color primaryDark = Color(0xFFA53920);
+  static const Color secondary = Color(0xFFE3A82C); // Warm Maize Yellow (#E3A82C)
+  static const Color tertiary = Color(0xFF4A3525); // Deep Earth Brown (#4A3525)
+  static const Color deepEarthBrown = Color(0xFF4A3525);
+  static const Color earthBrownDark = Color(0xFF3E2723); // #3E2723
+  static const Color warmMaizeYellow = Color(0xFFE3A82C);
+  static const Color chulpiCream = Color(0xFFF3E5D8); // Chulpi Cream (#F3E5D8)
+  static const Color accentRed = Color(0xFFD32F2F); // Rojo Ají
+  static const Color accentGreen = Color(0xFF2E7D32);
+
+  // Fondos y Superficies Modo Claro (Warm Canvas)
+  static const Color backgroundLight = Color(0xFFFAF6F0); // Chulpi warm light
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color textDark = Color(0xFF1A1C1C); // Deep Charcoal
-  static const Color textMedium = Color(0xFF574237);
+  
+  // Fondos y Superficies Modo Oscuro (Brand Guidelines 04. Dark Mode)
+  static const Color backgroundDark = Color(0xFF26150E); // Deep Earth Brown Dark
+  static const Color surfaceDark = Color(0xFF341E15); // Rich Dark Earth Surface
+
+  // Tipografía (Brand Typography Guidelines - Quito Sans)
+  static const Color textDark = Color(0xFF3E2723); // Earth Brown Heading & Body
+  static const Color textMedium = Color(0xFF6B4E3D); // Warm Medium Earth Brown
+  static const Color textLight = Color(0xFFFDFBF7); // Soft Cream White
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -25,61 +36,73 @@ class AppTheme {
         tertiary: tertiary,
         surface: surfaceLight,
         onPrimary: Colors.white,
-        onSecondary: Colors.white,
+        onSecondary: earthBrownDark,
         onSurface: textDark,
         error: accentRed,
       ),
       scaffoldBackgroundColor: backgroundLight,
       textTheme: TextTheme(
         displayLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 36, fontWeight: FontWeight.w800, color: textDark, height: 1.22
+          fontSize: 36, fontWeight: FontWeight.w800, color: primary, height: 1.22,
         ),
         headlineLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 28, fontWeight: FontWeight.w700, color: textDark, height: 1.28
+          fontSize: 28, fontWeight: FontWeight.w700, color: textDark, height: 1.28,
         ),
         headlineMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 22, fontWeight: FontWeight.w700, color: textDark, height: 1.27
+          fontSize: 22, fontWeight: FontWeight.w700, color: textDark, height: 1.27,
         ),
         titleMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 16, fontWeight: FontWeight.w600, color: textDark, height: 1.37
+          fontSize: 16, fontWeight: FontWeight.w600, color: textDark, height: 1.37,
         ),
         bodyLarge: GoogleFonts.inter(
-          fontSize: 16, fontWeight: FontWeight.w400, color: textDark, height: 1.5
+          fontSize: 16, fontWeight: FontWeight.w400, color: textDark, height: 1.5,
         ),
         bodyMedium: GoogleFonts.inter(
-          fontSize: 14, fontWeight: FontWeight.w400, color: textMedium, height: 1.42
+          fontSize: 14, fontWeight: FontWeight.w400, color: textMedium, height: 1.42,
         ),
-        labelLarge: GoogleFonts.inter(
-          fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white, height: 1.42
+        labelLarge: GoogleFonts.plusJakartaSans(
+          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white, height: 1.42,
         ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: backgroundLight,
         elevation: 0,
-        centerTitle: true,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
         iconTheme: const IconThemeData(color: textDark),
         titleTextStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 18, fontWeight: FontWeight.w600, color: textDark,
+          fontSize: 18, fontWeight: FontWeight.w700, color: textDark,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
-          elevation: 4,
+          elevation: 3,
           shadowColor: primary.withValues(alpha: 0.35),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(9999), // Pill shape
           ),
-          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primary,
+          side: const BorderSide(color: primary, width: 1.8),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9999),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
       cardTheme: CardThemeData(
         color: surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24), // 1.5rem (24px)
+          borderRadius: BorderRadius.circular(24),
         ),
         margin: const EdgeInsets.all(8),
       ),
@@ -100,43 +123,44 @@ class AppTheme {
         primary: primary,
         secondary: secondary,
         tertiary: tertiary,
-        surface: Color(0xFF1E1E1E),
+        surface: surfaceDark,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: Colors.white,
+        onSurface: textLight,
         error: accentRed,
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      scaffoldBackgroundColor: backgroundDark,
       textTheme: TextTheme(
         displayLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white, height: 1.22
+          fontSize: 36, fontWeight: FontWeight.w800, color: primary, height: 1.22,
         ),
         headlineLarge: GoogleFonts.plusJakartaSans(
-          fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white, height: 1.28
+          fontSize: 28, fontWeight: FontWeight.w700, color: textLight, height: 1.28,
         ),
         headlineMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white, height: 1.27
+          fontSize: 22, fontWeight: FontWeight.w700, color: textLight, height: 1.27,
         ),
         titleMedium: GoogleFonts.plusJakartaSans(
-          fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white, height: 1.37
+          fontSize: 16, fontWeight: FontWeight.w600, color: textLight, height: 1.37,
         ),
         bodyLarge: GoogleFonts.inter(
-          fontSize: 16, fontWeight: FontWeight.w400, color: Colors.white, height: 1.5
+          fontSize: 16, fontWeight: FontWeight.w400, color: textLight, height: 1.5,
         ),
         bodyMedium: GoogleFonts.inter(
-          fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white70, height: 1.42
+          fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white70, height: 1.42,
         ),
-        labelLarge: GoogleFonts.inter(
-          fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white, height: 1.42
+        labelLarge: GoogleFonts.plusJakartaSans(
+          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white, height: 1.42,
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: backgroundDark,
         elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: textLight),
         titleTextStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white,
+          fontSize: 18, fontWeight: FontWeight.w700, color: textLight,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -149,11 +173,22 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(9999),
           ),
-          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: secondary,
+          side: const BorderSide(color: secondary, width: 1.8),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9999),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFF1E1E1E),
+        color: surfaceDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
@@ -161,7 +196,7 @@ class AppTheme {
         margin: const EdgeInsets.all(8),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: surfaceDark,
         selectedItemColor: primary,
         unselectedItemColor: Colors.white54,
         type: BottomNavigationBarType.fixed,
@@ -402,5 +437,3 @@ class AppTheme {
     );
   }
 }
-
-

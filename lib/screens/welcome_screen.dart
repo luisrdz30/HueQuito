@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,13 +84,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     final lang = ref.watch(settingsProvider).language;
     final isEn = lang == 'en';
 
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final bgColor = isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight;
     final cardBg = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.white.withValues(alpha: 0.85);
-    final cardBorder = isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.06);
-    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
+        ? AppTheme.surfaceDark
+        : Colors.white.withValues(alpha: 0.92);
+    final cardBorder = isDark ? Colors.white12 : AppTheme.chulpiCream;
+    final titleColor = isDark ? AppTheme.textLight : AppTheme.textDark;
+    final subtitleColor = isDark ? Colors.white70 : AppTheme.textMedium;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -213,106 +214,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
 
                           const SizedBox(height: 28),
 
-                          // Emblema Central de Marca (Logo estilizado)
-                          Center(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Halo de luz suave
-                                Container(
-                                  width: 110,
-                                  height: 110,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        AppTheme.primary.withValues(alpha: 0.35),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                // Círculo exterior con borde dorado / naranja
-                                Container(
-                                  width: 86,
-                                  height: 86,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFFEA580C), Color(0xFFF59E0B)],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.primary.withValues(alpha: 0.4),
-                                        blurRadius: 18,
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Container(
-                                    margin: const EdgeInsets.all(3.5),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.restaurant,
-                                        size: 40,
-                                        color: AppTheme.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Pequeña insignia de mapa/fuego
-                                Positioned(
-                                  right: 4,
-                                  bottom: 4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFD97706),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.location_on,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          // Emblema Central de Marca
+                          const Center(
+                            child: HueQuitoLogo.stacked(height: 125),
                           ),
 
                           const SizedBox(height: 18),
-
-                          // Título de la Aplicación
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                                fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
-                              ),
-                              children: [
-                                const TextSpan(
-                                  text: 'Hue',
-                                  style: TextStyle(color: AppTheme.primary),
-                                ),
-                                TextSpan(
-                                  text: '-Quito',
-                                  style: TextStyle(color: titleColor),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
 
                           // Slogan Principal y Subtítulo
                           Text(
@@ -388,12 +295,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           // Botón Principal de Comienzo
                           Container(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFEA580C), Color(0xFFF97316)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              borderRadius: BorderRadius.circular(9999),
+                              color: AppTheme.primary,
                               boxShadow: [
                                 BoxShadow(
                                   color: AppTheme.primary.withValues(alpha: 0.35),
@@ -405,12 +308,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                             child: ElevatedButton(
                               onPressed: () => context.push('/preferences'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
+                                backgroundColor: AppTheme.primary,
                                 foregroundColor: Colors.white,
+                                elevation: 0,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(9999),
                                 ),
                               ),
                               child: Row(

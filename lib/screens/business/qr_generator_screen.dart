@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart'; // Ensure you have intl package if not already. If not, I won't use it, just basic dart.
 
 class BusinessQrScreen extends ConsumerStatefulWidget {
   const BusinessQrScreen({super.key});
@@ -20,47 +20,97 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
   int _stampCount = 1;
   late Timer _timer;
   String _qrToken = const Uuid().v4();
+  StreamSubscription<DocumentSnapshot>? _tokenSubscription;
 
   @override
   void initState() {
     super.initState();
-    // Refresh QR token every 30 seconds to prevent screenshots/fraud
-    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _listenToToken(_qrToken);
+
+    // Refrescar automáticamente cada 60 seg si no ha sido escaneado aún
+    _timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       if (mounted) {
-        setState(() {
-          _qrToken = const Uuid().v4();
-        });
+        _generateNewToken();
       }
     });
+  }
+
+  void _listenToToken(String token) {
+    _tokenSubscription?.cancel();
+    try {
+      _tokenSubscription = FirebaseFirestore.instance
+          .collection('redeemed_qr_tokens')
+          .doc(token)
+          .snapshots()
+          .listen((snapshot) {
+            if (snapshot.exists && mounted) {
+              final data = snapshot.data();
+              final stamps = data?['points'] ?? _stampCount;
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '¡Sello ($stamps) escaneado exitosamente! 🎉 Generando nuevo código...',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              // Rotar de inmediato a un nuevo token para el siguiente comensal
+              _generateNewToken();
+            }
+          });
+    } catch (_) {}
+  }
+
+  void _generateNewToken() {
+    final newToken = const Uuid().v4();
+    if (mounted) {
+      setState(() {
+        _qrToken = newToken;
+      });
+      _listenToToken(newToken);
+    }
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _tokenSubscription?.cancel();
     super.dispose();
   }
 
   void _increment() {
     if (_stampCount < 10) {
       setState(() => _stampCount++);
+      _generateNewToken();
     }
   }
 
   void _decrement() {
     if (_stampCount > 1) {
       setState(() => _stampCount--);
+      _generateNewToken();
     }
   }
 
   void _showHistoryModal(BuildContext context) {
-    // Basic history modal, can be populated properly from Firestore later
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(24),
-          child: Column(
+          padding: const EdgeInsets.all(24),
+          child: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Historial de Sellos (Hoy)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -73,7 +123,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
             ],
           ),
         );
-      }
+      },
     );
   }
 
@@ -85,20 +135,42 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Row(
+        centerTitle: false,
+        titleSpacing: 16,
+        title: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-            SizedBox(width: 12),
-            Text('Mi QR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            HueQuitoLogo.symbol(height: 28),
+            SizedBox(width: 10),
+            Text(
+              'Mi QR',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
           ],
         ),
         backgroundColor: AppTheme.primary,
         elevation: 0,
-        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.history, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            tooltip: 'Generar Nuevo QR',
+            onPressed: () {
+              _generateNewToken();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✨ Nuevo código QR de un solo uso generado.'),
+                  backgroundColor: AppTheme.primary,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.history, color: Colors.white),
             tooltip: 'Historial de Sellos',
             onPressed: () {
               _showHistoryModal(context);
@@ -109,7 +181,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
       body: huecaAsync.when(
         data: (hueca) {
           if (hueca == null) {
-            return Center(child: Text('Hueca no encontrada'));
+            return const Center(child: Text('Hueca no encontrada'));
           }
 
           final managedBranch = ref.watch(currentManagedBranchProvider).value;
@@ -128,21 +200,21 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
           });
 
           return SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Top Gradient Section
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(24, 24, 24, 80),
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(32),
                       bottomRight: Radius.circular(32),
                     ),
@@ -173,7 +245,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                           ],
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Generador Dinámico',
                         style: TextStyle(
                           fontSize: 24,
@@ -181,13 +253,14 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'El código se actualiza cada 30 seg. para evitar fraudes.',
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Código de un solo uso. Una vez escaneado por el cliente, se desactiva y regenera automáticamente.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13.5,
                           color: Colors.white70,
+                          height: 1.3,
                         ),
                       ),
                     ],
@@ -196,11 +269,11 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                 
                 // Shifted up QR Card
                 Transform.translate(
-                  offset: Offset(0, -50),
+                  offset: const Offset(0, -50),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Container(
-                      padding: EdgeInsets.all(32),
+                      padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(32),
@@ -208,7 +281,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 30,
-                            offset: Offset(0, 15),
+                            offset: const Offset(0, 15),
                           )
                         ],
                       ),
@@ -219,12 +292,36 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                             version: QrVersions.auto,
                             size: 240.0,
                             backgroundColor: Colors.white,
-                            eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black87),
-                            dataModuleStyle: QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black87),
+                            eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black87),
+                            dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black87),
                           ),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Container(
-                            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.lock_clock, color: Colors.green, size: 15),
+                                SizedBox(width: 6),
+                                Text(
+                                  '1 Solo Uso • Se renueva al escanear',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                             decoration: BoxDecoration(
                               color: AppTheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
@@ -232,12 +329,12 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.storefront, color: AppTheme.primary, size: 20),
-                                SizedBox(width: 8),
+                                const Icon(Icons.storefront, color: AppTheme.primary, size: 20),
+                                const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(
                                     hueca.name,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: AppTheme.primary,
@@ -257,7 +354,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                 
                 // Controls
                 Transform.translate(
-                  offset: Offset(0, -20),
+                  offset: const Offset(0, -20),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
@@ -270,12 +367,12 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _buildControlButton(Icons.remove, _decrement, isDark),
-                            SizedBox(width: 32),
+                            const SizedBox(width: 32),
                             Container(
                               width: 90,
                               height: 90,
@@ -286,7 +383,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 10,
-                                    offset: Offset(0, 5),
+                                    offset: const Offset(0, 5),
                                   )
                                 ],
                                 border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2), width: 2),
@@ -294,7 +391,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                               child: Center(
                                 child: Text(
                                   '$_stampCount',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primary,
@@ -302,11 +399,11 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 32),
+                            const SizedBox(width: 32),
                             _buildControlButton(Icons.add, _increment, isDark),
                           ],
                         ),
-                        SizedBox(height: 32),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -315,8 +412,8 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
             ),
           );
         },
-        loading: () => Center(child: CircularProgressIndicator(color: AppTheme.primary)),
-        error: (err, stack) => Center(child: Text('Error: $err', style: TextStyle(color: Colors.red))),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
       ),
     );
   }
@@ -324,11 +421,11 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
   Widget _buildControlButton(IconData icon, VoidCallback onPressed, bool isDark) {
     return Material(
       color: isDark ? Colors.grey[800] : Colors.grey[100],
-      shape: CircleBorder(),
+      shape: const CircleBorder(),
       child: InkWell(
         onTap: onPressed,
-        customBorder: CircleBorder(),
-        child: Container(
+        customBorder: const CircleBorder(),
+        child: SizedBox(
           width: 56,
           height: 56,
           child: Icon(icon, color: AppTheme.primary, size: 28),

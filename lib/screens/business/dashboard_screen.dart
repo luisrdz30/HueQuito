@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,12 +67,21 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        centerTitle: false,
+        titleSpacing: 16,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.restaurant, color: Colors.white, size: 28),
-            SizedBox(width: 12),
-            Text('Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const HueQuitoLogo.symbol(height: 28),
+            const SizedBox(width: 10),
+            const Text(
+              'Dashboard',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -141,7 +151,6 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        centerTitle: true,
       ),
       body: huecaAsync.when(
         data: (hueca) {
@@ -292,43 +301,47 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                                     child: _buildStatCard(
                                       context,
                                       title: 'Favoritos',
+                                      subtitle: 'Guardaron tu hueca',
                                       value: favoriteCount.toString(),
                                       icon: Icons.favorite,
                                       color: Colors.red,
                                       isDark: isDark,
                                     ),
                                   ),
-                                  SizedBox(width: 16),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: _buildStatCard(
                                       context,
                                       title: 'En Rutas',
+                                      subtitle: 'Tours de comensales',
                                       value: routeAdditions.toString(),
-                                      icon: Icons.map,
+                                      icon: Icons.explore_rounded,
                                       color: Colors.green,
                                       isDark: isDark,
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Row(
                                 children: [
                                   Expanded(
                                     child: _buildStatCard(
                                       context,
                                       title: 'Sellos Dados',
+                                      subtitle: 'Fidelización QR',
                                       value: stampsGiven.toString(),
                                       icon: Icons.local_activity,
                                       color: Colors.orange,
                                       isDark: isDark,
                                     ),
                                   ),
-                                  SizedBox(width: 16),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: _buildStatCard(
                                       context,
                                       title: 'Reseñas',
+                                      subtitle: 'Opiniones de clientes',
                                       value: reviewCount.toString(),
                                       icon: Icons.rate_review,
                                       color: Colors.blue,
@@ -494,9 +507,17 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
     );
   }
 
-  Widget _buildStatCard(BuildContext context, {required String title, required String value, required IconData icon, required Color color, required bool isDark}) {
+  Widget _buildStatCard(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    String? subtitle,
+  }) {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[850]! : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -504,7 +525,7 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: Offset(0, 5),
+            offset: const Offset(0, 5),
           )
         ],
       ),
@@ -512,14 +533,14 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             value,
             style: TextStyle(
@@ -528,14 +549,25 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
               color: isDark ? Colors.white : AppTheme.textDark,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.white70 : AppTheme.textMedium,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.textDark,
             ),
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white54 : AppTheme.textMedium,
+              ),
+            ),
+          ],
         ],
       ),
     );

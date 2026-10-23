@@ -1,3 +1,4 @@
+import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
@@ -45,15 +46,24 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         toolbarHeight: 70,
         title: Row(
           children: [
-            Icon(Icons.restaurant, color: AppTheme.primary, size: 32),
-            SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                Text(lang == 'es' ? 'Mi Álbum' : 'My Album', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
-              ],
-            )
+            const HueQuitoLogo(height: 32),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppTheme.chulpiCream.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.chulpiCream, width: 0.8),
+              ),
+              child: Text(
+                lang == 'es' ? 'Mi Álbum' : 'My Album',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.deepEarthBrown,
+                ),
+              ),
+            ),
           ],
         ),
       ),
