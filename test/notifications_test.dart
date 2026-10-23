@@ -165,6 +165,35 @@ void main() {
       expect(find.text('Solicitar Autorización de Notificación'), findsOneWidget);
     });
 
+    testWidgets('BusinessNotificationScreen opens Menu del Dia modal with scheduling controls', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            myHuecaProvider.overrideWith((ref) => Future.value(testHueca)),
+            currentManagedBranchProvider.overrideWith((ref) => Future.value(null)),
+          ],
+          child: const MaterialApp(
+            home: BusinessNotificationScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final openBtn = find.text('Armar o Programar Menú del Día');
+      expect(openBtn, findsOneWidget);
+      await tester.tap(openBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Menú del Día'), findsWidgets);
+      expect(find.text('🍲 Sopa'), findsOneWidget);
+      expect(find.text('🍛 Segundo (Plato Fuerte)'), findsOneWidget);
+      expect(find.text('⏰ ¿Cuándo deseas publicar este menú?'), findsOneWidget);
+      expect(find.text('Inmediato'), findsOneWidget);
+      expect(find.text('Programar'), findsOneWidget);
+      expect(find.text('Confirmar y Ver Vista Previa'), findsOneWidget);
+    });
+
     testWidgets('AdminNotificationsScreen renders moderation panel and empty state', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -267,6 +296,45 @@ void main() {
         createdBy: 'uid_1',
       );
       expect(unapproved.isCurrentlyActive, isFalse);
+    });
+
+    test('NotificationModel handles scheduled menu del dia dormancy and active window correctly', () {
+      final now = DateTime.now();
+      final futureMenu = NotificationModel(
+        id: 'n_future_menu',
+        huecaId: 'h1',
+        huecaName: 'Hueca Test',
+        category: 'menu_del_dia',
+        title: 'Menú Programado de Mañana',
+        message: 'Locro y Seco',
+        status: 'approved',
+        createdAt: now,
+        approvedAt: now,
+        scheduledFor: now.add(const Duration(hours: 3)),
+        createdBy: 'uid_1',
+      );
+      // Dormant until scheduled time
+      expect(futureMenu.isScheduled, isTrue);
+      expect(futureMenu.isCurrentlyActive, isFalse);
+      expect(futureMenu.formattedScheduledDate, isNotNull);
+
+      // Once reached
+      final activeScheduledMenu = NotificationModel(
+        id: 'n_active_scheduled',
+        huecaId: 'h1',
+        huecaName: 'Hueca Test',
+        category: 'menu_del_dia',
+        title: 'Menú Programado Activo',
+        message: 'Locro y Seco',
+        status: 'approved',
+        createdAt: now.subtract(const Duration(hours: 2)),
+        approvedAt: now.subtract(const Duration(hours: 2)),
+        scheduledFor: now.subtract(const Duration(minutes: 30)),
+        createdBy: 'uid_1',
+      );
+      expect(activeScheduledMenu.isScheduled, isFalse);
+      expect(activeScheduledMenu.isCurrentlyActive, isTrue);
+      expect(activeScheduledMenu.remainingMinutes, inInclusiveRange(200, 215));
     });
 
     testWidgets('HuecaDetailScreen renders active 4-hour notification / menu del dia when present', (tester) async {

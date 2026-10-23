@@ -295,6 +295,8 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     final segundoCtrl = TextEditingController();
     bool isReviewStep = false;
     bool isPublishing = false;
+    bool isScheduled = false;
+    DateTime? scheduledDateTime;
 
     // Extraer datos si ya había un menú del día escrito previamente
     if (_titleController.text.contains(':')) {
@@ -314,8 +316,64 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
+            Future<void> pickMenuScheduleDateTime() async {
+              final now = DateTime.now();
+              final initialDate = scheduledDateTime ?? now.add(const Duration(hours: 1));
+
+              final pickedDate = await showDatePicker(
+                context: modalCtx,
+                initialDate: initialDate.isAfter(now) ? initialDate : now,
+                firstDate: now,
+                lastDate: now.add(const Duration(days: 90)),
+                helpText: 'SELECCIONA EL DÍA DE PUBLICACIÓN',
+                confirmText: 'SIGUIENTE: HORA',
+                cancelText: 'CANCELAR',
+              );
+
+              if (pickedDate == null) return;
+
+              final initialTime = scheduledDateTime != null
+                  ? TimeOfDay.fromDateTime(scheduledDateTime!)
+                  : TimeOfDay(hour: (now.hour + 1) % 24, minute: 0);
+
+              final pickedTime = await showTimePicker(
+                context: modalCtx,
+                initialTime: initialTime,
+                helpText: 'SELECCIONA LA HORA DE PUBLICACIÓN',
+                confirmText: 'ESTABLECER',
+                cancelText: 'CANCELAR',
+              );
+
+              if (pickedTime == null) return;
+
+              final combined = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              );
+
+              if (combined.isBefore(DateTime.now())) {
+                if (modalCtx.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('⚠️ La fecha y hora programada debe ser en el futuro.'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+                return;
+              }
+
+              setModalState(() {
+                scheduledDateTime = combined;
+                isScheduled = true;
+              });
+            }
+
             return Container(
-              height: MediaQuery.of(ctx).size.height * 0.85,
+              height: MediaQuery.of(ctx).size.height * 0.88,
               decoration: BoxDecoration(
                 color: Theme.of(ctx).scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -368,7 +426,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                             Text(
                               isReviewStep
                                   ? 'Revisa cómo se verá la notificación en el celular'
-                                  : 'Ingresa las opciones del almuerzo de hoy',
+                                  : 'Ingresa las opciones del almuerzo y elige cuándo publicarlo',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white60 : AppTheme.textMedium,
@@ -391,6 +449,8 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                             managedBranch: managedBranch,
                             sopa: sopaCtrl.text.trim(),
                             segundo: segundoCtrl.text.trim(),
+                            isScheduled: isScheduled,
+                            scheduledDateTime: scheduledDateTime,
                             isDark: isDark,
                             isPublishing: isPublishing,
                             onEdit: () {
@@ -398,19 +458,37 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                             },
                             onPublish: () async {
                               setModalState(() => isPublishing = true);
-                              await _submitMenuDelDiaFromDialog(
-                                hueca: hueca,
-                                managedBranch: managedBranch,
-                                sopa: sopaCtrl.text.trim(),
-                                segundo: segundoCtrl.text.trim(),
-                                modalCtx: ctx,
-                              );
+                              try {
+                                await _submitMenuDelDiaFromDialog(
+                                  hueca: hueca,
+                                  managedBranch: managedBranch,
+                                  sopa: sopaCtrl.text.trim(),
+                                  segundo: segundoCtrl.text.trim(),
+                                  scheduledFor: isScheduled ? scheduledDateTime : null,
+                                  modalCtx: ctx,
+                                );
+                              } finally {
+                                if (modalCtx.mounted) {
+                                  setModalState(() => isPublishing = false);
+                                }
+                              }
                             },
                           )
                         : _buildMenuInputStep(
                             sopaCtrl: sopaCtrl,
                             segundoCtrl: segundoCtrl,
                             isDark: isDark,
+                            isScheduled: isScheduled,
+                            scheduledDateTime: scheduledDateTime,
+                            onToggleSchedule: (val) {
+                              setModalState(() {
+                                isScheduled = val;
+                              });
+                              if (val && scheduledDateTime == null) {
+                                pickMenuScheduleDateTime();
+                              }
+                            },
+                            onPickDateTime: pickMenuScheduleDateTime,
                             onConfirm: () {
                               final s = sopaCtrl.text.trim();
                               final seg = segundoCtrl.text.trim();
@@ -418,6 +496,15 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('⚠️ Por favor escribe al menos la sopa o el segundo del almuerzo.'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+                              if (isScheduled && scheduledDateTime == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('⚠️ Por favor selecciona la fecha y hora programada o elige publicación inmediata.'),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
@@ -440,6 +527,10 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     required TextEditingController sopaCtrl,
     required TextEditingController segundoCtrl,
     required bool isDark,
+    required bool isScheduled,
+    required DateTime? scheduledDateTime,
+    required ValueChanged<bool> onToggleSchedule,
+    required VoidCallback onPickDateTime,
     required VoidCallback onConfirm,
   }) {
     return SingleChildScrollView(
@@ -473,7 +564,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               ),
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 20),
           const Text(
             '🍛 Segundo (Plato Fuerte)',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
@@ -500,7 +591,117 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 22),
+
+          // Sección de Programación de Fecha y Hora
+          const Text(
+            '⏰ ¿Cuándo deseas publicar este menú?',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: ChoiceChip(
+                  label: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.flash_on, size: 16),
+                      SizedBox(width: 6),
+                      Text('Inmediato'),
+                    ],
+                  ),
+                  selected: !isScheduled,
+                  selectedColor: AppTheme.primary,
+                  labelStyle: TextStyle(
+                    color: !isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                    fontWeight: !isScheduled ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onSelected: (val) {
+                    if (val) onToggleSchedule(false);
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ChoiceChip(
+                  label: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.calendar_month, size: 16),
+                      SizedBox(width: 6),
+                      Text('Programar'),
+                    ],
+                  ),
+                  selected: isScheduled,
+                  selectedColor: AppTheme.primary,
+                  labelStyle: TextStyle(
+                    color: isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                    fontWeight: isScheduled ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onSelected: (val) {
+                    if (val) onToggleSchedule(true);
+                  },
+                ),
+              ),
+            ],
+          ),
+          if (isScheduled) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.surfaceDark : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule, color: AppTheme.primary, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Fecha y hora de publicación:',
+                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        Text(
+                          scheduledDateTime != null
+                              ? '${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')}/${scheduledDateTime.year} a las ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')}'
+                              : 'No seleccionada aún (Toca elegir)',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton.icon(
+                    icon: const Icon(Icons.edit_calendar, size: 16),
+                    label: Text(scheduledDateTime == null ? 'Elegir' : 'Cambiar'),
+                    onPressed: onPickDateTime,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Se emitirá automáticamente a la hora indicada y permanecerá visible durante 4 horas.',
+                    style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : AppTheme.textMedium),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 28),
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -518,6 +719,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               ),
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -528,6 +730,8 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     required HuecaBranch? managedBranch,
     required String sopa,
     required String segundo,
+    required bool isScheduled,
+    required DateTime? scheduledDateTime,
     required bool isDark,
     required bool isPublishing,
     required VoidCallback onEdit,
@@ -596,9 +800,11 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                         ),
                       ),
                       const Spacer(),
-                      const Text(
-                        'ahora',
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                      Text(
+                        isScheduled && scheduledDateTime != null
+                            ? 'Programado'
+                            : 'ahora',
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -620,7 +826,9 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Hue-Quito • ahora',
+                            isScheduled && scheduledDateTime != null
+                                ? 'Hue-Quito • Programado (${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')} ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')})'
+                                : 'Hue-Quito • ahora',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -670,7 +878,48 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          if (isScheduled && scheduledDateTime != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule, color: Colors.blue, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Publicación Programada',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Se publicará automáticamente el ${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')}/${scheduledDateTime.year} a las ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')}. Vigencia de 4 horas a partir de su emisión.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark ? Colors.white70 : AppTheme.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Mensaje de confirmación
           Row(
@@ -679,7 +928,9 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Si todo se ve bien, confirma para enviar tu aviso a publicación.',
+                  isScheduled
+                      ? 'Si todo se ve bien, confirma para dejar programado el menú.'
+                      : 'Si todo se ve bien, confirma para enviar tu aviso a publicación.',
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? Colors.white60 : AppTheme.textMedium,
@@ -702,9 +953,11 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                       height: 20,
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : const Icon(Icons.send_rounded, size: 20),
+                  : Icon(isScheduled ? Icons.calendar_today_rounded : Icons.send_rounded, size: 20),
               label: Text(
-                isPublishing ? 'Enviando aviso...' : 'Enviar para Publicación',
+                isPublishing
+                    ? (isScheduled ? 'Programando menú...' : 'Enviando aviso...')
+                    : (isScheduled ? 'Programar Publicación de Menú' : 'Publicar Menú de Inmediato'),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
               style: ElevatedButton.styleFrom(
@@ -744,6 +997,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     required String sopa,
     required String segundo,
     required BuildContext modalCtx,
+    DateTime? scheduledFor,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -778,9 +1032,9 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         title: title,
         message: message,
         discountTag: null,
-        scheduledFor: null,
+        scheduledFor: scheduledFor,
         createdBy: user.uid,
-        autoApprove: true, // Menú del día se publica de inmediato con vigencia de 4 horas
+        autoApprove: true, // Menú del día se aprueba y se publica de inmediato o en su fecha programada con vigencia de 4 horas
       );
 
       if (mounted) {
@@ -788,15 +1042,21 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
           _selectedCategory = 'menu_del_dia';
           _titleController.text = title;
           _messageController.text = message;
+          _isScheduled = scheduledFor != null;
+          _scheduledDateTime = scheduledFor;
         });
 
         Navigator.of(modalCtx).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🍛 ¡Menú del Día publicado con éxito! Estará visible durante 4 horas para tus comensales. 🚀'),
+          SnackBar(
+            content: Text(
+              scheduledFor != null
+                  ? '⏰ ¡Menú del Día programado con éxito! Se publicará automáticamente y estará visible por 4 horas.'
+                  : '🍛 ¡Menú del Día publicado con éxito! Estará visible durante 4 horas para tus comensales. 🚀',
+            ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
           ),
         );
 
@@ -889,7 +1149,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Escribe la sopa y el segundo del día y publícalo en 2 pasos sencillos.',
+                      'Escribe la sopa y el segundo del día para publicarlo de inmediato o programarlo a una fecha y hora específica.',
                       style: TextStyle(
                         fontSize: 12.5,
                         color: isDark ? Colors.white70 : AppTheme.textMedium,
@@ -907,7 +1167,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               onPressed: () => _openMenuDelDiaDialog(hueca, managedBranch),
               icon: const Icon(Icons.edit_note_rounded, size: 20),
               label: const Text(
-                'Armar Menú de Hoy',
+                'Armar o Programar Menú del Día',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               style: ElevatedButton.styleFrom(
