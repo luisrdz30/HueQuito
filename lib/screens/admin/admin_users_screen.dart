@@ -259,9 +259,19 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                             if (val != null) {
                               setDialogState(() {
                                 assignmentType = val;
-                                if (assignmentType != 'none' && selectedHuecaId == null && huecas.isNotEmpty) {
-                                  selectedHuecaId = huecas.first.id;
-                                  selectedBranchId = huecas.first.branches.isNotEmpty ? huecas.first.branches.first.id : null;
+                                if (assignmentType == 'owner') {
+                                  final unassigned = huecas.where((h) => h.ownerId.trim().isEmpty).toList();
+                                  selectedHuecaId = unassigned.isNotEmpty ? unassigned.first.id : null;
+                                  selectedBranchId = null;
+                                } else if (assignmentType == 'branch') {
+                                  selectedHuecaId = huecas.isNotEmpty ? huecas.first.id : null;
+                                  final match = huecas.where((h) => h.id == selectedHuecaId).toList();
+                                  selectedBranchId = (match.isNotEmpty && match.first.branches.isNotEmpty)
+                                      ? match.first.branches.first.id
+                                      : null;
+                                } else {
+                                  selectedHuecaId = null;
+                                  selectedBranchId = null;
                                 }
                               });
                             }
@@ -270,34 +280,65 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
                         if (assignmentType == 'owner') ...[
                           const SizedBox(height: 10),
-                          const Text('Seleccionar Hueca:', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 12)),
+                          const Text('Seleccionar Hueca (Sin dueño asignado):', style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 12)),
                           const SizedBox(height: 6),
-                          DropdownButtonFormField<String?>(
-                            isExpanded: true,
-                            value: selectedHuecaId,
-                            dropdownColor: Colors.white,
-                            style: const TextStyle(color: Color(0xFF0F172A)),
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: const Color(0xFFF1F5F9),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                            items: huecas.map((h) {
-                              final hasOwner = h.ownerId.isNotEmpty;
-                              return DropdownMenuItem(
-                                value: h.id,
-                                child: Text(
-                                  hasOwner ? '${h.name} (Tiene dueño)' : h.name,
-                                  style: TextStyle(
-                                    color: hasOwner ? Colors.orange.shade800 : const Color(0xFF0F172A),
-                                    fontSize: 13,
+                          Builder(
+                            builder: (context) {
+                              final unassignedHuecas = huecas.where((h) => h.ownerId.trim().isEmpty).toList();
+                              if (unassignedHuecas.isEmpty) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.amber.shade200),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.info_outline, size: 18, color: Colors.amber.shade900),
+                                      const SizedBox(width: 8),
+                                      const Expanded(
+                                        child: Text(
+                                          'No hay huecas disponibles sin dueño.',
+                                          style: TextStyle(fontSize: 12, color: Color(0xFF78350F), fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              final validValue = unassignedHuecas.any((h) => h.id == selectedHuecaId)
+                                  ? selectedHuecaId
+                                  : unassignedHuecas.first.id;
+
+                              return DropdownButtonFormField<String?>(
+                                isExpanded: true,
+                                value: validValue,
+                                dropdownColor: Colors.white,
+                                style: const TextStyle(color: Color(0xFF0F172A)),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: const Color(0xFFF1F5F9),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 ),
+                                items: unassignedHuecas.map((h) {
+                                  return DropdownMenuItem(
+                                    value: h.id,
+                                    child: Text(
+                                      h.name,
+                                      style: const TextStyle(
+                                        color: Color(0xFF0F172A),
+                                        fontSize: 13,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) => setDialogState(() => selectedHuecaId = val),
                               );
-                            }).toList(),
-                            onChanged: (val) => setDialogState(() => selectedHuecaId = val),
+                            },
                           ),
                         ] else if (assignmentType == 'branch') ...[
                           const SizedBox(height: 10),
@@ -414,6 +455,18 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                   ),
                   onPressed: isCreating ? null : () async {
                     if (!formKey.currentState!.validate()) return;
+                    if (assignmentType == 'owner') {
+                      final unassigned = huecas.where((h) => h.ownerId.trim().isEmpty).toList();
+                      if (unassigned.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No hay huecas disponibles sin dueño para asignar.')),
+                        );
+                        return;
+                      }
+                      if (selectedHuecaId == null || !unassigned.any((h) => h.id == selectedHuecaId)) {
+                        selectedHuecaId = unassigned.first.id;
+                      }
+                    }
                     setDialogState(() => isCreating = true);
 
                     try {
@@ -768,9 +821,21 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                           if (val != null) {
                             setDialogState(() {
                               assignmentType = val;
-                              if (assignmentType != 'none' && selectedHuecaId == null && huecas.isNotEmpty) {
-                                selectedHuecaId = huecas.first.id;
-                                selectedBranchId = huecas.first.branches.isNotEmpty ? huecas.first.branches.first.id : null;
+                              if (assignmentType == 'owner') {
+                                final available = huecas.where((h) => h.ownerId.trim().isEmpty || h.ownerId == user.uid).toList();
+                                selectedHuecaId = available.any((h) => h.id == selectedHuecaId)
+                                    ? selectedHuecaId
+                                    : (available.isNotEmpty ? available.first.id : null);
+                                selectedBranchId = null;
+                              } else if (assignmentType == 'branch') {
+                                selectedHuecaId = huecas.isNotEmpty ? huecas.first.id : null;
+                                final match = huecas.where((h) => h.id == selectedHuecaId).toList();
+                                selectedBranchId = (match.isNotEmpty && match.first.branches.isNotEmpty)
+                                    ? match.first.branches.first.id
+                                    : null;
+                              } else {
+                                selectedHuecaId = null;
+                                selectedBranchId = null;
                               }
                             });
                           }
@@ -778,44 +843,67 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                       ),
                       if (assignmentType == 'owner') ...[
                         const SizedBox(height: 12),
-                        const Text('Hueca Administrada:', style: TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.bold)),
+                        const Text('Hueca Administrada (Sin dueño o asignada a este usuario):', style: TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
-                        DropdownButtonFormField<String?>(
-                          isExpanded: true,
-                          value: selectedHuecaId,
-                          dropdownColor: Colors.white,
-                          style: const TextStyle(color: Color(0xFF0F172A)),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: const Color(0xFFF1F5F9),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                          items: huecas.map((h) {
-                            final isCurrent = h.id == selectedHuecaId && initialAssignment.isOwner;
-                            final isOwnedByOther = h.ownerId.isNotEmpty && h.ownerId != user.uid;
-                            String label = h.name;
-                            if (isCurrent) {
-                              label += ' (Actual)';
-                            } else if (isOwnedByOther) {
-                              label += ' (Reasignará dueño)';
-                            }
-                            return DropdownMenuItem(
-                              value: h.id,
-                              child: Text(
-                                label,
-                                style: TextStyle(
-                                  color: isCurrent
-                                      ? Colors.green.shade800
-                                      : (isOwnedByOther ? Colors.orange.shade800 : const Color(0xFF0F172A)),
-                                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                                  fontSize: 13,
+                        Builder(
+                          builder: (context) {
+                            final availableHuecas = huecas.where((h) => h.ownerId.trim().isEmpty || h.ownerId == user.uid).toList();
+                            if (availableHuecas.isEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.amber.shade200),
                                 ),
-                                overflow: TextOverflow.ellipsis,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info_outline, size: 18, color: Colors.amber.shade900),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'No hay huecas disponibles sin dueño.',
+                                        style: TextStyle(fontSize: 12, color: Color(0xFF78350F), fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            final validValue = availableHuecas.any((h) => h.id == selectedHuecaId)
+                                ? selectedHuecaId
+                                : availableHuecas.first.id;
+
+                            return DropdownButtonFormField<String?>(
+                              isExpanded: true,
+                              value: validValue,
+                              dropdownColor: Colors.white,
+                              style: const TextStyle(color: Color(0xFF0F172A)),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF1F5F9),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               ),
+                              items: availableHuecas.map((h) {
+                                final isCurrent = h.ownerId == user.uid;
+                                return DropdownMenuItem(
+                                  value: h.id,
+                                  child: Text(
+                                    isCurrent ? '${h.name} (Actual)' : h.name,
+                                    style: TextStyle(
+                                      color: isCurrent ? Colors.green.shade800 : const Color(0xFF0F172A),
+                                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (val) => setDialogState(() => selectedHuecaId = val),
                             );
-                          }).toList(),
-                          onChanged: (val) => setDialogState(() => selectedHuecaId = val),
+                          },
                         ),
                       ] else if (assignmentType == 'branch') ...[
                         const SizedBox(height: 12),
