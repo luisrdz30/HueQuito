@@ -18,6 +18,7 @@ class AlbumScreen extends ConsumerStatefulWidget {
 class _AlbumScreenState extends ConsumerState<AlbumScreen> {
   int _selectedTab = 0; // 0 for Huecas, 1 for Sectores
   Map<String, dynamic>? _guestGamification;
+  final Set<String> _expandedHuecaIds = {};
 
   @override
   void initState() {
@@ -364,6 +365,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             final stampImageUrl = hueca.loyaltyCard['stampImage']?.toString() ??
                 (hueca.loyaltyCard['image']?.toString() ?? '');
             final rewardImageUrl = hueca.loyaltyCard['rewardImage']?.toString() ?? '';
+            final bool isExpanded = _expandedHuecaIds.contains(hueca.id);
 
             return _buildHuecaCard(
               lang: lang,
@@ -376,6 +378,16 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               rewardImageUrl: rewardImageUrl.isNotEmpty ? rewardImageUrl : null,
               isGuest: isGuest,
               context: context,
+              isExpanded: isExpanded,
+              onToggleExpand: () {
+                setState(() {
+                  if (_expandedHuecaIds.contains(hueca.id)) {
+                    _expandedHuecaIds.remove(hueca.id);
+                  } else {
+                    _expandedHuecaIds.add(hueca.id);
+                  }
+                });
+              },
             );
           },
         );
@@ -396,236 +408,363 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     String? rewardImageUrl,
     required bool isGuest,
     required BuildContext context,
+    required bool isExpanded,
+    required VoidCallback onToggleExpand,
   }) {
     final bool isCompleted = currentStamps >= targetStamps;
     final int cardStampsFilled = isCompleted ? targetStamps : currentStamps;
     final int extraStamps = isCompleted ? (currentStamps - targetStamps) : 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Cuando son más de 5 sellos (ej. 10), se distribuyen en 2 filas limpias
+    final int columns = targetStamps <= 5
+        ? targetStamps
+        : ((targetStamps % 2 == 0) ? (targetStamps ~/ 2) : ((targetStamps + 1) ~/ 2));
+
+    final double progressRatio = targetStamps > 0 ? (currentStamps / targetStamps).clamp(0.0, 1.0) : 0.0;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-        border: isCompleted ? Border.all(color: AppTheme.accentGreen.withOpacity(0.4), width: 1.5) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(
+          color: isCompleted
+              ? AppTheme.accentGreen.withValues(alpha: 0.5)
+              : (isExpanded
+                  ? AppTheme.primary.withValues(alpha: 0.35)
+                  : (isDark ? Colors.white12 : Colors.grey.shade200)),
+          width: isCompleted || isExpanded ? 1.5 : 1.0,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  hueca.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isCompleted ? AppTheme.accentGreen.withOpacity(0.18) : AppTheme.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  isCompleted
-                      ? (extraStamps > 0
-                          ? (lang == 'es' ? '¡Completa! (+$extraStamps extra)' : 'Full! (+$extraStamps extra)')
-                          : (lang == 'es' ? '¡Completado!' : 'Completed!'))
-                      : (lang == 'es' ? '$currentStamps/$targetStamps Sellos' : '$currentStamps/$targetStamps Stamps'),
-                  style: TextStyle(
-                    color: isCompleted ? Colors.green[800] : AppTheme.secondary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11.5,
-                  ),
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Stamp visualization
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(targetStamps, (index) {
-              bool isStamped = index < cardStampsFilled;
-              return Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isStamped
-                      ? AppTheme.primary.withOpacity(0.1)
-                      : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                  border: Border.all(
-                    color: isStamped
-                        ? AppTheme.primary
-                        : (isDark ? Colors.grey[700] : Colors.grey[300])!,
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: isStamped
-                      ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
-                          ? ClipOval(
-                              child: Image.network(
-                                stampImageUrl,
-                                width: 38,
-                                height: 38,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    Icon(Icons.check_circle, color: AppTheme.primary, size: 28),
-                              ),
-                            )
-                          : Icon(Icons.check_circle, color: AppTheme.primary, size: 28))
-                      : Icon(Icons.restaurant, color: Colors.grey[400], size: 20),
-                ),
-              );
-            }),
-          ),
-
-          // Indicador de sellos guardados de más
-          if (extraStamps > 0) ...[
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.amber.withOpacity(0.12) : const Color(0xFFFFF9E6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? Colors.amber.shade700 : Colors.amber.shade400,
-                  width: 1.2,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      shape: BoxShape.circle,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onToggleExpand,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cabecera compacta siempre visible con nombre, sector y estado
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? AppTheme.accentGreen.withValues(alpha: 0.15)
+                            : AppTheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.check_circle : Icons.restaurant,
+                        color: isCompleted ? AppTheme.accentGreen : AppTheme.primary,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(Icons.archive_outlined, color: Colors.amber.shade900, size: 18),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              lang == 'es'
-                                  ? '+$extraStamps ${extraStamps == 1 ? "sello guardado" : "sellos guardados"} de más'
-                                  : '+$extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} stored',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12.5,
-                                color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
-                              ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hueca.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.5,
                             ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade700,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                lang == 'es' ? 'SEGURO' : 'SAFE',
-                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          ),
+                          if (hueca.sector.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              hueca.sector,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: isDark ? Colors.white54 : AppTheme.textMedium,
                               ),
                             ),
                           ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isCompleted ? AppTheme.accentGreen.withValues(alpha: 0.18) : AppTheme.secondary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isCompleted
+                            ? (extraStamps > 0
+                                ? (lang == 'es' ? '¡Completa! (+$extraStamps)' : 'Full! (+$extraStamps)')
+                                : (lang == 'es' ? '¡Completado!' : 'Completed!'))
+                            : (lang == 'es' ? '$currentStamps/$targetStamps Sellos' : '$currentStamps/$targetStamps Stamps'),
+                        style: TextStyle(
+                          color: isCompleted ? Colors.green[800] : AppTheme.secondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11.5,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          lang == 'es'
-                              ? 'Al reclamar tu premio, estos $extraStamps ${extraStamps == 1 ? "sello no se perderá y quedará" : "sellos no se perderán y quedarán"} en tu siguiente cartilla.'
-                              : 'Upon claiming, your $extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} will be preserved in your next card.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white60 : Colors.grey[600],
+                      size: 24,
+                    ),
+                  ],
+                ),
+
+                // Barra de progreso compacta cuando está contraído
+                if (!isExpanded) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: progressRatio,
+                      minHeight: 5,
+                      backgroundColor: isDark ? Colors.white12 : Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isCompleted ? AppTheme.accentGreen : AppTheme.primary,
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
 
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              if (rewardImageUrl != null && rewardImageUrl.isNotEmpty) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.network(
-                    rewardImageUrl,
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
+                // Contenido desplegable (Cromos en 2 filas, recompensas y botón de canje)
+                if (isExpanded) ...[
+                  const SizedBox(height: 14),
+                  Divider(
+                    height: 1,
+                    color: isDark ? Colors.white12 : Colors.grey[200],
                   ),
-                ),
-                const SizedBox(width: 8),
-              ] else ...[
-                Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
-                const SizedBox(width: 8),
+                  const SizedBox(height: 14),
+
+                  // Cuadrícula de sellos (organizados en 2 filas cuando son > 5)
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: targetStamps,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemBuilder: (context, index) {
+                      final bool isStamped = index < cardStampsFilled;
+                      final int stampNumber = index + 1;
+                      return Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isStamped
+                              ? AppTheme.primary.withValues(alpha: 0.12)
+                              : (isDark ? Colors.grey[850] : Colors.grey[100]),
+                          border: Border.all(
+                            color: isStamped
+                                ? AppTheme.primary
+                                : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
+                            width: isStamped ? 2.2 : 1.5,
+                          ),
+                          boxShadow: isStamped
+                              ? [
+                                  BoxShadow(
+                                    color: AppTheme.primary.withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: isStamped
+                              ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        stampImageUrl,
+                                        width: 36,
+                                        height: 36,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.check_circle,
+                                          color: AppTheme.primary,
+                                          size: 26,
+                                        ),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.check_circle,
+                                      color: AppTheme.primary,
+                                      size: 26,
+                                    ))
+                              : Text(
+                                  '$stampNumber',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                                  ),
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Indicador de sellos guardados de más
+                  if (extraStamps > 0) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.amber.withValues(alpha: 0.12) : const Color(0xFFFFF9E6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? Colors.amber.shade700 : Colors.amber.shade400,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.archive_outlined, color: Colors.amber.shade900, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      lang == 'es'
+                                          ? '+$extraStamps ${extraStamps == 1 ? "sello guardado" : "sellos guardados"} de más'
+                                          : '+$extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} stored',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12.5,
+                                        color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.shade700,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        lang == 'es' ? 'SEGURO' : 'SAFE',
+                                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  lang == 'es'
+                                      ? 'Al reclamar tu premio, estos $extraStamps ${extraStamps == 1 ? "sello no se perderá y quedará" : "sellos no se perderán y quedarán"} en tu siguiente cartilla.'
+                                      : 'Upon claiming, your $extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} will be preserved in your next card.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      if (rewardImageUrl != null && rewardImageUrl.isNotEmpty) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            rewardImageUrl,
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ] else ...[
+                        const Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: Text(
+                          lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppTheme.textMedium,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Botón de Reclamar Recompensa
+                  if (isCompleted) ...[
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showClaimRewardDialog(
+                          hueca: hueca,
+                          user: user,
+                          isGuest: isGuest,
+                          currentStamps: currentStamps,
+                          targetStamps: targetStamps,
+                          extraStamps: extraStamps,
+                          reward: reward,
+                          rewardImageUrl: rewardImageUrl,
+                          lang: lang,
+                        ),
+                        icon: const Icon(Icons.celebration, size: 18),
+                        label: Text(
+                          lang == 'es' ? 'Reclamar Premio' : 'Claim Reward',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ],
-              Expanded(
-                child: Text(
-                  lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : AppTheme.textMedium,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
-          // Botón de Reclamar Recompensa
-          if (isCompleted) ...[
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton.icon(
-                onPressed: () => _showClaimRewardDialog(
-                  hueca: hueca,
-                  user: user,
-                  isGuest: isGuest,
-                  currentStamps: currentStamps,
-                  targetStamps: targetStamps,
-                  extraStamps: extraStamps,
-                  reward: reward,
-                  rewardImageUrl: rewardImageUrl,
-                  lang: lang,
-                ),
-                icon: const Icon(Icons.celebration, size: 18),
-                label: Text(
-                  lang == 'es' ? 'Reclamar Premio' : 'Claim Reward',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentGreen,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
             ),
-          ],
-        ],
+          ),
+        ),
       ),
     );
   }

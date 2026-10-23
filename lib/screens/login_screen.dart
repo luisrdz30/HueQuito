@@ -25,7 +25,54 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   String? _errorMessage;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String _getFriendlyErrorMessage(dynamic e) {
+    final msg = e.toString().toLowerCase();
+    if (msg.contains('user-not-found')) {
+      return 'No existe una cuenta registrada con este correo electrónico.';
+    }
+    if (msg.contains('wrong-password') || msg.contains('invalid-credential')) {
+      return 'El correo o la contraseña son incorrectos.';
+    }
+    if (msg.contains('invalid-email')) {
+      return 'El formato del correo electrónico no es válido.';
+    }
+    if (msg.contains('user-disabled')) {
+      return 'Esta cuenta ha sido deshabilitada. Contacta a soporte.';
+    }
+    if (msg.contains('too-many-requests')) {
+      return 'Demasiados intentos fallidos. Por favor espera un momento o restablece tu contraseña.';
+    }
+    if (msg.contains('network-request-failed')) {
+      return 'Error de conexión. Revisa tu acceso a internet.';
+    }
+    return e.toString().replaceAll('Exception: ', '').replaceAll(RegExp(r'\[.*?\]'), '').trim();
+  }
+
   void _signInWithEmail() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor ingresa tu correo electrónico';
+      });
+      return;
+    }
+
+    if (password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor ingresa tu contraseña';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -34,8 +81,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
       await authRepo.signInWithEmail(
-        _emailController.text,
-        _passwordController.text,
+        email,
+        password,
       );
 
       ref.invalidate(authStateProvider);
@@ -46,10 +93,168 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await _handlePostLoginNavigation(userModel);
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = _getFriendlyErrorMessage(e);
         _isLoading = false;
       });
     }
+  }
+
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+    bool isSending = false;
+    String? resetError;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.lock_reset, color: AppTheme.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Recuperar Contraseña',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ingresa tu correo registrado y te enviaremos un enlace seguro para crear una nueva contraseña.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : AppTheme.textMedium,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: resetEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Correo Electrónico',
+                      hintText: 'ejemplo@correo.com',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      errorText: resetError,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(dialogCtx),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[700]),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          final email = resetEmailController.text.trim();
+                          if (email.isEmpty) {
+                            setDialogState(() {
+                              resetError = 'Por favor escribe tu correo';
+                            });
+                            return;
+                          }
+                          if (!email.contains('@') || !email.contains('.')) {
+                            setDialogState(() {
+                              resetError = 'Ingresa un correo electrónico válido';
+                            });
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isSending = true;
+                            resetError = null;
+                          });
+
+                          try {
+                            final authRepo = ref.read(authRepositoryProvider);
+                            await authRepo.sendPasswordResetEmail(email);
+
+                            if (mounted) {
+                              Navigator.pop(dialogCtx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.mark_email_read, color: Colors.white, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          '¡Listo! Enviamos el enlace de recuperación a $email. Revisa tu bandeja de entrada o spam.',
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.green.shade700,
+                                  duration: const Duration(seconds: 5),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setDialogState(() {
+                              isSending = false;
+                              resetError = _getFriendlyErrorMessage(e);
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: isSending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Enviar Enlace',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _handlePostLoginNavigation(UserModel? userModel) async {
@@ -168,34 +373,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const HueQuitoLogo.stacked(height: 120),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
               // Email
               TextField(
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Correo Electrónico',
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon: const Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(9999),
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Password
               TextField(
@@ -203,7 +425,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
-                  prefixIcon: Icon(Icons.lock),
+                  prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -219,46 +441,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 6),
+
+              // Olvidaste tu contraseña
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _showForgotPasswordDialog,
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                  child: const Text(
+                    '¿Olvidaste tu contraseña?',
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               _isLoading
-                  ? CircularProgressIndicator()
+                  ? const CircularProgressIndicator()
                   : SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _signInWithEmail,
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(9999),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Iniciar Sesión',
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               OutlinedButton.icon(
-                icon: Icon(Icons.g_mobiledata, size: 24),
-                label: Text('Ingresar con Google'),
+                icon: const Icon(Icons.g_mobiledata, size: 24),
+                label: const Text('Ingresar con Google'),
                 onPressed: _isLoading ? null : _signInWithGoogle,
                 style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9999),
+                  ),
                 ),
               ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: _skipLogin,
-                child: Text('Continuar como Invitado'),
+                child: const Text('Continuar como Invitado'),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => context.push('/register'),
-                child: Text(
+                child: const Text(
                   '¿Aún no tienes cuenta? Regístrate aquí',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),

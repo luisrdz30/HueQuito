@@ -11,7 +11,11 @@ class AuthRepository {
   User? get currentUser => _auth.currentUser;
 
   Future<UserCredential> signInWithEmail(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    return await _auth.signInWithEmailAndPassword(email: email.trim(), password: password);
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
   Future<UserCredential> signInAnonymously() async {
