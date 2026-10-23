@@ -1,43 +1,14 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Función auxiliar para verificar si el usuario está autenticado
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Función para validar que el archivo sea una imagen válida menor a 10MB
-    function isValidImage() {
-      return request.resource.size < 10 * 1024 * 1024
-          && request.resource.contentType.matches('image/.*');
-    }
-
-    // 1. Fotos de perfil de usuarios
-    // Lectura pública para ver avatares en reseñas y perfil.
-    // Escritura solo permitida para el propio usuario autenticado.
-    match /user_profiles/{userId}.jpg {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.uid == userId && isValidImage();
-    }
-
-    // 2. Fotos adjuntas a solicitudes de nuevas huecas
-    match /hueca_requests/{fileName} {
-      allow read: if true;
-      allow write: if isAuthenticated() && isValidImage();
-    }
-
-    // 3. Imágenes de huecas, platos del menú y banners
-    match /huecas/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() && isValidImage();
-    }
-
-    // 4. Regla general para el resto del almacenamiento
-    // Lectura pública para comensales, subida restringida a usuarios logueados
     match /{allPaths=**} {
+      // Lectura pública de imágenes (para ver huecas, platos y fotos en la app)
       allow read: if true;
-      allow write: if isAuthenticated() && isValidImage();
+      
+      // Subida de imágenes protegida: solo usuarios autenticados e imágenes válidas (< 10MB)
+      allow write: if request.auth != null
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
     }
   }
 }
