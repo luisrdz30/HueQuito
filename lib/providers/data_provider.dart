@@ -117,6 +117,11 @@ final approvedNotificationsProvider = StreamProvider<List<NotificationModel>>((r
   return repo.streamApprovedNotifications();
 });
 
+final activeHuecaNotificationsProvider = StreamProvider.autoDispose.family<List<NotificationModel>, String>((ref, huecaId) {
+  final repo = ref.watch(notificationRepositoryProvider);
+  return repo.streamActiveNotificationsByHueca(huecaId);
+});
+
 final myHuecaNotificationsProvider = StreamProvider.autoDispose.family<List<NotificationModel>, String>((ref, huecaId) {
   final repo = ref.watch(notificationRepositoryProvider);
   return repo.streamNotificationsByHueca(huecaId);

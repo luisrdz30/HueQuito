@@ -1,3 +1,4 @@
+import 'package:hue_quito/models/notification_model.dart';
 import 'dart:async';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -943,6 +944,9 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               ),
             ),
 
+            // Sección de Avisos Activos / Menú del Día (Visible únicamente si hay publicaciones en las últimas 4 horas)
+            _buildActiveAnnouncementsSection(lang),
+
             // Tabs Row
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -1703,6 +1707,270 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
       ),
     );
   }
+
+  Widget _buildActiveAnnouncementsSection(String lang) {
+    final activeAsync = ref.watch(activeHuecaNotificationsProvider(_currentHueca.id));
+
+    return activeAsync.when(
+      data: (notifications) {
+        if (notifications.isEmpty) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    lang == 'es' ? 'AVISOS ACTIVOS / MENÚ DEL DÍA' : 'LIVE NOTICES / DAILY MENU',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: Colors.redAccent.shade700,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.timer_outlined, size: 12, color: Colors.redAccent),
+                        const SizedBox(width: 4),
+                        Text(
+                          lang == 'es' ? 'Vigencia: 4 horas' : 'Active for 4h',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...notifications.map((n) => _buildAnnouncementCard(n, lang)),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildAnnouncementCard(NotificationModel n, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMenu = n.category == 'menu_del_dia';
+    final isPromo = n.category == 'promocion';
+
+    final Color accentColor = isMenu
+        ? Colors.amber.shade800
+        : (isPromo ? Colors.deepOrange : AppTheme.primary);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2430) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accentColor.withValues(alpha: isDark ? 0.4 : 0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner superior con categoría y tiempo restante
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  '${n.categoryEmoji} ${n.categoryDisplay}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                  ),
+                ),
+                if (n.branchName != null && n.branchName!.trim().isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.black38 : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '📍 ${n.branchName}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.grey.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.black45 : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time_filled, size: 12, color: accentColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        n.formattedTimeRemaining(lang: lang),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Contenido principal
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        n.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
+                        ),
+                      ),
+                    ),
+                    if (n.discountTag != null && n.discountTag!.trim().isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade600,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          n.discountTag!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  n.message,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.45,
+                    color: isDark ? Colors.white.withValues(alpha: 0.85) : Colors.grey.shade800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      n.formattedAge(lang: lang),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        Share.share(
+                          '${n.title}\n\n${n.message}\n\nPublicado por ${_currentHueca.name} en HueQuito 🇪🇨',
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Row(
+                          children: [
+                            Icon(Icons.share_outlined, size: 14, color: accentColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              lang == 'es' ? 'Compartir aviso' : 'Share notice',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: accentColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 }
 
 class _FullScreenGalleryViewer extends StatefulWidget {
@@ -1921,4 +2189,5 @@ class _FullScreenGalleryViewerState extends State<_FullScreenGalleryViewer> {
       ),
     );
   }
+
 }

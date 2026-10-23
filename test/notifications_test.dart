@@ -220,5 +220,138 @@ void main() {
       expect(find.byIcon(Icons.notifications_active), findsWidgets);
       expect(find.text('Alertas'), findsOneWidget);
     });
+    test('NotificationModel 4-hour validity and remaining time helpers', () {
+      final now = DateTime.now();
+
+      final recent = NotificationModel(
+        id: 'n_recent',
+        huecaId: 'h1',
+        huecaName: 'Hueca Test',
+        category: 'menu_del_dia',
+        title: 'Menú de Hoy',
+        message: 'Locro y Fritada',
+        status: 'approved',
+        createdAt: now.subtract(const Duration(minutes: 30)),
+        approvedAt: now.subtract(const Duration(minutes: 30)),
+        createdBy: 'uid_1',
+      );
+      expect(recent.isCurrentlyActive, isTrue);
+      expect(recent.remainingMinutes, inInclusiveRange(200, 215));
+      expect(recent.formattedTimeRemaining(lang: 'es'), contains('Quedan 3 h'));
+      expect(recent.formattedAge(lang: 'es'), contains('Publicado hace 30 min'));
+
+      final expired = NotificationModel(
+        id: 'n_expired',
+        huecaId: 'h1',
+        huecaName: 'Hueca Test',
+        category: 'menu_del_dia',
+        title: 'Menú Pasado',
+        message: 'Ayer',
+        status: 'approved',
+        createdAt: now.subtract(const Duration(hours: 5)),
+        approvedAt: now.subtract(const Duration(hours: 5)),
+        createdBy: 'uid_1',
+      );
+      expect(expired.isCurrentlyActive, isFalse);
+      expect(expired.remainingMinutes, 0);
+
+      final unapproved = NotificationModel(
+        id: 'n_pending',
+        huecaId: 'h1',
+        huecaName: 'Hueca Test',
+        category: 'promocion',
+        title: 'Promo',
+        message: 'Pendiente',
+        status: 'pending',
+        createdAt: now,
+        createdBy: 'uid_1',
+      );
+      expect(unapproved.isCurrentlyActive, isFalse);
+    });
+
+    testWidgets('HuecaDetailScreen renders active 4-hour notification / menu del dia when present', (tester) async {
+      final testUser = UserModel(
+        uid: 'user_1',
+        name: 'Maria',
+        email: 'maria@test.com',
+        profilePicUrl: '',
+        gamification: {},
+        preferences: {},
+        sectorAlbums: [],
+        favoriteHuecas: [],
+        subscribedHuecas: ['h1'],
+        role: 'user',
+      );
+
+      final activeNotif = NotificationModel(
+        id: 'notif_active_1',
+        huecaId: testHueca.id,
+        huecaName: testHueca.name,
+        category: 'menu_del_dia',
+        title: 'Menú del Día de Doña Tina',
+        message: '🍲 Sopa: Locro de Papa\n🍛 Segundo: Seco de Chivo',
+        discountTag: 'Almuerzo \$3.50',
+        status: 'approved',
+        createdAt: DateTime.now().subtract(const Duration(minutes: 45)),
+        approvedAt: DateTime.now().subtract(const Duration(minutes: 45)),
+        createdBy: 'owner_1',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith((ref) => Future.value(testUser)),
+            activeHuecaNotificationsProvider(testHueca.id).overrideWith(
+              (ref) => Stream.value([activeNotif]),
+            ),
+          ],
+          child: MaterialApp(
+            home: HuecaDetailScreen(hueca: testHueca),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('AVISOS ACTIVOS / MENÚ DEL DÍA'), findsOneWidget);
+      expect(find.text('Menú del Día de Doña Tina'), findsOneWidget);
+      expect(find.text('🍲 Sopa: Locro de Papa\n🍛 Segundo: Seco de Chivo'), findsOneWidget);
+      expect(find.text('Almuerzo \$3.50'), findsOneWidget);
+      expect(find.text('Vigencia: 4 horas'), findsOneWidget);
+    });
+
+    testWidgets('HuecaDetailScreen hides active notification section when empty', (tester) async {
+      final testUser = UserModel(
+        uid: 'user_1',
+        name: 'Maria',
+        email: 'maria@test.com',
+        profilePicUrl: '',
+        gamification: {},
+        preferences: {},
+        sectorAlbums: [],
+        favoriteHuecas: [],
+        subscribedHuecas: ['h1'],
+        role: 'user',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith((ref) => Future.value(testUser)),
+            activeHuecaNotificationsProvider(testHueca.id).overrideWith(
+              (ref) => Stream.value([]),
+            ),
+          ],
+          child: MaterialApp(
+            home: HuecaDetailScreen(hueca: testHueca),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('AVISOS ACTIVOS / MENÚ DEL DÍA'), findsNothing);
+      expect(find.text('Menú del Día de Doña Tina'), findsNothing);
+    });
   });
 }

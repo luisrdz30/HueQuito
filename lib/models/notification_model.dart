@@ -136,4 +136,52 @@ class NotificationModel {
     final min = dt.minute.toString().padLeft(2, '0');
     return '$day/$month/$year $hour:$min';
   }
+  DateTime get effectivePublishedAt => scheduledFor ?? approvedAt ?? createdAt;
+
+  bool get isCurrentlyActive {
+    if (status != 'approved') return false;
+    final now = DateTime.now();
+    final pub = effectivePublishedAt;
+    if (pub.isAfter(now)) return false;
+    return now.difference(pub).inMinutes <= 240;
+  }
+
+  int get remainingMinutes {
+    final now = DateTime.now();
+    final expiresAt = effectivePublishedAt.add(const Duration(hours: 4));
+    final diff = expiresAt.difference(now).inMinutes;
+    return diff > 0 ? diff : 0;
+  }
+
+  String formattedTimeRemaining({required String lang}) {
+    final mins = remainingMinutes;
+    final hours = mins ~/ 60;
+    final remainingMins = mins % 60;
+    if (lang == 'en') {
+      if (hours > 0) {
+        return '$hours h ${remainingMins}m left';
+      }
+      return '$remainingMins min left';
+    } else {
+      if (hours > 0) {
+        return 'Quedan $hours h ${remainingMins}m';
+      }
+      return 'Quedan $remainingMins min';
+    }
+  }
+
+  String formattedAge({required String lang}) {
+    final now = DateTime.now();
+    final mins = now.difference(effectivePublishedAt).inMinutes;
+    if (mins < 1) return lang == 'en' ? 'Just now' : 'Hace un momento';
+    final hours = mins ~/ 60;
+    final remainingMins = mins % 60;
+    if (lang == 'en') {
+      if (hours > 0) return 'Published ${hours}h ago';
+      return 'Published ${mins}m ago';
+    } else {
+      if (hours > 0) return 'Publicado hace ${hours}h ${remainingMins}m';
+      return 'Publicado hace $mins min';
+    }
+  }
 }

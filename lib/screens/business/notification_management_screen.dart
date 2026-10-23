@@ -780,6 +780,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         discountTag: null,
         scheduledFor: null,
         createdBy: user.uid,
+        autoApprove: true, // Menú del día se publica de inmediato con vigencia de 4 horas
       );
 
       if (mounted) {
@@ -793,7 +794,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🎉 ¡Menú del Día enviado para publicación con éxito! 🚀'),
+            content: Text('🍛 ¡Menú del Día publicado con éxito! Estará visible durante 4 horas para tus comensales. 🚀'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
@@ -960,6 +961,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         branchName = b.name;
       }
 
+      final isMenu = _selectedCategory == 'menu_del_dia';
       await repo.submitNotificationRequest(
         huecaId: hueca.id,
         huecaName: hueca.name,
@@ -971,6 +973,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         discountTag: _tagController.text.trim().isNotEmpty ? _tagController.text.trim() : null,
         scheduledFor: _isScheduled ? _scheduledDateTime : null,
         createdBy: user.uid,
+        autoApprove: isMenu,
       );
 
       if (mounted) {

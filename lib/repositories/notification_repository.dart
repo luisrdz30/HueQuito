@@ -19,6 +19,7 @@ class NotificationRepository {
     String? discountTag,
     DateTime? scheduledFor,
     required String createdBy,
+    bool autoApprove = false,
   }) async {
     final docRef = await _notificationsCol.add({
       'huecaId': huecaId,
@@ -30,15 +31,51 @@ class NotificationRepository {
       'message': message,
       'discountTag': discountTag,
       'scheduledFor': scheduledFor != null ? Timestamp.fromDate(scheduledFor) : null,
-      'status': 'pending',
+      'status': autoApprove ? 'approved' : 'pending',
       'createdAt': FieldValue.serverTimestamp(),
-      'approvedAt': null,
+      'approvedAt': autoApprove ? Timestamp.now() : null,
       'rejectedAt': null,
       'rejectionReason': null,
       'createdBy': createdBy,
-      'reviewedBy': null,
+      'reviewedBy': autoApprove ? 'auto_business' : null,
     });
     return docRef.id;
+  }
+
+  // User & Diner: Stream active approved notifications for a specific hueca
+  // Maximum age: 4 hours (240 minutes) from publication time. If older than 4 hours, it auto-deletes from Firestore
+  // to avoid clutter and unwanted records.
+  Stream<List<NotificationModel>> streamActiveNotificationsByHueca(String huecaId) {
+    return _notificationsCol
+        .where('huecaId', isEqualTo: huecaId)
+        .where('status', isEqualTo: 'approved')
+        .snapshots()
+        .map((snapshot) {
+      final now = DateTime.now();
+      final activeList = <NotificationModel>[];
+
+      for (final doc in snapshot.docs) {
+        try {
+          final n = NotificationModel.fromFirestore(doc);
+          final pubAt = n.effectivePublishedAt;
+
+          // Si fue programada para el futuro, no mostrar todavia
+          if (pubAt.isAfter(now)) continue;
+
+          final ageInMinutes = now.difference(pubAt).inMinutes;
+
+          // Si pasaron mas de 4 horas (240 min), se borra automaticamente de Firestore
+          if (ageInMinutes > 240) {
+            doc.reference.delete().catchError((_) {});
+          } else {
+            activeList.add(n);
+          }
+        } catch (_) {}
+      }
+
+      activeList.sort((a, b) => b.effectivePublishedAt.compareTo(a.effectivePublishedAt));
+      return activeList;
+    });
   }
 
   // Business: Stream notifications for a specific hueca
