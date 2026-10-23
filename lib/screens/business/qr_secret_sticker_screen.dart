@@ -57,14 +57,19 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
     final branchNameText = widget.branchName ?? 'Matriz';
     final stickerTitle = widget.stickerName ?? 'Sticker Secreto';
 
+    final cleanHuecaId = widget.huecaId.trim();
+    final cleanSecret = (widget.qrSecret.trim().isNotEmpty)
+        ? widget.qrSecret.trim()
+        : (cleanHuecaId.isNotEmpty ? 'STICKER_$cleanHuecaId' : 'STICKER_HUEQUITO');
+
     // Generar el payload del QR en formato JSON estructurado
     final qrData = jsonEncode({
       'type': 'secret_sticker',
-      'business_id': widget.huecaId,
-      'branch_id': widget.branchId ?? 'matriz',
+      'business_id': cleanHuecaId,
+      'branch_id': widget.branchId?.trim() ?? 'matriz',
       'branch_name': branchNameText,
       'sticker_name': stickerTitle,
-      'secret': widget.qrSecret,
+      'secret': cleanSecret,
     });
 
     return Scaffold(
@@ -162,30 +167,31 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
                   color: Theme.of(context).scaffoldBackgroundColor, // Fondo sólido para la captura
                   padding: EdgeInsets.all(32),
                   child: Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 25,
+                          offset: const Offset(0, 8),
                         )
                       ],
                     ),
                     child: QrImageView(
                       data: qrData,
                       version: QrVersions.auto,
-                      size: 250.0,
+                      size: 240.0,
                       backgroundColor: Colors.white,
-                      eyeStyle: QrEyeStyle(
+                      padding: const EdgeInsets.all(12),
+                      eyeStyle: const QrEyeStyle(
                         eyeShape: QrEyeShape.square,
-                        color: Colors.black,
+                        color: Colors.black87,
                       ),
-                      dataModuleStyle: QrDataModuleStyle(
+                      dataModuleStyle: const QrDataModuleStyle(
                         dataModuleShape: QrDataModuleShape.square,
-                        color: Colors.black,
+                        color: Colors.black87,
                       ),
                     ),
                   ),

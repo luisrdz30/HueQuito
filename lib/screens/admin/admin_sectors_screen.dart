@@ -944,7 +944,9 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
     final suggested = _suggestSector(hueca);
     final stickerName = _getStickerName(hueca);
     final stickerImage = _getStickerImageUrl(hueca);
-    final qrSecret = hueca.secretSticker['qrSecret']?.toString() ?? '';
+    final qrSecret = hueca.secretSticker['qrSecret']?.toString() ??
+        hueca.secretSticker['code']?.toString() ??
+        'STICKER_${hueca.id}';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1144,7 +1146,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              if (hasSticker && qrSecret.isNotEmpty)
+              if (hasSticker)
                 IconButton(
                   tooltip: 'Ver QR del Cromo',
                   icon: const Icon(Icons.qr_code, size: 20, color: Color(0xFF0F172A)),

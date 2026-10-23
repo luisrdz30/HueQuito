@@ -25,27 +25,107 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     if (_isProcessing || _scannedData != null) return;
     
     final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
-      final code = barcodes.first.rawValue!;
-      setState(() {
-        _isProcessing = true;
-      });
-      
-      // Try parsing JSON data
-      try {
-        final parsed = jsonDecode(code);
-        setState(() {
-          _scannedData = parsed;
-          _isProcessing = false;
-        });
-      } catch (e) {
-        // If it's not JSON, treat it as unknown
-        setState(() {
-          _scannedData = {'type': 'unknown', 'raw': code};
-          _isProcessing = false;
-        });
+    String? rawCode;
+    for (final b in barcodes) {
+      final val = b.rawValue ?? b.displayValue;
+      if (val != null && val.trim().isNotEmpty) {
+        rawCode = val.trim();
+        break;
       }
     }
+    if (rawCode == null || rawCode.isEmpty) return;
+
+    final lang = ref.read(settingsProvider).language;
+    final isEn = lang == 'en';
+
+    Map<String, dynamic>? parsed;
+    try {
+      final decoded = jsonDecode(rawCode);
+      if (decoded is Map<String, dynamic>) {
+        parsed = decoded;
+      }
+    } catch (_) {}
+
+    // Si no es JSON estructurado, verificar si coincide con el secreto de algún cromo en la base de datos
+    if (parsed == null) {
+      final huecasList = ref.read(huecasProvider).value ?? [];
+      Hueca? matchedHueca;
+      String matchedBranchId = 'matriz';
+      String matchedBranchName = isEn ? 'Main Branch' : 'Matriz Principal';
+      String matchedStickerName = isEn ? 'Secret Sticker' : 'Sticker Secreto';
+
+      for (final h in huecasList) {
+        final s = h.secretSticker;
+        final sSecret = s['qrSecret']?.toString().trim() ?? '';
+        final sCode = s['code']?.toString().trim() ?? '';
+        final sId = s['id']?.toString().trim() ?? '';
+
+        if ((sSecret.isNotEmpty && sSecret == rawCode) ||
+            (sCode.isNotEmpty && sCode == rawCode) ||
+            (sId.isNotEmpty && sId == rawCode) ||
+            h.id.trim() == rawCode) {
+          matchedHueca = h;
+          if (s['name'] is Map) {
+            matchedStickerName = s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? matchedStickerName;
+          } else if (s['name'] != null && s['name'].toString().isNotEmpty) {
+            matchedStickerName = s['name'].toString();
+          }
+          break;
+        }
+
+        for (final b in h.branches) {
+          final bs = b.secretSticker;
+          if (bs != null) {
+            final bsSecret = bs['qrSecret']?.toString().trim() ?? '';
+            final bsCode = bs['code']?.toString().trim() ?? '';
+            final bsId = bs['id']?.toString().trim() ?? '';
+            if ((bsSecret.isNotEmpty && bsSecret == rawCode) ||
+                (bsCode.isNotEmpty && bsCode == rawCode) ||
+                (bsId.isNotEmpty && bsId == rawCode)) {
+              matchedHueca = h;
+              matchedBranchId = b.id;
+              matchedBranchName = b.name;
+              if (bs['name'] is Map) {
+                matchedStickerName = bs['name'][lang]?.toString() ?? bs['name']['es']?.toString() ?? matchedStickerName;
+              } else if (bs['name'] != null && bs['name'].toString().isNotEmpty) {
+                matchedStickerName = bs['name'].toString();
+              }
+              break;
+            }
+          }
+        }
+        if (matchedHueca != null) break;
+      }
+
+      if (matchedHueca != null) {
+        parsed = {
+          'type': 'secret_sticker',
+          'business_id': matchedHueca.id,
+          'branch_id': matchedBranchId,
+          'branch_name': matchedBranchName,
+          'sticker_name': matchedStickerName,
+          'secret': rawCode,
+        };
+      } else if (rawCode.toLowerCase().contains('sticker') ||
+          rawCode.toLowerCase().contains('cromo') ||
+          rawCode.toLowerCase().contains('secreto')) {
+        parsed = {
+          'type': 'secret_sticker',
+          'business_id': '',
+          'branch_id': 'matriz',
+          'branch_name': isEn ? 'Secret Spot' : 'Puesto Secreto',
+          'sticker_name': isEn ? 'Secret Sticker' : 'Sticker Secreto',
+          'secret': rawCode,
+        };
+      } else {
+        parsed = {'type': 'unknown', 'raw': rawCode};
+      }
+    }
+
+    setState(() {
+      _scannedData = parsed;
+      _isProcessing = false;
+    });
   }
 
   Future<void> _saveScannedData() async {
@@ -230,13 +310,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? (isEn ? 'Secret Sticker' : 'Sticker Secreto');
 
           final stickerKey = '${huecaId}_$branchId';
+          final secret = _scannedData!['secret']?.toString().trim() ?? '';
           final currentPoints = (guestGamification['points'] as num?)?.toInt() ?? 0;
           List<dynamic> collected = List.from(guestGamification['collectedStickers'] ?? []);
-          bool isNew = !collected.contains(stickerKey);
+          bool isNew = !collected.contains(stickerKey) && (huecaId.isEmpty || !collected.contains(huecaId));
           if (isNew) {
-            collected.add(stickerKey);
             guestGamification['points'] = currentPoints + 50;
           }
+          if (!collected.contains(stickerKey)) collected.add(stickerKey);
+          if (huecaId.isNotEmpty && !collected.contains(huecaId)) collected.add(huecaId);
+          if (secret.isNotEmpty && !collected.contains(secret)) collected.add(secret);
           guestGamification['collectedStickers'] = collected;
 
           await UserRepository.saveGuestGamification(guestGamification);
@@ -327,15 +410,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? (isEn ? 'Secret Sticker' : 'Sticker Secreto');
         
         final stickerKey = '${huecaId}_$branchId';
-        final currentPoints = user.gamification['points'] ?? 0;
+        final secret = _scannedData!['secret']?.toString().trim() ?? '';
+        final currentPoints = (user.gamification['points'] as num?)?.toInt() ?? 0;
         
         Map<String, dynamic> updatedGamification = Map.from(user.gamification);
         List<dynamic> collected = List.from(user.gamification['collectedStickers'] ?? []);
-        bool isNew = !collected.contains(stickerKey);
+        bool isNew = !collected.contains(stickerKey) && (huecaId.isEmpty || !collected.contains(huecaId));
         if (isNew) {
-          collected.add(stickerKey);
           updatedGamification['points'] = currentPoints + 50; // +50 bonus points
         }
+        if (!collected.contains(stickerKey)) collected.add(stickerKey);
+        if (huecaId.isNotEmpty && !collected.contains(huecaId)) collected.add(huecaId);
+        if (secret.isNotEmpty && !collected.contains(secret)) collected.add(secret);
         updatedGamification['collectedStickers'] = collected;
         
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
@@ -382,9 +468,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   }
 
   void _resetScanner() {
-    setState(() {
-      _scannedData = null;
-    });
+    if (mounted) {
+      setState(() {
+        _scannedData = null;
+        _isProcessing = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _isProcessing = false;
+    _scannedData = null;
   }
 
   @override
