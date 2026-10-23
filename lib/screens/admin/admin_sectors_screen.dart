@@ -73,31 +73,49 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
 
   bool _hasSecretSticker(Hueca hueca) {
     final s = hueca.secretSticker;
-    if (s.isEmpty) return false;
     final name = s['name']?.toString() ?? '';
-    final img = s['imageUrl']?.toString() ?? '';
+    final img = (s['image'] ?? s['imageUrl'])?.toString() ?? '';
     final qr = s['qrSecret']?.toString() ?? '';
-    return name.isNotEmpty || img.isNotEmpty || qr.isNotEmpty;
+    if (name.isNotEmpty || img.isNotEmpty || qr.isNotEmpty) return true;
+    for (final b in hueca.branches) {
+      final bs = b.secretSticker;
+      if (bs != null && bs.isNotEmpty) {
+        final bName = bs['name']?.toString() ?? '';
+        final bImg = (bs['image'] ?? bs['imageUrl'])?.toString() ?? '';
+        final bQr = bs['qrSecret']?.toString() ?? '';
+        if (bName.isNotEmpty || bImg.isNotEmpty || bQr.isNotEmpty) return true;
+      }
+    }
+    return false;
   }
 
   String _getStickerName(Hueca hueca) {
     final s = hueca.secretSticker;
     if (s['name'] is Map) {
-      return s['name']['es']?.toString() ?? s['name']['en']?.toString() ?? 'Cromo Secreto';
+      final n = s['name']['es']?.toString() ?? s['name']['en']?.toString();
+      if (n != null && n.trim().isNotEmpty) return n.trim();
+    } else if (s['name'] != null && s['name'].toString().trim().isNotEmpty) {
+      return s['name'].toString().trim();
     }
-    if (s['name'] != null && s['name'].toString().isNotEmpty) {
-      return s['name'].toString();
+    for (final b in hueca.branches) {
+      final bs = b.secretSticker;
+      if (bs != null && bs['name'] != null && bs['name'].toString().trim().isNotEmpty) {
+        return bs['name'].toString().trim();
+      }
     }
     return 'Cromo de ${hueca.name}';
   }
 
   String _getStickerImageUrl(Hueca hueca) {
     final s = hueca.secretSticker;
-    if (s['imageUrl'] != null && s['imageUrl'].toString().isNotEmpty) {
-      return s['imageUrl'].toString();
-    }
-    if (hueca.images.isNotEmpty) {
-      return hueca.images.first;
+    final img = (s['image'] ?? s['imageUrl'])?.toString().trim() ?? '';
+    if (img.isNotEmpty) return img;
+    for (final b in hueca.branches) {
+      final bs = b.secretSticker;
+      if (bs != null) {
+        final bImg = (bs['image'] ?? bs['imageUrl'])?.toString().trim() ?? '';
+        if (bImg.isNotEmpty) return bImg;
+      }
     }
     return '';
   }
@@ -391,6 +409,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                 final stickerMap = {
                   'id': existingSticker['id'] ?? 'sticker_${hueca.id}',
                   'name': nameCtrl.text.trim(),
+                  'image': imageCtrl.text.trim(),
                   'imageUrl': imageCtrl.text.trim(),
                   'qrSecret': secretCtrl.text.trim(),
                 };

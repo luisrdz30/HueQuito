@@ -1004,24 +1004,65 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     return false;
   }
 
+  String _extractStickerImageUrl(dynamic rawImage) {
+    if (rawImage == null) return '';
+    if (rawImage is Map) {
+      return rawImage['es']?.toString().trim() ??
+          rawImage['en']?.toString().trim() ??
+          rawImage.values.firstOrNull?.toString().trim() ??
+          '';
+    }
+    return rawImage.toString().trim();
+  }
+
   String _getSectorStickerName(Hueca h, String lang) {
     final s = h.secretSticker;
     if (s['name'] is Map) {
-      return s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? (lang == 'es' ? 'Cromo Secreto' : 'Secret Sticker');
+      final n = s['name'][lang]?.toString() ?? s['name']['es']?.toString();
+      if (n != null && n.trim().isNotEmpty) return n.trim();
+    } else if (s['name'] != null && s['name'].toString().trim().isNotEmpty) {
+      return s['name'].toString().trim();
     }
-    if (s['name'] != null && s['name'].toString().isNotEmpty) {
-      return s['name'].toString();
+    for (final b in h.branches) {
+      final bs = b.secretSticker;
+      if (bs != null) {
+        if (bs['name'] is Map) {
+          final n = bs['name'][lang]?.toString() ?? bs['name']['es']?.toString();
+          if (n != null && n.trim().isNotEmpty) return n.trim();
+        } else if (bs['name'] != null && bs['name'].toString().trim().isNotEmpty) {
+          return bs['name'].toString().trim();
+        }
+      }
     }
     return lang == 'es' ? 'Cromo de ${h.name}' : '${h.name} Sticker';
   }
 
-  String _getSectorStickerImage(Hueca h) {
-    final s = h.secretSticker;
-    if (s['imageUrl'] != null && s['imageUrl'].toString().isNotEmpty) {
-      return s['imageUrl'].toString();
+  String _getSectorStickerImage(Hueca h, [UserModel? user]) {
+    // Si el usuario desbloqueó el cromo de una sucursal específica con su propia foto, priorizarla
+    if (user != null) {
+      final collected = List<String>.from(user.gamification['collectedStickers'] ?? []);
+      for (final b in h.branches) {
+        final bs = b.secretSticker;
+        if (bs != null) {
+          final bStickerId = bs['id']?.toString() ?? '';
+          if (collected.contains('${h.id}_${b.id}') || (bStickerId.isNotEmpty && collected.contains(bStickerId))) {
+            final bImg = _extractStickerImageUrl(bs['image'] ?? bs['imageUrl']);
+            if (bImg.isNotEmpty) return bImg;
+          }
+        }
+      }
     }
-    if (h.images.isNotEmpty) {
-      return h.images.first;
+
+    final s = h.secretSticker;
+    final img = _extractStickerImageUrl(s['image'] ?? s['imageUrl']);
+    if (img.isNotEmpty) return img;
+
+    for (final b in h.branches) {
+      final bs = b.secretSticker;
+      if (bs != null) {
+        final bImg = _extractStickerImageUrl(bs['image'] ?? bs['imageUrl']);
+        if (bImg.isNotEmpty) return bImg;
+      }
     }
     return '';
   }
@@ -1319,7 +1360,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                     final hueca = huecas[index];
                     final isUnlocked = _isHuecaStickerUnlocked(hueca, user, isGuest);
                     final stickerName = _getSectorStickerName(hueca, lang);
-                    final stickerImg = _getSectorStickerImage(hueca);
+                    final stickerImg = _getSectorStickerImage(hueca, user);
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(16),

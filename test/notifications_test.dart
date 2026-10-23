@@ -385,7 +385,7 @@ void main() {
       expect(find.text('Menú del Día de Doña Tina'), findsOneWidget);
       expect(find.text('🍲 Sopa: Locro de Papa\n🍛 Segundo: Seco de Chivo'), findsOneWidget);
       expect(find.text('Almuerzo \$3.50'), findsOneWidget);
-      expect(find.text('Vigencia: 4 horas'), findsOneWidget);
+      expect(find.text('Vigencia: 4 horas'), findsNothing);
     });
 
     testWidgets('HuecaDetailScreen hides active notification section when empty', (tester) async {

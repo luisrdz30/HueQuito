@@ -54,6 +54,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       String matchedBranchId = 'matriz';
       String matchedBranchName = isEn ? 'Main Branch' : 'Matriz Principal';
       String matchedStickerName = isEn ? 'Secret Sticker' : 'Sticker Secreto';
+      String matchedStickerImage = '';
 
       for (final h in huecasList) {
         final s = h.secretSticker;
@@ -70,6 +71,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             matchedStickerName = s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? matchedStickerName;
           } else if (s['name'] != null && s['name'].toString().isNotEmpty) {
             matchedStickerName = s['name'].toString();
+          }
+          final sImg = s['image'] ?? s['imageUrl'];
+          if (sImg is Map) {
+            matchedStickerImage = sImg['es']?.toString() ?? sImg.values.firstOrNull?.toString() ?? '';
+          } else if (sImg != null && sImg.toString().trim().isNotEmpty) {
+            matchedStickerImage = sImg.toString().trim();
           }
           break;
         }
@@ -91,6 +98,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               } else if (bs['name'] != null && bs['name'].toString().isNotEmpty) {
                 matchedStickerName = bs['name'].toString();
               }
+              final bsImg = bs['image'] ?? bs['imageUrl'];
+              if (bsImg is Map) {
+                matchedStickerImage = bsImg['es']?.toString() ?? bsImg.values.firstOrNull?.toString() ?? '';
+              } else if (bsImg != null && bsImg.toString().trim().isNotEmpty) {
+                matchedStickerImage = bsImg.toString().trim();
+              }
               break;
             }
           }
@@ -105,6 +118,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           'branch_id': matchedBranchId,
           'branch_name': matchedBranchName,
           'sticker_name': matchedStickerName,
+          'sticker_image': matchedStickerImage,
           'secret': rawCode,
         };
       } else if (rawCode.toLowerCase().contains('sticker') ||
@@ -130,12 +144,94 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   }
 
   Future<void> _saveScannedData() async {
-    if (_scannedData == null) return;
+    if (_isProcessing || _scannedData == null) return;
     final lang = ref.read(settingsProvider).language;
     final isEn = lang == 'en';
     
     setState(() => _isProcessing = true);
-    
+
+    BuildContext? dialogCtx;
+    bool isDialogActive = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (ctx) {
+        dialogCtx = ctx;
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Theme.of(context).cardColor,
+            elevation: 8,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _scannedData!['type'] == 'points'
+                        ? (isEn ? 'Validating your stamps...' : '¡Validando tus sellos!')
+                        : (isEn ? 'Registering secret sticker...' : '¡Registrando tu cromo!'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _scannedData!['type'] == 'points'
+                        ? (isEn
+                            ? 'Adding stamps to your card securely.\nPlease wait a moment...'
+                            : 'Agregando los sellos a tu cartilla.\nPor favor espera un momento sin salir...')
+                        : (isEn
+                            ? 'Adding sticker to your collection.\nPlease wait a moment...'
+                            : 'Agregando el cromo a tu colección.\nPor favor espera un momento sin salir...'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((_) {
+      isDialogActive = false;
+      dialogCtx = null;
+    });
+
+    void closeLoadingDialog() {
+      if (!isDialogActive) return;
+      isDialogActive = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (dialogCtx != null && Navigator.of(dialogCtx!).canPop()) {
+          Navigator.of(dialogCtx!).pop();
+        } else if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      });
+    }
+
     try {
       // Validar si la hueca está confirmada por administración y activa
       final targetHuecaId = _scannedData!['business_id']?.toString() ?? '';
@@ -143,6 +239,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         final huecasList = ref.read(huecasProvider).value ?? [];
         final matchedHueca = huecasList.where((h) => h.id == targetHuecaId).firstOrNull;
         if (matchedHueca != null && (!matchedHueca.isSectorConfirmed || !matchedHueca.isActive)) {
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isEn
@@ -160,6 +257,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       if (_scannedData!['type'] == 'points') {
         final token = _scannedData!['token']?.toString();
         if (token == null || token.isEmpty) {
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isEn
@@ -177,6 +275,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         if (timestamp != null) {
           final now = DateTime.now().millisecondsSinceEpoch;
           if (now - timestamp > 600000) {
+            closeLoadingDialog();
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(isEn
@@ -194,6 +293,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         final prefs = await SharedPreferences.getInstance();
         final localUsed = prefs.getStringList('redeemed_qr_tokens') ?? [];
         if (localUsed.contains(token)) {
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isEn
@@ -229,6 +329,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         }
 
         if (alreadyUsedInCloud) {
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Row(
@@ -295,6 +396,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           ref.invalidate(currentUserProvider);
           ref.invalidate(huecasProvider);
 
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isEn
@@ -340,6 +442,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           ref.invalidate(currentUserProvider);
           ref.invalidate(huecasProvider);
 
+          closeLoadingDialog();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(isNew
@@ -396,6 +499,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         ref.invalidate(huecasProvider);
         ref.invalidate(allHuecasStreamProvider);
         
+        closeLoadingDialog();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(isEn
@@ -444,6 +548,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         ref.invalidate(huecasProvider);
         ref.invalidate(allHuecasStreamProvider);
         
+        closeLoadingDialog();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(isNew 
@@ -458,6 +563,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         }
       }
     } catch (e) {
+      closeLoadingDialog();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(isEn ? 'Error saving: $e' : 'Error al guardar: $e')),
@@ -785,14 +891,33 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
+                            if (_scannedData!['sticker_image'] != null && _scannedData!['sticker_image'].toString().isNotEmpty)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  _scannedData!['sticker_image'].toString(),
+                                  width: 44,
+                                  height: 44,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.star, color: Colors.amber, size: 22),
+                                  ),
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.card_giftcard, color: AppTheme.primary, size: 20),
                               ),
-                              child: const Icon(Icons.card_giftcard, color: AppTheme.primary, size: 20),
-                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -834,33 +959,55 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveScannedData,
+                        onPressed: _isProcessing ? null : _saveScannedData,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.verified),
-                            const SizedBox(width: 8),
-                            Text(isEn ? 'Redeem & Save' : 'Canjear y Guardar'),
+                            if (_isProcessing)
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            else ...[
+                              const Icon(Icons.verified),
+                              const SizedBox(width: 8),
+                            ],
+                            if (_isProcessing) const SizedBox(width: 10),
+                            Text(
+                              _isProcessing
+                                  ? (isEn ? 'Validating...' : 'Validando...')
+                                  : (isEn ? 'Redeem & Save' : 'Canjear y Guardar'),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _resetScanner,
-                      child: Center(
-                        child: Text(
-                          isEn
-                              ? 'Not this spot? Refocus camera'
-                              : '¿No es este puesto? Volver a enfocar',
-                          style: TextStyle(
-                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-                            fontSize: 12,
-                            decoration: TextDecoration.underline,
+                    if (!_isProcessing)
+                      GestureDetector(
+                        onTap: _resetScanner,
+                        child: Center(
+                          child: Text(
+                            isEn
+                                ? 'Not this spot? Refocus camera'
+                                : '¿No es este puesto? Volver a enfocar',
+                            style: TextStyle(
+                              color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

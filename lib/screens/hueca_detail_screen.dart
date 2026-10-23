@@ -1740,29 +1740,6 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       color: Colors.redAccent.shade700,
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.timer_outlined, size: 12, color: Colors.redAccent),
-                        const SizedBox(width: 4),
-                        Text(
-                          lang == 'es' ? 'Vigencia: 4 horas' : 'Active for 4h',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.redAccent,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -1843,33 +1820,6 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                     ),
                   ),
                 ],
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.black45 : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: accentColor.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.access_time_filled, size: 12, color: accentColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        n.formattedTimeRemaining(lang: lang),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: accentColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
