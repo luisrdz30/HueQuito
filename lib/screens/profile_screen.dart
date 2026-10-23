@@ -138,7 +138,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final uid = user.uid;
-        await FirebaseFirestore.instance.collection('users').doc(uid).delete().catchError((_) {});
+        // Desvincular de huecas/sucursales y eliminar documento de usuario
+        await ref.read(userRepositoryProvider).deleteUser(uid, email: user.email);
         await user.delete();
       }
       final prefs = await SharedPreferences.getInstance();

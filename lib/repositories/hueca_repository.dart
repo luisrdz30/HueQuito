@@ -674,14 +674,36 @@ class HuecaRepository {
         }
       } catch (_) {}
 
-      // 6. Si el propietario tenía rol 'business', cambiarlo a 'user'
+      // 6. Si el propietario tenía rol 'business', cambiarlo a 'user' y desvincular hueca
       if (ownerId != null && ownerId.isNotEmpty) {
         try {
           await _db.collection('users').doc(ownerId).update({
             'role': 'user',
+            'managedHuecaId': FieldValue.delete(),
+            'managedBranchId': FieldValue.delete(),
           });
         } catch (e) {
           print('Error resetting owner role: $e');
+        }
+      }
+
+      // También revocar rol 'business' a los encargados de sucursales de esta hueca
+      final branchesList = (huecaData?['branches'] as List<dynamic>?) ?? [];
+      for (var b in branchesList) {
+        if (b is Map && b['managerEmail'] != null) {
+          final mEmail = b['managerEmail'].toString().trim().toLowerCase();
+          if (mEmail.isNotEmpty) {
+            try {
+              final mSnap = await _db.collection('users').where('email', isEqualTo: mEmail).limit(1).get();
+              for (final uDoc in mSnap.docs) {
+                await uDoc.reference.update({
+                  'role': 'user',
+                  'managedHuecaId': FieldValue.delete(),
+                  'managedBranchId': FieldValue.delete(),
+                });
+              }
+            } catch (_) {}
+          }
         }
       }
 

@@ -50,12 +50,17 @@ final currentUserProvider = FutureProvider<UserModel?>((ref) async {
 final myHuecaProvider = FutureProvider<Hueca?>((ref) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null) return null;
+  // Solo usuarios con rol 'business' o 'admin' pueden gestionar una hueca.
+  // Cualquier comensal con rol 'user' (o cuenta restablecida/eliminada) nunca tiene hueca asignada.
+  if (user.role != 'business' && user.role != 'admin') return null;
+
   final huecas = await ref.watch(huecasProvider.future);
   try {
     return huecas.firstWhere((h) =>
-        h.ownerId == user.uid ||
+        (h.ownerId.trim().isNotEmpty && h.ownerId.trim() == user.uid.trim()) ||
         h.branches.any((b) =>
             b.managerEmail != null &&
+            b.managerEmail!.trim().isNotEmpty &&
             b.managerEmail!.trim().toLowerCase() == user.email.trim().toLowerCase()));
   } catch (e) {
     return null;

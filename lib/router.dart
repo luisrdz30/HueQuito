@@ -68,6 +68,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/home';
         }
       }
+      if (path.startsWith('/business')) {
+        final email = user?.email?.trim().toLowerCase();
+        final appUser = ref.read(currentUserProvider).value;
+        final isSuperAdmin = email == 'admin@huequito.com' || (appUser != null && appUser.role == 'admin');
+        final isBusiness = appUser != null && appUser.role == 'business';
+        if (!isBusiness && !isSuperAdmin) {
+          return '/home';
+        }
+      }
+      
       return null;
     },
     routes: [
