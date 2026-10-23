@@ -117,5 +117,18 @@ service cloud.firestore {
     match /admin_notifications/{notifId} {
       allow read, write: if true;
     }
+
+    // 10. Tokens de Códigos QR de un solo uso
+    match /redeemed_qr_tokens/{token} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // 11. Preguntas de Quiz
+    match /quiz_questions/{questionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
