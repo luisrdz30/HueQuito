@@ -5,14 +5,22 @@ import '../repositories/hueca_repository.dart';
 import '../repositories/route_repository.dart';
 import '../repositories/user_repository.dart';
 import '../repositories/notification_repository.dart';
+import '../repositories/hueca_request_repository.dart';
+import '../repositories/support_repository.dart';
+import '../repositories/quiz_repository.dart';
 import '../models/notification_model.dart';
+import '../models/gastronomic_profile.dart';
 
 final huecaRepositoryProvider = Provider<HuecaRepository>((ref) {
   return HuecaRepository();
 });
 
-// Cache the list of huecas globally
+// Cache the list of huecas globally, synchronized in real-time with Firestore stream
 final huecasProvider = FutureProvider<List<Hueca>>((ref) async {
+  final stream = ref.watch(allHuecasStreamProvider);
+  if (stream.hasValue) {
+    return stream.value!;
+  }
   final repository = ref.watch(huecaRepositoryProvider);
   return await repository.getHuecas();
 });
@@ -129,4 +137,64 @@ final globalReviewsProvider = FutureProvider<List<Review>>((ref) async {
   final repo = ref.watch(huecaRepositoryProvider);
   return await repo.getGlobalReviews();
 });
+
+// HUECA REQUESTS PROVIDERS
+final huecaRequestRepositoryProvider = Provider<HuecaRequestRepository>((ref) {
+  return HuecaRequestRepository();
+});
+
+final pendingHuecaRequestsProvider = StreamProvider<List<HuecaRequest>>((ref) {
+  final repo = ref.watch(huecaRequestRepositoryProvider);
+  return repo.streamPendingRequests();
+});
+
+final allHuecaRequestsProvider = StreamProvider<List<HuecaRequest>>((ref) {
+  final repo = ref.watch(huecaRequestRepositoryProvider);
+  return repo.streamAllRequests();
+});
+
+final myHuecaRequestsProvider = StreamProvider.autoDispose.family<List<HuecaRequest>, String>((ref, userId) {
+  final repo = ref.watch(huecaRequestRepositoryProvider);
+  return repo.streamUserRequests(userId);
+});
+
+// SUPPORT MESSAGES PROVIDERS
+final supportRepositoryProvider = Provider<SupportRepository>((ref) {
+  return SupportRepository();
+});
+
+final newSupportMessagesProvider = StreamProvider<List<SupportMessage>>((ref) {
+  final repo = ref.watch(supportRepositoryProvider);
+  return repo.streamNewMessages();
+});
+
+final allSupportMessagesProvider = StreamProvider<List<SupportMessage>>((ref) {
+  final repo = ref.watch(supportRepositoryProvider);
+  return repo.streamAllMessages();
+});
+
+final myHuecaSupportMessagesProvider = StreamProvider.autoDispose.family<List<SupportMessage>, String>((ref, huecaId) {
+  final repo = ref.watch(supportRepositoryProvider);
+  return repo.streamMessagesByHueca(huecaId);
+});
+
+// QUIZ QUESTIONS PROVIDERS
+final quizRepositoryProvider = Provider<QuizRepository>((ref) {
+  return QuizRepository();
+});
+
+final quizQuestionsStreamProvider = StreamProvider<List<QuizQuestion>>((ref) {
+  final repo = ref.watch(quizRepositoryProvider);
+  return repo.streamQuestions();
+});
+
+// CUSTOM USER TOURS PROVIDER
+final userToursStreamProvider = StreamProvider<List<RouteModel>>((ref) {
+  final user = ref.watch(currentUserProvider).value;
+  final repo = ref.watch(routeRepositoryProvider);
+  final uid = user?.uid ?? 'guest';
+  return repo.streamUserTours(uid);
+});
+
+
 

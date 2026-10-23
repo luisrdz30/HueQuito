@@ -1,0 +1,770 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fontawesome5}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{setspace}
+
+\geometry{
+ a4paper,
+ left=1.8cm,
+ right=1.8cm,
+ top=2.2cm,
+ bottom=2.2cm
+}
+
+% --- Definición de Colores ---
+\definecolor{puceBlue}{HTML}{003366}
+\definecolor{huecaOrange}{HTML}{F47B20}
+\definecolor{huecaOrangeDark}{HTML}{C85A00}
+\definecolor{adminNavy}{HTML}{101828}
+\definecolor{adminGold}{HTML}{FFB020}
+\definecolor{cardBg}{HTML}{F8FAFC}
+\definecolor{cardBorder}{HTML}{E2E8F0}
+\definecolor{tagGreen}{HTML}{16A34A}
+\definecolor{textPrimary}{HTML}{1E293B}
+\definecolor{textSecondary}{HTML}{64748B}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=puceBlue,
+  urlcolor=puceBlue,
+  citecolor=puceBlue
+}
+
+% --- Estilos de Encabezado y Pie ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textbf{Hue-Quito} --- Catálogo Visual de Interfaces Móviles}
+\fancyhead[R]{\small PUCE 2026}
+\fancyfoot[L]{\small\textcolor{textSecondary}{Proyecto de Titulación --- L. Rodríguez \& J. Guaña}}
+\fancyfoot[R]{\small\textbf{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% --- Macro para Separador de Sección ---
+\newcommand{\sectionheader}[3]{%
+  \newpage
+  \vspace*{2cm}
+  \begin{center}
+    \begin{tcolorbox}[
+      enhanced,
+      colback=#2,
+      colframe=#2,
+      arc=4mm,
+      width=0.92\textwidth,
+      halign=center,
+      valign=center,
+      top=1.5cm,
+      bottom=1.5cm
+    ]
+      {\Huge\bfseries\color{white} #1}\\[0.6cm]
+      {\large\color{white!90} #3}
+    \end{tcolorbox}
+  \end{center}
+  \vfill
+  \newpage
+}
+
+% --- Macro para Pantalla Individual ---
+\newcommand{\pantallashowcase}[7]{%
+  % #1: Número y Título de la Pantalla
+  % #2: Archivo fuente .dart
+  % #3: Rol Badge Text
+  % #4: Rol Badge Color
+  % #5: Ruta de la imagen
+  % #6: Altura de la imagen (ej. 17.5cm)
+  % #7: Descripción y detalles estructurados
+  \newpage
+  \begin{tcolorbox}[
+    enhanced,
+    colback=white,
+    colframe=cardBorder,
+    arc=2.5mm,
+    boxrule=0.8pt,
+    left=4mm, right=4mm, top=3mm, bottom=3mm
+  ]
+    \begin{minipage}[c]{0.70\textwidth}
+      {\large\bfseries\color{textPrimary} #1}\\[0.1cm]
+      {\footnotesize\ttfamily\color{textSecondary}\faIcon{file-code}\ \nolinkurl{#2}}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.28\textwidth}
+      \flushright
+      \tcbox[
+        enhanced,
+        colback=#4!10,
+        colframe=#4,
+        boxrule=0.6pt,
+        arc=1.5mm,
+        top=1mm, bottom=1mm, left=2.5mm, right=2.5mm
+      ]{\footnotesize\bfseries\color{#4} #3}
+    \end{minipage}
+  \end{tcolorbox}
+  \vspace{0.2cm}
+
+  \noindent
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \vspace{0pt}
+    \begin{tcolorbox}[
+      enhanced,
+      colback=white,
+      colframe=gray!30,
+      arc=3mm,
+      boxrule=0.7pt,
+      halign=center,
+      top=2mm, bottom=2mm, left=2mm, right=2mm
+    ]
+      \includegraphics[height=#6, width=\linewidth, keepaspectratio]{#5}
+    \end{tcolorbox}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.52\textwidth}
+    \vspace{0pt}
+    #7
+  \end{minipage}
+}
+
+\begin{document}
+
+% =============================================================================
+% PORTADA INSTITUCIONAL PUCE
+% =============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    {\large \textbf{PONTIFICIA UNIVERSIDAD CATÓLICA DEL ECUADOR}}\\[0.6cm]
+    {\Large \textbf{PROYECTO DE TITULACIÓN}}\\[1.2cm]
+    {\Large \textbf{TÍTULO DEL PROYECTO:}}\\[0.4cm]
+    {\LARGE\bfseries Plataforma Turística Innovadora con Gamificación,\\Inteligencia Artificial y Logística Inteligente\par}
+    \vspace{0.6cm}
+    {\large\textbf{Aplicación Móvil: Hue-Quito (Descubre las Huecas de Quito)}\par}
+    \vspace{0.3cm}
+    {\normalsize\textbf{\color{huecaOrangeDark} ANEXO DE EVIDENCIAS: CATÁLOGO VISUAL DE INTERFACES}\par}
+    \vspace{1.2cm}
+    
+    % LOGO PUCE
+    \IfFileExists{logo-puce.png}{%
+      \includegraphics[width=0.28\textwidth]{logo-puce.png}\\[1cm]
+    }{%
+      \IfFileExists{docs/logo-puce.png}{%
+        \includegraphics[width=0.28\textwidth]{docs/logo-puce.png}\\[1cm]
+      }{%
+        \vspace{2.5cm}
+      }%
+    }
+    \vspace{0.8cm} 
+    
+    {\large \textbf{AUTOR:}}\\[0.2cm]
+    {\large LUIS RODRÍGUEZ}\\[1cm]
+    {\large \textbf{DOCENTE DIRECTOR:}}\\[0.2cm]
+    {\large JAVIER GUAÑA}\\[1.5cm]
+    
+    \vfill
+    {\large Quito -- Ecuador}\\
+    {\large 2026}
+\end{titlepage}
+
+% =============================================================================
+% RESUMEN Y CONTENIDO
+% =============================================================================
+\newpage
+\section*{Presentación del Catálogo Visual}
+
+El presente documento constituye el \textbf{Anexo Visual y Funcional} del Proyecto de Titulación \textit{``Plataforma Turística Innovadora con Gamificación, Inteligencia Artificial y Logística Inteligente (Hue-Quito)''}. 
+
+Reúne las capturas reales de pantalla capturadas en un dispositivo móvil Android durante la ejecución nativa de la aplicación. Para facilitar su revisión pedagógica y técnica, las interfaces se han clasificado en los tres roles fundamentales que operan dentro de la plataforma:
+
+\begin{enumerate}[label=\textbf{\Roman*.}]
+  \item \textbf{Módulo de Usuario (Comensal / Turista):} Experiencia de exploración culinaria, mapas dinámicos, circuitos guiados, escaneo QR de sellos y pasaporte de gamificación con preferencias de accesibilidad.
+  \item \textbf{Módulo de Negocio (Dueño / Encargado de Hueca):} Tablero de métricas en tiempo real, digitalización inteligente de menús con Inteligencia Artificial (OCR), emisor de QR antifraude, redactor publicitario con IA y gestión de sucursales.
+  \item \textbf{Módulo de Administración (Superadministrador):} Centro de control global, moderación y auditoría de locales, control de spam en avisos promocionales, diseñador interactivo de rutas y gestión de credenciales y cuentas comerciales.
+\end{enumerate}
+
+\vspace{0.5cm}
+\begin{tcolorbox}[
+  enhanced,
+  colback=huecaOrange!5,
+  colframe=huecaOrange,
+  arc=2.5mm,
+  boxrule=0.8pt,
+  title=\textbf{\faIcon{info-circle}\ Nota de Integridad Técnica}
+]
+  Todas las interfaces presentadas corresponden al código fuente alojado en el repositorio oficial del proyecto, implementadas en el framework \textbf{Flutter} con gestión de estado reactiva (\textbf{Riverpod}), backend en tiempo real (\textbf{Cloud Firestore}), autenticación federada (\textbf{Firebase Auth}) y visión artificial en el dispositivo (\textbf{Google ML Kit Text Recognition}).
+\end{tcolorbox}
+
+\vspace{0.8cm}
+\tableofcontents
+\newpage
+
+% =============================================================================
+% PARTE I: MÓDULO DE USUARIO (COMENSAL)
+% =============================================================================
+\section{Módulo de Usuario (Comensal / Turista)}
+
+% --- PANTALLA 1: LoginScreen ---
+\pantallashowcase
+  {Pantalla 1: Inicio de Sesión y Acceso}
+  {lib/screens/login_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario1.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Punto de entrada seguro a la plataforma que autentica al usuario comensal o turista, permitiendo persistir su pasaporte gastronómico y sellos en la nube.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Logotipo e identidad visual de Hue-Quito en naranja andino.
+      \item Campo de correo electrónico y contraseña con visor de ocultamiento/visibilidad.
+      \item Botón principal de inicio de sesión con animación de carga.
+      \item Botón de inicio rápido con cuenta de Google (\texttt{GoogleSignIn}).
+      \item Opción de \textit{``Continuar como Invitado''} para explorar la app sin registro forzoso.
+      \item Enlace directo para recuperación de contraseña y registro de nuevas cuentas.
+    \end{itemize}
+    \vspace{0.2cm}
+    
+    \textbf{Lógica y Seguridad:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Integrado con \texttt{FirebaseAuth} en español.
+      \item Validación automática de formato de correo y longitud de contraseña antes de enviar la petición.
+    \end{itemize}
+  }
+
+% --- PANTALLA 2: HomeScreen ---
+\pantallashowcase
+  {Pantalla 2: Exploración Principal y Recomendaciones}
+  {lib/screens/home_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario2.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Pantalla de inicio y descubrimiento que presenta las mejores huecas de Quito personalizadas según el perfil de paladar del usuario.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Barra superior con selector desplegable de sectores urbanos (\textit{Centro Histórico, La Floresta, Conocoto, Todo Quito}).
+      \item Buscador en tiempo real por nombre de hueca, plato o ingrediente.
+      \item Carrusel de \textit{``Nuestra recomendación para ti''} con tarjetas interactivas que destacan el plato insignia, distancia en km, precio estimado y calificación en estrellas.
+      \item Carrusel horizontal de categorías: \textit{Tradicional, Platos Fuertes, Dulces, Desayuno}.
+      \item Barra de navegación inferior con acceso directo a: \textit{Explorar, Rutas, Escanear, Mi Álbum y Perfil}.
+    \end{itemize}
+    \vspace{0.2cm}
+    
+    \textbf{Lógica y Datos:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Algoritmo de afinidad basado en el Quiz inicial de 4 preguntas.
+      \item Botones de acción rápida: \textit{``Cómo llegar''} y \textit{``Ver Hueca''}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 3: HuecaDetailScreen ---
+\pantallashowcase
+  {Pantalla 3: Ficha Detallada de la Hueca}
+  {lib/screens/hueca_detail_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario23.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Ficha integral del establecimiento tradicional (ejemplo: \textit{Las Corvinas de Don Jimmy}) con toda su información culinaria, logística y de contacto.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Cabecera con carrusel fotográfico y visor emergente con soporte de zoom (\texttt{InteractiveViewer}).
+      \item Indicador de reputación (4.9 estrellas sobre 342 reseñas) y pertenencia a sector patrimonial.
+      \item Botón flotante de suscripción a notificaciones y avisos del local.
+      \item Botón destacado \textit{``Cómo llegar''} que activa la navegación en tiempo real.
+      \item Acciones rápidas: Llamar por teléfono, Ver Avisos y Compartir ficha.
+      \item Pestañas de contenido: \textit{Sobre la Hueca, Menú Tradicional y Ubicación}.
+      \item Menú bilingüe con precios, fotos individuales y descripciones.
+    \end{itemize}
+  }
+
+% --- PANTALLA 4: RouteListScreen ---
+\pantallashowcase
+  {Pantalla 4: Circuitos y Rutas Gastronómicas}
+  {lib/screens/route_list_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario4.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Catálogo de itinerarios gastronómicos prediseñados para recorrer la ciudad saboreando sus tradiciones a pie o en vehículo.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Selector de vista entre \textit{Lista de circuitos} y \textit{Mapa interactivo}.
+      \item Tarjetas de circuitos oficiales (ej. \textit{Ruta Colonial de Sabores} con badge de \textit{Circuito Popular}).
+      \item Resumen logístico del recorrido:
+        \begin{itemize}
+          \item Distancia total calculada (2.4 km).
+          \item Tiempo estimado a pie (2h 30m).
+          \item Número de paradas gastronómicas incluidas (3 huecas).
+        \end{itemize}
+      \item Secuencia numerada de paradas del recorrido destacando la especialidad culinaria de cada parada.
+    \end{itemize}
+  }
+
+% --- PANTALLA 5: RouteMapScreen ---
+\pantallashowcase
+  {Pantalla 5: Mapa Cartográfico de Huecas y Rutas}
+  {lib/screens/route_map_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario5.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Visualización geoespacial de los puntos de interés culinario en Quito mediante la API de Google Maps con renderizado nativo.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Buscador geográfico por hueca, sucursal o barrio tradicional.
+      \item Filtro por sector con contador dinámico de puntos visibles (\textit{``Mostrando todo: 12 puntos''}).
+      \item Pines personalizados en el mapa según el tipo de plato y estado.
+      \item Botón de recentrado en la ubicación GPS actual del usuario.
+      \item Integración con la capa de rutas que traza polilíneas optimizadas entre paradas consecutivas.
+    \end{itemize}
+  }
+
+% --- PANTALLA 6: ScanScreen ---
+\pantallashowcase
+  {Pantalla 6: Escáner de Códigos QR para Sellos}
+  {lib/screens/scan_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario6.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Escáner de alta velocidad para capturar los códigos QR de los locales y estampar sellos en el pasaporte o desbloquear stickers secretos.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Visor de cámara en tiempo real mediante el paquete \texttt{mobile\_scanner}.
+      \item Marco guía animado en naranja institucional con indicador de alineación central.
+      \item Indicador superior: \textit{``Apunta al QR del puesto''}.
+      \item Controles de hardware: Interruptor de linterna (flash) y alternador de cámara frontal/trasera.
+      \item Botón inferior alternativo: \textit{``Ingresar código manual''} para situaciones de baja iluminación o cámaras dañadas.
+    \end{itemize}
+    \vspace{0.2cm}
+    
+    \textbf{Seguridad:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Decodificación de tokens temporales de 30 segundos antifraude emitidos por la pantalla del dueño.
+    \end{itemize}
+  }
+
+% --- PANTALLA 7: ProfileScreen ---
+\pantallashowcase
+  {Pantalla 7: Perfil, Pasaporte y Accesibilidad}
+  {lib/screens/profile_screen.dart}
+  {COMENSAL}
+  {huecaOrange}
+  {D:/TFI/HueQuito/Capturas/Usuario7.jpg}
+  {18.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Centro integral del comensal que consolida su progreso en el pasaporte de sellos, preferencias de paladar y configuración de accesibilidad.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave (Captura Extendida):}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Cabecera de usuario con avatar, nombre, correo y contadores clave: \textit{Huecas visitadas, Favoritos guardados y Premios canjeados}.
+      \item Sección \textit{Mis Favoritos} con accesos rápidos.
+      \item \textit{Mis Preferencias de Paladar}: Nivel de picante seleccionado y botón para reiniciar el Quiz culinario.
+      \item \textbf{Módulo de Accesibilidad e Inclusión:}
+        \begin{itemize}
+          \item Selector de idioma: Español (EC) / English.
+          \item Ajuste dinámico de tamaño de texto (A-, Normal, A+).
+          \item Selector de tema: Modo Claro / Modo Oscuro.
+          \item Conmutador de \textbf{Alto Contraste} para baja visión.
+        \end{itemize}
+      \item Botón de cierre de sesión seguro (el acceso al Panel de Administración queda estrictamente oculto y reservado de forma exclusiva para la cuenta de superadministrador).
+    \end{itemize}
+  }
+
+% =============================================================================
+% PARTE II: MÓDULO DE NEGOCIO (DUEÑO DE HUECA)
+% =============================================================================
+\newpage
+\section{Módulo de Negocio (Dueño / Encargado de Hueca)}
+
+% --- PANTALLA 8: BusinessDashboardScreen ---
+\pantallashowcase
+  {Pantalla 8: Dashboard Analítico del Negocio}
+  {lib/screens/business/dashboard_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {D:/TFI/HueQuito/Capturas/hueca1.jpg}
+  {18.0cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Panel de control que permite a los propietarios tradicionales monitorear el impacto comercial y la fidelización de su clientela en tiempo real.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave (Captura Extendida):}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Tarjeta principal de \textit{``Resumen de Impacto''} con contador de \textbf{Vistas Totales del Perfil} actualizado en vivo vía Firestore.
+      \item 4 tarjetas métricas secundarias:
+        \begin{itemize}
+          \item \textbf{Favoritos:} Clientes que han guardado el local.
+          \item \textbf{En Rutas:} Circuitos turísticos que incluyen la hueca.
+          \item \textbf{Sellos Dados:} Sellos de consumo entregados.
+          \item \textbf{Reseñas:} Opiniones emitidas por la comunidad.
+        \end{itemize}
+      \item Banner de bienvenida educativa: \textit{¿Cómo funciona tu panel? (Ver Guía de Onboarding)}.
+      \item Barras de progreso semanal hacia metas de visualizaciones y fidelización de clientes.
+      \item Menú de pestañas de negocio: \textit{Dashboard, Menú, Avisos, Mi QR y Perfil}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 9: BusinessMenuScreen ---
+\pantallashowcase
+  {Pantalla 9: Menú Digital y Asistente de IA / OCR}
+  {lib/screens/business/menu_management_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {D:/TFI/HueQuito/Capturas/hueca2.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Gestión de platos tradicionales con digitalización automatizada mediante Visión Artificial e IA para simplificar la carga de cartas físicas.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Modalidades de Digitalización (Modal Desplegado):}
+    \begin{enumerate}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Escanear Carta Completa (IA):} Foto de la pizarra o menú físico; el motor OCR extrae nombres, precios y los traduce.
+      \item \textbf{Escanear 1 Plato por Foto (IA):} Foto al plato servido para asociar imagen y nombre automáticamente.
+      \item \textbf{Subir Múltiples Fotos de Platos:} Carga por lote desde la galería del dispositivo.
+      \item \textbf{Añadir Plato Manualmente:} Formulario tradicional con campos bilingües.
+    \end{enumerate}
+    \vspace{0.2cm}
+    
+    \textbf{Lista de Platos en Fondo:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Visualización de platos (\textit{Fritada Quiteña, Picada Mixta}) con badge \texttt{EN} de traducción británica, precio y opciones de edición/eliminación.
+    \end{itemize}
+  }
+
+% --- PANTALLA 10: BusinessNotificationScreen ---
+\pantallashowcase
+  {Pantalla 10: Promociones y Redactor con IA}
+  {lib/screens/business/notification_management_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {D:/TFI/HueQuito/Capturas/hueca3.jpg}
+  {18.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Creación de campañas promocionales y avisos directos al celular de los clientes, asistido por redacción automática de textos con Inteligencia Artificial.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave (Captura Extendida):}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Selector de categoría: \textit{Promoción, Noticia, Nuevo Plato, Evento}.
+      \item Selector de sucursal destino: \textit{Todas las sucursales} o local específico.
+      \item Campo de mensaje con botón mágico \textbf{\faIcon{magic}\ Ayuda con IA} que sugiere textos apetitosos y festivos.
+      \item Etiqueta de descuento opcional (ej. \textit{2x1, 20\% OFF, Solo Hoy}).
+      \item Programación de salida: \textit{Inmediata} o \textit{Programada}.
+      \item \textbf{Simulador Android en tiempo real:} Renderiza visualmente la burbuja de notificación push idéntica a como la recibirá el cliente.
+      \item Botón de envío a moderación del administrador.
+    \end{itemize}
+  }
+
+% --- PANTALLA 11: BusinessQrScreen ---
+\pantallashowcase
+  {Pantalla 11: Emisor de QR Dinámico Antifraude}
+  {lib/screens/business/qr_generator_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {D:/TFI/HueQuito/Capturas/hueca4.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Emisión presencial de sellos de consumo con código QR dinámico criptográfico que previene fraudes y capturas compartidas por internet.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Identificador de la sucursal activa (\textit{Matriz Principal - Los Motes de San Juan}).
+      \item Código QR de alta resolución generado en pantalla con el paquete \texttt{qr\_flutter}.
+      \item Mensaje de seguridad: \textit{``El código se actualiza cada 30 seg. para evitar fraudes''}.
+      \item Selector numérico interactivo (\texttt{-} y \texttt{+}) para indicar cuántos sellos se entregarán según el consumo del comensal.
+      \item Historial de sellos emitidos accesible en el icono superior.
+    \end{itemize}
+  }
+
+% --- PANTALLA 12: BusinessProfileScreen ---
+\pantallashowcase
+  {Pantalla 12: Perfil de Negocio y Sucursales}
+  {lib/screens/business/profile_management_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {D:/TFI/HueQuito/Capturas/hueca5.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Administración de los datos comerciales, galería fotográfica y red de sucursales del establecimiento tradicional.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Selector de avatar principal de la hueca con botón de cámara.
+      \item Gestión de galería fotográfica (hasta 5 fotografías de alta calidad del local y comida).
+      \item \textbf{Mis Locales / Sucursales:} Acceso a la administración de sucursales múltiples y asignación de encargados por correo.
+      \item Edición del nombre comercial de la hueca.
+      \item Descripción multilingüe en español e inglés con soporte para traducción instantánea.
+    \end{itemize}
+  }
+
+% =============================================================================
+% PARTE III: MÓDULO DE ADMINISTRACIÓN (SUPERADMIN)
+% =============================================================================
+\newpage
+\section{Módulo de Administración (Superadministrador)}
+
+% --- PANTALLA 13: AdminDashboardScreen ---
+\pantallashowcase
+  {Pantalla 13: Centro de Control Global del Ecosistema}
+  {lib/screens/admin/admin_dashboard_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin1.jpg}
+  {18.0cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Tablero de mando maestro para monitorear el estado global de la plataforma, actividad de usuarios y alertas de moderación.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave (Captura Extendida):}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Barra superior con distintivo dorado \textbf{SUPERADMIN} y botón de salida rápida.
+      \item Banner de bienvenida al \textit{Centro de Control: Gestión global del ecosistema gastronómico}.
+      \item 4 tarjetas métricas de primer nivel:
+        \begin{itemize}
+          \item \textbf{Huecas:} 11 registradas (11 activas en el mapa).
+          \item \textbf{Usuarios:} 17 registrados (13 cuentas de negocio).
+          \item \textbf{Avisos Pendientes:} 0 (indicador de \textit{Todo al día}).
+          \item \textbf{Rutas Activas:} 3 circuitos gastronómicos guiados.
+        \end{itemize}
+      \item Botones de acciones rápidas: \textit{Nueva Hueca, Nueva Ruta y Moderación de Reseñas}.
+      \item Sección de moderación en tiempo real con indicador de estado saludable.
+      \item Barra de navegación inferior: \textit{Dashboard, Huecas, Avisos, Rutas, Usuarios}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 14: AdminHuecasScreen ---
+\pantallashowcase
+  {Pantalla 14: Directorio y Auditoría de Huecas}
+  {lib/screens/admin/admin_huecas_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin2.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Gestión centralizada de establecimientos gastronómicos con controles de activación, edición y asignación de dueños.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Buscador universal por nombre, sector o plato.
+      \item Pestañas de filtrado rápido: \textit{Todas, Activas, Pausadas, Sin Dueño}.
+      \item Tarjetas de locales con foto, sector, calificación y conteo de reseñas.
+      \item \textbf{Interruptor en tiempo real:} Activa o pausa la visibilidad de la hueca en la app de los comensales sin eliminar sus datos.
+      \item Badge de estado de asignación: \textit{Dueño Asignado} y conteo de sucursales.
+      \item Botones de acción: \textit{Locales, Asignar Dueño, Editar y Eliminar}.
+      \item Botón flotante oscuro: \textit{+ Nueva Hueca}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 15: AdminHuecaEditScreen ---
+\pantallashowcase
+  {Pantalla 15: Formulario de Alta y Edición de Hueca}
+  {lib/screens/admin/admin_hueca_edit_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin3.jpg}
+  {18.0cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Formulario de creación rápida que permite al superadmin ingresar una hueca con datos esenciales para que el dueño luego complete su menú.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave (Captura Extendida):}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Interruptor de visibilidad inicial (\textit{Estado de la Hueca}).
+      \item Banner de instrucción: \textit{Creación Rápida de Hueca}.
+      \item Campos de información general: Nombre de la hueca, selector de sector (\textit{Centro Histórico}), nivel de precios (\$\$), dirección física y teléfono de contacto.
+      \item Selector de cuenta de negocio con validación obligatoria:
+        \begin{itemize}
+          \item Cuadro de advertencia: \textit{``Regla: Cada cuenta de negocio solo puede estar asignada a 1 hueca''}.
+        \end{itemize}
+      \item Acordeón para campos opcionales avanzados (GPS, fotos, menú).
+      \item Botón principal de guardado: \textit{Registrar Hueca}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 16: AdminNotificationsScreen ---
+\pantallashowcase
+  {Pantalla 16: Moderación de Avisos y Notificaciones}
+  {lib/screens/admin/admin_notifications_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin4.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Panel de control editorial para auditar, autorizar o rechazar solicitudes de promociones enviadas por los dueños de locales antes de emitirlas a los comensales.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Pestañas de filtrado: \textit{Pendientes} e \textit{Historial Completo}.
+      \item Tarjetas de notificación detalladas con etiqueta de categoría (ej. \textit{Promoción, Nuevo Plato}).
+      \item Emisor identificado: \textit{Los Motes de San Juan}.
+      \item Título y cuerpo del aviso (ej. \textit{2x1 en colada morada}, \textit{Nuevo Plato Seco De Chivo}).
+      \item Badge de estado en verde: \textbf{Aprobada}.
+      \item Fecha y hora de programación para el disparo del push nativo.
+    \end{itemize}
+  }
+
+% --- PANTALLA 17: AdminRoutesScreen ---
+\pantallashowcase
+  {Pantalla 17: Gestor de Rutas y Circuitos Turísticos}
+  {lib/screens/admin/admin_routes_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin5.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Herramienta de diseño y mantenimiento de las rutas gastronómicas oficiales de Quito que guían a turistas nacionales y extranjeros.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Buscador en tiempo real de circuitos turísticos por nombre.
+      \item Tarjetas de rutas activas:
+        \begin{itemize}
+          \item \textit{Sendero del Hornado} (3 paradas, 2.4 km, 2h 30m en Conocoto).
+          \item \textit{Ruta Colonial de Sabores} (3 paradas en Centro Histórico con fotografía patrimonial).
+        \end{itemize}
+      \item Botones de administración: \textit{Editar} (reordenar paradas con arrastrar y soltar) y \textit{Eliminar}.
+      \item Botón flotante: \textit{+ Nueva Ruta} para trazar nuevos itinerarios temáticos.
+    \end{itemize}
+  }
+
+% --- PANTALLA 18: AdminUsersScreen ---
+\pantallashowcase
+  {Pantalla 18: Directorio de Usuarios y Cuentas}
+  {lib/screens/admin/admin_users_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin6.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Administración centralizada de usuarios comensales y cuentas con privilegios de negocio o administración del sistema.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Buscador universal por nombre, correo o nombre de hueca asignada.
+      \item Filtros rápidos: \textit{Todos, Con Hueca / Local, Sucursales}.
+      \item Botón principal: \textit{+ Crear Cuenta de Negocio}.
+      \item Tarjetas de usuarios de negocio con badge naranja \texttt{NEGOCIO}, correo institucional/personal y tarjeta dorada de hueca asociada (\textit{Hueca: Los Motes de San Juan, Fritadas de la Gata, Las Corvinas de Don Jimmy}).
+      \item Acciones rápidas por usuario: Enviar correo de restablecimiento de contraseña e ingresar a la edición de rol y permisos.
+    \end{itemize}
+  }
+
+% --- PANTALLA 19: AdminUsersScreen Modal ---
+\pantallashowcase
+  {Pantalla 19: Diálogo de Alta Segura de Negocio}
+  {lib/screens/admin/admin_users_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {D:/TFI/HueQuito/Capturas/Admin7.jpg}
+  {17.5cm}
+  {
+    \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+      \textbf{\large Propósito}\\[0.1cm]
+      Modal seguro para dar de alta a nuevos comerciantes sin intermediación de contraseñas provisionales inseguras.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Cabecera con indicación de rol: \textit{Crear Cuenta de Negocio (Rol: Negocio, Asignación a Hueca o Sucursal)}.
+      \item Campo obligatorio: Nombre del Dueño o Representante.
+      \item Campo obligatorio: Correo Electrónico.
+      \item \textbf{Caja de Seguridad y Privacidad:}
+        \begin{itemize}
+          \item \textit{``Definición de contraseña por correo: No se requiere contraseña manual. Se enviará automáticamente un correo electrónico a la dirección ingresada para que el propio dueño defina su contraseña de acceso''}.
+        \end{itemize}
+      \item Selector desplegable de hueca a asignar con validación de exclusividad 1-a-1.
+      \item Botones: \textit{Cancelar} y \textit{Crear Cuenta}.
+    \end{itemize}
+  }
+
+\end{document}

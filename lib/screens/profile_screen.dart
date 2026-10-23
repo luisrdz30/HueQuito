@@ -9,6 +9,7 @@ import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
+import 'package:hue_quito/widgets/client_onboarding_dialog.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -44,6 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'high_contrast': 'Alto Contraste',
       'high_contrast_desc': 'Mayor accesibilidad visual',
       'account': 'Gestión de Cuenta',
+      'join_huequito': '¿Tienes una hueca? Sé parte de HueQuito',
       'connected': 'Conectada con Google',
       'support': 'Ayuda y Soporte Quiteño',
       'terms': 'Términos y Privacidad Patrimonial',
@@ -73,6 +75,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'high_contrast': 'High Contrast',
       'high_contrast_desc': 'Increases visual accessibility',
       'account': 'Account Management',
+      'join_huequito': 'Own a food spot? Join HueQuito',
       'connected': 'Connected with Google',
       'support': 'Quito Help & Support',
       'terms': 'Terms & Privacy',
@@ -145,9 +148,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             gamification: {'level': 1, 'totalStamps': 0, 'title': 'Explorador'},
             preferences: {}, sectorAlbums: [],
           );
-          final int visitedHuecas = isGuest ? 0 : ((displayUser.gamification['huecaStamps'] as Map?)?.keys.length ?? 0);
+          final confirmedHuecaIds = huecasList
+              .where((h) => h.isActive && h.isSectorConfirmed)
+              .map((h) => h.id)
+              .toSet();
+          final userStamps = (displayUser.gamification['huecaStamps'] as Map?) ?? {};
+          final int visitedHuecas = isGuest
+              ? 0
+              : userStamps.entries
+                  .where((e) =>
+                      confirmedHuecaIds.contains(e.key) &&
+                      ((e.value as num?)?.toInt() ?? 0) > 0)
+                  .length;
           final int favoriteCount = isGuest ? 0 : displayUser.favoriteHuecas.length;
           final int rewardsCount = isGuest ? 0 : (displayUser.gamification['rewardsCount'] ?? 0);
+          final bool isSuperAdmin = !isGuest && (displayUser.email.trim().toLowerCase() == 'admin@huequito.com' || displayUser.role == 'admin');
 
           return SingleChildScrollView(
         child: Padding(
@@ -291,8 +306,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 error: (_, __) => const SizedBox.shrink(),
               ),
 
-              // Admin Banner
-              if (displayUser.role == 'admin')
+              // Admin Banner (Solo visible para la cuenta de superadmin)
+              if (isSuperAdmin)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
@@ -551,15 +566,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       )
                     ),
                     SizedBox(height: 12),
+                    ListTile(
+                      leading: const Icon(Icons.school_outlined, color: AppTheme.primary),
+                      title: Text(
+                        settings.language == 'es' ? 'Tutorial de la App' : 'App Tutorial',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        settings.language == 'es'
+                            ? 'Repasa cómo descubrir huecas, sellos y cromos'
+                            : 'Review how to discover spots, stamps and stickers',
+                        style: TextStyle(fontSize: 11, color: Colors.blueGrey.shade600),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: AppTheme.primary),
+                      onTap: () => showClientOnboardingDialog(context, markAsSeen: false, lang: settings.language),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.storefront, color: AppTheme.primary),
+                      title: Text(lang['join_huequito']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      trailing: const Icon(Icons.chevron_right, color: AppTheme.primary),
+                      onTap: () => context.push('/hueca-request'),
+                    ),
                     ListTile(leading: Icon(Icons.support_agent), title: Text(lang['support']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FaqScreen()))),
                     ListTile(leading: Icon(Icons.policy), title: Text(lang['terms']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TermsScreen()))),
                     ListTile(leading: Icon(Icons.share), title: Text(lang['invite']!, style: TextStyle(fontSize: 14)), trailing: Icon(Icons.chevron_right), onTap: () => _showInviteDialog(context)),
-                    ListTile(
-                      leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blueGrey),
-                      title: const Text('Panel Admin (Aprobar Notificaciones)', style: TextStyle(fontSize: 14)),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/admin/notifications'),
-                    ),
+                    if (isSuperAdmin)
+                      ListTile(
+                        leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.blueGrey),
+                        title: const Text('Panel de Administración', style: TextStyle(fontSize: 14)),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/admin/dashboard'),
+                      ),
                     SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () async {
                       await ref.read(authRepositoryProvider).signOut();

@@ -509,6 +509,80 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     );
   }
 
+  Future<void> _confirmAndResendPasswordReset(UserModel user) async {
+    final cleanEmail = user.email.trim();
+    if (cleanEmail.isEmpty) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.mark_email_read_outlined, color: Color(0xFF0F766E)),
+            SizedBox(width: 8),
+            Text(
+              'Reenviar Contraseña',
+              style: TextStyle(color: Color(0xFF0F172A), fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Se enviará un correo con un enlace oficial de Firebase para que el usuario pueda crear o restablecer su contraseña:\n\n$cleanEmail',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF334155)),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDFA),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF99F6E4)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Color(0xFF0F766E), size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Útil si el enlace anterior expiró o si el usuario no completó su contraseña a tiempo.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF0F766E)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.blueGrey)),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.send_rounded, size: 16),
+            label: const Text('Enviar Enlace'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F766E),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _resendPasswordResetEmail(cleanEmail);
+    }
+  }
+
   Future<void> _resendPasswordResetEmail(String email) async {
     final cleanEmail = email.trim();
     if (cleanEmail.isEmpty) return;
@@ -832,7 +906,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         'ℹ️ Regla: Solo puede asignarse a 1 hueca o sucursal a la vez.',
                         style: TextStyle(color: Colors.blueGrey.shade500, fontSize: 11),
                       ),
-                      if (user.role == 'business' && user.email.isNotEmpty) ...[
+                      if (user.email.isNotEmpty) ...[
                         const Divider(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -846,7 +920,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                             ),
                             onPressed: () {
                               Navigator.pop(ctx);
-                              _resendPasswordResetEmail(user.email);
+                              _confirmAndResendPasswordReset(user);
                             },
                           ),
                         ),
@@ -1082,8 +1156,9 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF0F172A),
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Nueva Cuenta'),
+        elevation: 3,
+        icon: const Icon(Icons.person_add_alt_1, color: Colors.amber, size: 20),
+        label: const Text('Nueva Cuenta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         onPressed: _showCreateBusinessAccountDialog,
       ),
     );
@@ -1091,20 +1166,28 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _roleFilter == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => setState(() => _roleFilter = value),
-      selectedColor: const Color(0xFF0F172A),
-      backgroundColor: const Color(0xFFF1F5F9),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : const Color(0xFF0F172A),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontSize: 12,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isSelected ? const Color(0xFF0F172A) : Colors.transparent),
+    return InkWell(
+      onTap: () => setState(() => _roleFilter = value),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.amber : const Color(0xFFCBD5E1),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -1136,180 +1219,207 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: roleColor.withValues(alpha: 0.12),
-            backgroundImage: user.profilePicUrl.isNotEmpty ? NetworkImage(user.profilePicUrl) : null,
-            child: user.profilePicUrl.isEmpty
-                ? Icon(
-                    user.role == 'admin'
-                        ? Icons.shield
-                        : (assignment.isBranch ? Icons.store : Icons.storefront),
-                    color: roleColor,
-                    size: 22,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: roleColor.withValues(alpha: 0.12),
+                backgroundImage: user.profilePicUrl.isNotEmpty ? NetworkImage(user.profilePicUrl) : null,
+                child: user.profilePicUrl.isEmpty
+                    ? Icon(
+                        user.role == 'admin'
+                            ? Icons.shield
+                            : (assignment.isBranch ? Icons.store : Icons.storefront),
+                        color: roleColor,
+                        size: 22,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        user.name,
-                        style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: roleColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: roleColor.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(
-                        roleLabel,
-                        style: TextStyle(color: roleColor, fontSize: 10, fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user.email,
-                  style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 12),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (user.role == 'business') ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: assignment.isAssigned
-                          ? (assignment.isBranch ? Colors.teal.shade50 : Colors.amber.shade50)
-                          : Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: assignment.isAssigned
-                            ? (assignment.isBranch ? Colors.teal.shade200 : Colors.amber.shade200)
-                            : Colors.red.shade200,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Row(
                       children: [
-                        Icon(
-                          assignment.isAssigned
-                              ? (assignment.isBranch ? Icons.store : Icons.storefront)
-                              : Icons.warning_amber_rounded,
-                          size: 13,
-                          color: assignment.isAssigned
-                              ? (assignment.isBranch ? Colors.teal.shade900 : Colors.amber.shade900)
-                              : Colors.red.shade800,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
+                        Expanded(
                           child: Text(
-                            assignment.isBranch
-                                ? 'Sucursal: ${assignment.branch?.name} (${assignment.hueca?.name})'
-                                : (assignment.isOwner
-                                    ? 'Hueca: ${assignment.hueca?.name}'
-                                    : 'Sin hueca ni local asignado (Solo 1)'),
-                            style: TextStyle(
-                              color: assignment.isAssigned
-                                  ? (assignment.isBranch ? Colors.teal.shade900 : Colors.amber.shade900)
-                                  : Colors.red.shade800,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            user.name,
+                            style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 15),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: roleColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: roleColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Text(
+                            roleLabel,
+                            style: TextStyle(color: roleColor, fontSize: 10, fontWeight: FontWeight.w900),
+                          ),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user.email,
+                      style: TextStyle(color: Colors.blueGrey.shade600, fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (user.role == 'business') ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: assignment.isAssigned
+                              ? (assignment.isBranch ? Colors.teal.shade50 : Colors.amber.shade50)
+                              : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: assignment.isAssigned
+                                ? (assignment.isBranch ? Colors.teal.shade200 : Colors.amber.shade200)
+                                : Colors.red.shade200,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              assignment.isAssigned
+                                  ? (assignment.isBranch ? Icons.store : Icons.storefront)
+                                  : Icons.warning_amber_rounded,
+                              size: 13,
+                              color: assignment.isAssigned
+                                  ? (assignment.isBranch ? Colors.teal.shade900 : Colors.amber.shade900)
+                                  : Colors.red.shade800,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                assignment.isBranch
+                                    ? 'Sucursal: ${assignment.branch?.name} (${assignment.hueca?.name})'
+                                    : (assignment.isOwner
+                                        ? 'Hueca: ${assignment.hueca?.name}'
+                                        : 'Sin hueca ni local asignado (Solo 1)'),
+                                style: TextStyle(
+                                  color: assignment.isAssigned
+                                      ? (assignment.isBranch ? Colors.teal.shade900 : Colors.amber.shade900)
+                                      : Colors.red.shade800,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else if (user.role == 'admin') ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.verified_user, size: 13, color: Colors.purple.shade700),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Superadministrador del Sistema',
+                              style: TextStyle(color: Colors.purple.shade700, fontSize: 11, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Asignar Hueca / Sucursal / Rol',
+                child: InkWell(
+                  onTap: () => _showChangeRoleDialog(user),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: const Icon(Icons.edit_note, color: Color(0xFF0F172A), size: 22),
                   ),
-                ] else if (user.role == 'admin') ...[
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Eliminar cuenta de usuario',
+                child: InkWell(
+                  onTap: () => _handleDeleteUser(user, assignment),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFECACA)),
+                    ),
+                    child: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (user.email.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 8),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _confirmAndResendPasswordReset(user),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDFA),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF99F6E4)),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.verified_user, size: 13, color: Colors.purple.shade700),
-                      const SizedBox(width: 4),
-                      Expanded(
+                      Icon(Icons.mark_email_read_outlined, size: 16, color: Color(0xFF0F766E)),
+                      SizedBox(width: 6),
+                      Flexible(
                         child: Text(
-                          'Superadministrador del Sistema',
-                          style: TextStyle(color: Colors.purple.shade700, fontSize: 11, fontWeight: FontWeight.w600),
+                          'Reenviar enlace de contraseña',
+                          style: TextStyle(
+                            color: Color(0xFF0F766E),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ],
-            ),
-          ),
-          if (user.role == 'business' && user.email.isNotEmpty) ...[
-            Tooltip(
-              message: 'Reenviar enlace de contraseña',
-              child: InkWell(
-                onTap: () => _resendPasswordResetEmail(user.email),
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDFA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF99F6E4)),
-                  ),
-                  child: const Icon(Icons.mark_email_read_outlined, color: Color(0xFF0F766E), size: 20),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
           ],
-          Tooltip(
-            message: 'Asignar Hueca / Sucursal / Rol',
-            child: InkWell(
-              onTap: () => _showChangeRoleDialog(user),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                child: const Icon(Icons.edit_note, color: Color(0xFF0F172A), size: 22),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Eliminar cuenta de usuario',
-            child: InkWell(
-              onTap: () => _handleDeleteUser(user, assignment),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFECACA)),
-                ),
-                child: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 20),
-              ),
-            ),
-          ),
         ],
       ),
     );

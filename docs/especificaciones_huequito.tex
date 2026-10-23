@@ -1,0 +1,1740 @@
+% =============================================================================
+% DOCUMENTO DE ESPECIFICACIONES TÉCNICAS Y FUNCIONALES
+% Aplicación Móvil: Hue-Quito
+% Versión: 1.0.0
+% Fecha: Octubre 2026
+% =============================================================================
+\documentclass[11pt, a4paper, oneside]{report}
+
+% --- Paquetes ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{pifont}
+\usepackage{fontawesome5}
+\usepackage{setspace}
+
+% --- Geometría Académica ---
+\geometry{
+  a4paper,
+  left=3cm,
+  right=3cm,
+  top=2.5cm,
+  bottom=2.5cm,
+  headheight=26pt
+}
+
+% --- Hyperlinks Formales ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=black,
+  citecolor=black,
+  pdftitle={Especificaciones Técnicas - Hue-Quito},
+  pdfauthor={Luis Rodríguez - PUCE},
+  pdfsubject={Documento de Especificaciones de Aplicación Móvil - Proyecto de Titulación},
+}
+
+% --- Estilos de código ---
+\lstdefinestyle{dartcode}{
+  backgroundcolor=\color{gray!5},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  keywordstyle=\bfseries\color{black},
+  stringstyle=\color{gray!30!black},
+  commentstyle=\color{gray!50!black}\itshape,
+  showstringspaces=false,
+}
+
+% --- Cajas decorativas académicas (Sobrias en escala de grises) ---
+\tcbuselibrary{skins, breakable}
+
+\newtcolorbox{decisionbox}[1][]{
+  colback=gray!3,
+  colframe=gray!60!black,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={Decisión de Diseño},
+  arc=2mm,
+  breakable,
+  #1
+}
+
+\newtcolorbox{techbox}[1][]{
+  colback=gray!3,
+  colframe=gray!60!black,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={Detalle Técnico},
+  arc=2mm,
+  breakable,
+  #1
+}
+
+\newtcolorbox{funcbox}[1][]{
+  colback=gray!3,
+  colframe=gray!60!black,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title={Funcionalidades},
+  arc=2mm,
+  breakable,
+  #1
+}
+
+% --- Encabezado y pie de página formal ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textbf{Hue-Quito} --- Especificaciones Técnicas y Funcionales}
+\fancyhead[R]{\small PUCE 2026}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Formato de títulos formal (Sobrio en negro institucional) ---
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{black}}
+  {\chaptertitlename\ \thechapter}{15pt}{\Huge}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{black}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{black}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{black}}{\thesubsubsection}{1em}{}
+
+% --- Espaciado ---
+\setlength{\parskip}{0.8em}
+\setlength{\parindent}{0pt}
+\onehalfspacing
+
+% =============================================================================
+\begin{document}
+
+% --- Portada Institucional PUCE ---
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    {\large \textbf{PONTIFICIA UNIVERSIDAD CATÓLICA DEL ECUADOR}}\\[0.8cm]
+    {\Large \textbf{PROYECTO DE TITULACIÓN}}\\[1.2cm]
+    {\Large \textbf{TÍTULO DEL PROYECTO:}}\\[0.5cm]
+    {\LARGE\bfseries Plataforma Turística Innovadora con Gamificación,\\Inteligencia Artificial y Logística Inteligente\par}
+    \vspace{0.5cm}
+    {\large\textbf{Aplicación Móvil: Hue-Quito (Descubre las Huecas de Quito)}\par}
+    \vspace{0.3cm}
+    {\normalsize\textit{Documento de Especificaciones Técnicas y Funcionales de la Aplicación}\par}
+    \vspace{1cm}
+    
+    % LOGO
+    \IfFileExists{logo-puce.png}{%
+      \includegraphics[width=0.28\textwidth]{logo-puce.png}\\[0.8cm]
+    }{%
+      \IfFileExists{docs/logo-puce.png}{%
+        \includegraphics[width=0.28\textwidth]{docs/logo-puce.png}\\[0.8cm]
+      }{%
+        \vspace{2cm}
+      }%
+    }
+    \vspace{0.5cm} 
+    
+    {\large \textbf{AUTOR:}}\\[0.3cm]
+    {\large LUIS RODRÍGUEZ}\\[1cm]
+    {\large \textbf{DOCENTE DIRECTOR:}}\\[0.3cm]
+    {\large JAVIER GUAÑA}\\[1.5cm]
+    
+    \vfill
+    {\large Quito -- Ecuador}\\
+    {\large 2026}
+\end{titlepage}
+
+% --- Tabla de contenidos ---
+\tableofcontents
+\newpage
+
+% =============================================================================
+% CAPÍTULO 1: INTRODUCCIÓN
+% =============================================================================
+\chapter{Introducción}
+
+\section{Descripción General del Proyecto}
+
+\textbf{Hue-Quito} es una aplicación móvil nativa para Android desarrollada con el framework \textbf{Flutter}, cuyo propósito fundamental es \textit{preservar, difundir y digitalizar} el patrimonio gastronómico informal de la ciudad de Quito, Ecuador. El término \textbf{``hueca''} hace referencia a los pequeños establecimientos de comida tradicional ---generalmente locales humildes, puestos de mercado o negocios familiares--- que por generaciones han ofrecido platos típicos ecuatorianos a precios accesibles y con recetas auténticas transmitidas de generación en generación.
+
+La aplicación aborda tres problemáticas centrales:
+
+\begin{enumerate}[label=\arabic*.]
+  \item \textbf{Invisibilidad digital:} La mayoría de huecas no tienen presencia en plataformas digitales, redes sociales ni sistemas de geolocalización, lo que limita su descubrimiento por parte de nuevos comensales, turistas y residentes.
+  \item \textbf{Pérdida del patrimonio culinario:} La modernización y la expansión de franquicias internacionales amenazan con desplazar estos espacios tradicionales, provocando una erosión gradual de la identidad gastronómica quiteña.
+  \item \textbf{Barrera idiomática para turistas:} Los visitantes internacionales enfrentan dificultades para comprender menús escritos en español coloquial ecuatoriano, lo que reduce su posibilidad de disfrutar la gastronomía local.
+\end{enumerate}
+
+\section{Objetivos de la Aplicación}
+
+\subsection{Objetivo General}
+Diseñar e implementar una plataforma móvil que permita a usuarios, propietarios de huecas y administradores interactuar en un ecosistema digital que promueva el descubrimiento, la gestión y la preservación de la gastronomía tradicional quiteña.
+
+\subsection{Objetivos Específicos}
+\begin{itemize}
+  \item Proveer un catálogo georreferenciado e interactivo de huecas con información detallada de ubicación, menú, horarios, precios y fotografías.
+  \item Implementar un sistema de \textbf{rutas gastronómicas} que conecte múltiples huecas en recorridos temáticos optimizados por proximidad geográfica.
+  \item Ofrecer un \textbf{perfil gastronómico personalizado} que recomiende huecas según las preferencias culinarias del usuario.
+  \item Incorporar un \textbf{sistema de gamificación} basado en códigos QR que incentive la visita presencial a los establecimientos.
+  \item Facilitar a los propietarios de huecas una herramienta de gestión integral de su presencia digital: menú, galería, sucursales y comunicación con clientes.
+  \item Proveer un \textbf{panel de administración} para la gestión centralizada de toda la plataforma.
+  \item Soportar \textbf{bilingüismo} (español/inglés) con traducción automática de menús para facilitar la experiencia de turistas internacionales.
+  \item Garantizar \textbf{accesibilidad} mediante soporte para modo oscuro, alto contraste y escalado de texto.
+\end{itemize}
+
+\section{Alcance del Documento}
+
+Este documento describe de manera exhaustiva cada módulo, pantalla y funcionalidad de la aplicación Hue-Quito, organizado en tres secciones principales según los roles de usuario:
+
+\begin{enumerate}
+  \item \textbf{Módulo de Cliente} (usuario final / turista)
+  \item \textbf{Módulo de Dueño de Hueca} (propietario / administrador del negocio)
+  \item \textbf{Módulo de Administrador} (superusuario de la plataforma)
+\end{enumerate}
+
+Cada pantalla se documenta con su descripción funcional, elementos de interfaz, flujos de navegación, lógica de negocio, decisiones de diseño y justificaciones técnicas.
+
+% =============================================================================
+% CAPÍTULO 2: ARQUITECTURA TÉCNICA
+% =============================================================================
+\chapter{Arquitectura Técnica}
+
+\section{Stack Tecnológico}
+
+\begin{longtable}{>{\bfseries}p{4.5cm} p{9cm}}
+\toprule
+\textbf{Componente} & \textbf{Tecnología} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Componente} & \textbf{Tecnología} \\
+\midrule
+\endhead
+Framework & Flutter 3.x (Dart SDK $\geq$ 3.10.0) \\
+Plataforma objetivo & Android (orientación bloqueada en retrato) \\
+Backend / BaaS & Firebase (Authentication, Cloud Firestore, Storage) \\
+Gestión de estado & Riverpod 3.x (flutter\_riverpod + riverpod\_annotation) \\
+Navegación & GoRouter 17.x con StatefulShellRoute \\
+Mapas & Google Maps Flutter + Flutter Map (OpenStreetMap) \\
+Geolocalización & Geolocator 14.x \\
+Rutas y direcciones & Google Routes API v2 (computeRoutes) \\
+Escaneo QR & mobile\_scanner 7.x \\
+Generación QR & qr\_flutter 4.x \\
+OCR / Digitalización & Google ML Kit (Text Recognition) \\
+Notificaciones & flutter\_local\_notifications 22.x \\
+Tipografía & Google Fonts (Plus Jakarta Sans + Inter) \\
+Iconografía & Lucide Icons + Material Icons \\
+Autenticación & Firebase Auth (correo/contraseña + Google Sign-In) \\
+Almacenamiento local & shared\_preferences + Firestore offline persistence \\
+Selector de imágenes & image\_picker \\
+Compartir contenido & share\_plus \\
+Lanzador de URLs & url\_launcher + map\_launcher \\
+Efectos visuales & confetti \\
+\bottomrule
+\end{longtable}
+
+\section{Patrón Arquitectónico}
+
+La aplicación sigue un patrón de \textbf{arquitectura en capas} (Layered Architecture) combinado con el enfoque \textbf{Repository Pattern}, organizado de la siguiente manera:
+
+\begin{enumerate}
+  \item \textbf{Capa de Presentación (Screens + Widgets):} Contiene todas las pantallas de la interfaz de usuario, organizadas en subdirectorios por rol (\texttt{screens/}, \texttt{screens/business/}, \texttt{screens/admin/}, \texttt{widgets/}).
+  \item \textbf{Capa de Estado (Providers):} Manejo reactivo del estado global mediante Riverpod. Los providers principales son:
+  \begin{itemize}
+    \item \texttt{authProvider}: Estado de autenticación del usuario.
+    \item \texttt{dataProvider}: Providers de datos reactivos (huecas, rutas, usuarios, notificaciones) conectados a Firestore en tiempo real vía \texttt{StreamProvider}.
+    \item \texttt{settingsProvider}: Preferencias de apariencia (modo oscuro, tamaño de texto, alto contraste, idioma).
+  \end{itemize}
+  \item \textbf{Capa de Repositorios:} Abstracción de acceso a datos que encapsula las operaciones CRUD contra Cloud Firestore y Firebase Storage:
+  \begin{itemize}
+    \item \texttt{HuecaRepository}: Gestión de huecas, sucursales, menús, reseñas y favoritos.
+    \item \texttt{UserRepository}: Gestión de usuarios, roles, suscripciones y perfiles.
+    \item \texttt{RouteRepository}: Gestión de rutas gastronómicas.
+    \item \texttt{NotificationRepository}: Gestión de notificaciones push y promociones.
+    \item \texttt{AuthRepository}: Autenticación, registro y recuperación de contraseña.
+  \end{itemize}
+  \item \textbf{Capa de Servicios:} Lógica de integración con APIs externas y procesamiento:
+  \begin{itemize}
+    \item \texttt{DirectionsService}: Cálculo de rutas via Google Routes API.
+    \item \texttt{GeocodingService}: Geocodificación directa e inversa con Google Geocoding API.
+    \item \texttt{NotificationService}: Gestión de notificaciones locales de Android.
+    \item \texttt{AiGenerationService}: Generación automática de descripciones con IA.
+    \item \texttt{MenuOcrService}: Digitalización de menús físicos mediante OCR.
+    \item \texttt{TranslationService}: Traducción automática español--inglés.
+  \end{itemize}
+  \item \textbf{Capa de Modelos:} Clases de datos inmutables (\texttt{Hueca}, \texttt{RouteModel}, \texttt{HueNotification}, \texttt{GastronomicProfile}).
+  \item \textbf{Capa de Utilidades:} Funciones auxiliares (\texttt{auth\_utils.dart}, \texttt{map\_navigation\_helper.dart}, \texttt{seed\_data.dart}).
+\end{enumerate}
+
+\begin{decisionbox}
+  La elección de \textbf{Riverpod} sobre otras soluciones de gestión de estado como Provider o BLoC se fundamenta en su capacidad de:
+  \begin{itemize}
+    \item Desacoplar el estado del árbol de widgets.
+    \item Proveer \texttt{StreamProvider} para sincronización en tiempo real con Firestore.
+    \item Facilitar la inyección de dependencias sin \texttt{BuildContext}.
+    \item Soportar la invalidación y recarga automática de datos.
+  \end{itemize}
+\end{decisionbox}
+
+\section{Navegación y Enrutamiento}
+
+El sistema de navegación utiliza \textbf{GoRouter} con tres estrategias de enrutamiento diferenciadas:
+
+\begin{itemize}
+  \item \textbf{StatefulShellRoute.indexedStack:} Para la navegación principal del usuario con \texttt{BottomNavigationBar}. Mantiene el estado de cada pestaña al cambiar entre ellas. Las cinco ramas son: Inicio (\texttt{/home}), Rutas (\texttt{/rutas}), Escanear (\texttt{/scan}), Álbum (\texttt{/album}) y Perfil (\texttt{/profile}).
+  \item \textbf{ShellRoute:} Para los paneles de negocio (\texttt{/business/*}) y administración (\texttt{/admin/*}), cada uno con su propio layout y barra de navegación lateral o inferior.
+  \item \textbf{GoRoute simples:} Para pantallas de detalle, navegación, edición y formularios que se apilan sobre la navegación principal.
+\end{itemize}
+
+\begin{techbox}
+  El router implementa un \textbf{redirect guard} que verifica la autenticación del usuario: si no hay sesión activa y se intenta acceder a rutas \texttt{/business/*} o \texttt{/admin/*}, se redirige automáticamente a \texttt{/login}. Esto protege las rutas privilegiadas sin necesidad de middleware adicional.
+\end{techbox}
+
+\section{Persistencia de Datos}
+
+\subsection{Cloud Firestore}
+La base de datos principal es \textbf{Cloud Firestore} de Firebase, configurada con persistencia offline habilitada y caché de tamaño ilimitado (\texttt{CACHE\_SIZE\_UNLIMITED}). Esto permite que la aplicación funcione sin conexión a internet, mostrando los datos cacheados localmente y sincronizando automáticamente cuando se recupera la conectividad.
+
+Las colecciones principales son:
+
+\begin{longtable}{>{\ttfamily}p{3.5cm} p{9.5cm}}
+\toprule
+\textbf{Colección} & \textbf{Descripción} \\
+\midrule
+huecas & Documentos de establecimientos gastronómicos con campos: nombre, descripción, ubicación (GeoPoint), dirección, categoría, tags, horario, rango de precios, teléfono, galería de fotos, menú (subcolección), reseñas (subcolección), favoritos, métricas y datos del propietario. \\
+users & Perfiles de usuario con: nombre, correo, foto, perfil gastronómico, idioma preferido, huecas visitadas, suscripciones a notificaciones, rol (user/business/admin) y hueca asignada. \\
+routes & Rutas gastronómicas con: nombre, descripción, lista ordenada de paradas (huecas con coordenadas), distancia estimada, duración, dificultad, sector y metadatos bilingües. \\
+notifications & Notificaciones/promociones de huecas con: título, mensaje, categoría, hueca origen, estado de aprobación, fecha de programación y metadatos de creación. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Almacenamiento Local}
+Se utiliza \texttt{shared\_preferences} para persistir configuraciones de usuario que no requieren sincronización en la nube:
+\begin{itemize}
+  \item Modo oscuro (booleano).
+  \item Tamaño de texto (``A-'', ``A'', ``A+'').
+  \item Alto contraste (booleano).
+  \item Idioma preferido (``es'', ``en'').
+\end{itemize}
+
+\section{Seguridad}
+
+\begin{itemize}
+  \item \textbf{Autenticación:} Firebase Auth con soporte para correo/contraseña y Google Sign-In. Los correos de verificación y recuperación de contraseña se envían en español.
+  \item \textbf{Claves API:} Todas las claves de Google Maps y servicios externos se inyectan en tiempo de compilación mediante \texttt{--dart-define} y \texttt{manifestPlaceholders}, sin almacenarse en el código fuente.
+  \item \textbf{Reglas de Firestore:} Control de acceso basado en roles (user, business, admin) implementado a nivel de reglas de seguridad de Firestore.
+  \item \textbf{Orientación bloqueada:} La aplicación fuerza la orientación vertical (\texttt{portraitUp}) para garantizar una experiencia de usuario consistente y evitar rotaciones accidentales.
+\end{itemize}
+
+% =============================================================================
+% CAPÍTULO 3: DISEÑO VISUAL Y SISTEMA DE DISEÑO
+% =============================================================================
+\chapter{Diseño Visual y Sistema de Diseño}
+
+\section{Paleta de Colores}
+
+La paleta cromática de Hue-Quito se inspira directamente en la cultura y tradición gastronómica ecuatoriana, estableciendo una conexión visual inmediata entre la aplicación y la experiencia culinaria que representa.
+
+\begin{longtable}{>{\bfseries}p{3.5cm} p{3cm} p{7cm}}
+\toprule
+\textbf{Color} & \textbf{Código Hex} & \textbf{Justificación Cultural} \\
+\midrule
+\endfirsthead
+Naranjilla (Primary) & \texttt{\#F47B20} & Inspirado en el tono anaranjado intenso de las \textit{vasijas de barro} artesanales ecuatorianas, utilizadas ancestralmente para la cocción y servicio de platos tradicionales como el locro, la fanesca y las coladas. El barro cocido adquiere este característico tono naranja terroso que evoca calidez, tradición y autenticidad. También hace referencia al fruto de la naranjilla, ingrediente emblemático de la gastronomía ecuatoriana presente en jugos, helados y salsas. \\
+\addlinespace
+Terracota (Secondary) & \texttt{\#C84B31} & Representa el tono más profundo del barro quemado y las ollas de terracota que se encuentran en los mercados tradicionales de Quito (San Roque, Central, Iñaquito). Este color evoca la cocina de leña, el fogón tradicional y la preparación artesanal de los alimentos. \\
+\addlinespace
+Verde Páramo (Tertiary) & \texttt{\#2D4238} & Evoca los páramos andinos que rodean Quito y los valles interandinos donde se cultivan muchos de los ingredientes base de la gastronomía serrana: papas, habas, mellocos, chochos y hierbas aromáticas como el cilantro de páramo. \\
+\addlinespace
+Rojo Ají / Quito & \texttt{\#D32F2F} & Homenaje al ají ecuatoriano, condimento indispensable de toda hueca que se respete, y al rojo presente en el escudo y la bandera del Distrito Metropolitano de Quito. \\
+\addlinespace
+Café Tostado & \texttt{\#574237} & Referencia al cacao y café ecuatorianos, productos de exportación de calidad mundial. Se utiliza como color de texto secundario, aportando sobriedad y elegancia orgánica. \\
+\addlinespace
+Blanco Humo & \texttt{\#F9F9F9} & Fondo claro principal que simula la limpieza del vapor que se eleva de las ollas en una hueca, manteniendo la interfaz luminosa y legible. \\
+\addlinespace
+Charcoal Profundo & \texttt{\#1A1C1C} & Color de texto principal que garantiza máxima legibilidad sobre fondos claros, evocando el carbón utilizado en la cocina tradicional. \\
+\bottomrule
+\end{longtable}
+
+\begin{decisionbox}
+  La decisión de utilizar el \textbf{naranja como color primario} no es meramente estética. En psicología del color, el naranja es universalmente asociado con el apetito, la calidez, la energía y la cercanía. Aplicaciones gastronómicas exitosas como Rappi, iFood y Just Eat emplean tonalidades similares por su probada eficacia en contextos de alimentación. En Hue-Quito, este naranja se ancla culturalmente en las vasijas de barro (\textit{ollas de barro}) y en la naranjilla ecuatoriana, creando una identidad visual que es simultáneamente funcional y culturalmente significativa.
+\end{decisionbox}
+
+\subsection{Modo Oscuro}
+
+La aplicación ofrece un \textbf{modo oscuro} completo que respeta el sistema de diseño:
+
+\begin{itemize}
+  \item Fondo principal: \texttt{\#121212} (negro suave, recomendación Material Design 3).
+  \item Superficie de tarjetas y AppBar: \texttt{\#1E1E1E}.
+  \item Los colores primary, secondary y tertiary se mantienen idénticos en ambos modos para garantizar consistencia de marca.
+  \item El texto se adapta a blanco y blanco al 70\% de opacidad.
+\end{itemize}
+
+\section{Tipografía}
+
+\begin{longtable}{>{\bfseries}p{4cm} p{3.5cm} p{6cm}}
+\toprule
+\textbf{Uso} & \textbf{Fuente} & \textbf{Justificación} \\
+\midrule
+Títulos y encabezados & Plus Jakarta Sans & Fuente geométrica humanista que transmite modernidad y carácter. Sus trazos redondeados evocan accesibilidad y cercanía, valores fundamentales de la cultura de las huecas. \\
+Cuerpo de texto y etiquetas & Inter & Diseñada específicamente para pantallas, ofrece excelente legibilidad en tamaños pequeños y alta densidad de información. Su diseño neutro complementa sin competir con la personalidad de Jakarta Sans. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Escala Tipográfica}
+
+\begin{longtable}{>{\bfseries}p{3.5cm} p{2cm} p{2cm} p{2cm} p{3cm}}
+\toprule
+\textbf{Estilo} & \textbf{Tamaño} & \textbf{Peso} & \textbf{Altura} & \textbf{Fuente} \\
+\midrule
+displayLarge & 36px & 800 & 1.22 & Jakarta Sans \\
+headlineLarge & 28px & 700 & 1.28 & Jakarta Sans \\
+headlineMedium & 22px & 700 & 1.27 & Jakarta Sans \\
+titleMedium & 16px & 600 & 1.37 & Jakarta Sans \\
+bodyLarge & 16px & 400 & 1.50 & Inter \\
+bodyMedium & 14px & 400 & 1.42 & Inter \\
+labelLarge & 14px & 600 & 1.42 & Inter \\
+\bottomrule
+\end{longtable}
+
+\section{Componentes de UI}
+
+\subsection{Botones}
+Los botones primarios utilizan forma de \textbf{píldora} (\texttt{borderRadius: 9999}) con el color Naranjilla como fondo, texto blanco y sombra sutil con 35\% de opacidad del color primario. El padding es de 24px horizontal y 16px vertical, garantizando áreas de toque amplias según las guías de accesibilidad (mínimo 48x48dp).
+
+\subsection{Tarjetas}
+Las tarjetas emplean bordes redondeados de \textbf{24px} (1.5rem), sin elevación (flat design), con fondo blanco en modo claro y \texttt{\#1E1E1E} en modo oscuro. El margen estándar es de 8px en todos los lados.
+
+\subsection{Barra de Navegación Inferior}
+La \texttt{BottomNavigationBar} utiliza tipo fijo (5 ítems siempre visibles) con el color Naranjilla para el ítem seleccionado y texto medio semi-transparente para los no seleccionados. La elevación de 16 proporciona una sombra sutil que separa visualmente la barra del contenido.
+
+\section{Accesibilidad}
+
+La aplicación implementa las siguientes características de accesibilidad:
+
+\begin{itemize}
+  \item \textbf{Escalado de texto:} Tres niveles configurables (A- = 85\%, A = 100\%, A+ = 115\%) mediante \texttt{MediaQuery.textScaler}.
+  \item \textbf{Alto contraste:} Modo de alto contraste activable desde la configuración del perfil, que se propaga mediante \texttt{MediaQuery.highContrast}.
+  \item \textbf{Modo oscuro:} Tema oscuro completo que reduce la fatiga visual en condiciones de baja luminosidad.
+  \item \textbf{Bilingüismo:} Toda la interfaz soporta español e inglés, con traducciones automáticas de menús para turistas.
+\end{itemize}
+
+% =============================================================================
+% CAPÍTULO 4: MÓDULO DE CLIENTE
+% =============================================================================
+\chapter{Módulo de Cliente (Usuario Final)}
+
+Este módulo comprende todas las pantallas y funcionalidades disponibles para el usuario regular de la aplicación, ya sea un residente de Quito que desea descubrir nuevas huecas o un turista internacional que busca experiencias gastronómicas auténticas.
+
+% --- 4.1 Welcome Screen ---
+\section{Pantalla de Bienvenida (\texttt{WelcomeScreen})}
+
+\subsection{Descripción}
+Es la primera pantalla que visualiza el usuario al abrir la aplicación por primera vez. Presenta la propuesta de valor de Hue-Quito mediante un carrusel de tres diapositivas con animaciones de transición suave, diseñadas para comunicar el propósito y las funcionalidades clave de la aplicación en menos de 30 segundos.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Carrusel de 3 diapositivas} con \texttt{PageView} y transición automática:
+  \begin{enumerate}
+    \item \textbf{Diapositiva 1:} ``Descubre las Huecas de Quito'' --- Icono de restaurante, descripción breve del concepto de hueca y la misión de la app.
+    \item \textbf{Diapositiva 2:} ``Rutas Gastronómicas'' --- Icono de mapa/ruta, explicación del sistema de rutas temáticas que conectan múltiples huecas.
+    \item \textbf{Diapositiva 3:} ``Colecciona y Gana'' --- Icono de QR/trofeo, descripción del sistema de gamificación con códigos QR.
+  \end{enumerate}
+  \item \textbf{Indicadores de página} (dots) con animación de escala y color que refleja la diapositiva activa.
+  \item \textbf{Botón ``Empezar''} (ElevatedButton, forma de píldora) que navega al quiz de preferencias gastronómicas.
+  \item \textbf{Enlace ``Ya tengo cuenta''} (TextButton) que lleva directamente al login.
+\end{itemize}
+
+\subsection{Navegación}
+\begin{itemize}
+  \item Botón ``Empezar'' $\rightarrow$ \texttt{/preferences}
+  \item Enlace ``Ya tengo cuenta'' $\rightarrow$ \texttt{/login}
+\end{itemize}
+
+\begin{decisionbox}
+  Se eligió un \textbf{onboarding de 3 pasos} en lugar de un tutorial más extenso, respetando la regla de los 3 segundos de atención: cada diapositiva comunica un concepto único (descubrir, recorrer, coleccionar) que cubre el ciclo completo de la experiencia del usuario.
+\end{decisionbox}
+
+% --- 4.2 Preferences Screen ---
+\section{Pantalla de Preferencias Gastronómicas (\texttt{PreferencesScreen})}
+
+\subsection{Descripción}
+Quiz interactivo e inmersivo que determina el \textbf{perfil gastronómico} del usuario mediante una serie de preguntas sobre sus preferencias culinarias. El resultado asigna uno de seis perfiles predefinidos que personalizará las recomendaciones de huecas.
+
+\subsection{Perfiles Gastronómicos}
+Cada perfil tiene un identificador, nombre bilingüe, descripción, emoji representativo, icono y una lista de tags de coincidencia:
+
+\begin{longtable}{>{\bfseries}p{3.2cm} p{1.2cm} p{3.5cm} p{5.5cm}}
+\toprule
+\textbf{Perfil} & \textbf{Icono} & \textbf{Nombre (ES/EN)} & \textbf{Tags de Coincidencia} \\
+\midrule
+El Sopero & \faIcon{utensils} & The Soup Lover & sopas, caldos, locro, encebollado, yahuarlocro, sancochos \\
+El Carnívoro & \faIcon{drumstick-bite} & The Meat King & hornado, fritada, carnes, churrasco, asados, menestras, parrilladas \\
+El Callejero & \faIcon{hamburger} & The Street Foodie & hamburguesas, pizzas, pollo frito, salchipapas, comida rápida, alitas \\
+El Dulcero & \faIcon{ice-cream} & The Sweet Tooth & postres, helados, dulces, cafés, quesadillas, empanadas dulces \\
+El Picador Clásico & \faIcon{cookie} & The Classic Snacker & empanadas, humitas, corvinas, tamales, motes, antojitos, quimbolitos \\
+El Aventurero & \faIcon{fire} & The Adventurer & tripa mishqui, cuy, menudencias, ceviche, guatita, mercado \\
+\bottomrule
+\end{longtable}
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Preguntas con opciones tipo tarjeta} seleccionable con animación de selección (borde naranja al seleccionar).
+  \item \textbf{Barra de progreso} lineal que indica el avance del quiz.
+  \item \textbf{Botones de navegación} ``Anterior'' y ``Siguiente'' para moverse entre preguntas.
+  \item \textbf{Pantalla de resultado} con el perfil asignado, su emoji, descripción y animación de revelación.
+  \item \textbf{Efecto de confeti} al revelar el perfil, utilizando la librería \texttt{confetti}.
+  \item \textbf{Botón ``Continuar''} que lleva al login o directamente al home.
+\end{itemize}
+
+\begin{decisionbox}
+  El sistema de perfiles gastronómicos se diseñó con categorías que reflejan los arquetipos reales de los comensales de huecas ecuatorianas. Los tags de coincidencia permiten un matching algorítmico entre el perfil del usuario y las categorías/tags de cada hueca, generando recomendaciones personalizadas sin necesidad de Machine Learning complejo.
+\end{decisionbox}
+
+% --- 4.3 Login Screen ---
+\section{Pantalla de Inicio de Sesión (\texttt{LoginScreen})}
+
+\subsection{Descripción}
+Pantalla de autenticación que permite al usuario acceder a la aplicación mediante correo electrónico y contraseña o a través de Google Sign-In. Incluye funcionalidad de recuperación de contraseña y enlace al registro de nuevas cuentas.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Logo y título} ``Hue-Quito'' con subtítulo descriptivo.
+  \item \textbf{Campo de correo electrónico} (\texttt{TextFormField}) con validación de formato de email, prefijo con icono de correo.
+  \item \textbf{Campo de contraseña} con toggle de visibilidad (icono de ojo abierto/cerrado) y validación de longitud mínima.
+  \item \textbf{Enlace ``¿Olvidaste tu contraseña?''} que abre un diálogo de recuperación.
+  \item \textbf{Botón ``Iniciar Sesión''} (ElevatedButton, píldora naranja) con indicador de carga durante la autenticación.
+  \item \textbf{Divisor ``O continúa con''} con líneas decorativas.
+  \item \textbf{Botón de Google Sign-In} con el logo oficial de Google y texto ``Continuar con Google''.
+  \item \textbf{Enlace ``¿No tienes cuenta? Regístrate''} que navega al formulario de registro.
+  \item \textbf{Botón ``Explorar sin cuenta''} que permite navegar la app como invitado con funcionalidades limitadas.
+\end{itemize}
+
+\subsection{Lógica de Autenticación}
+\begin{enumerate}
+  \item \textbf{Login con correo/contraseña:} Se utiliza \texttt{FirebaseAuth.signInWithEmailAndPassword}. En caso de error, se muestra un \texttt{SnackBar} con el mensaje de error localizado en español.
+  \item \textbf{Google Sign-In:} Flujo OAuth 2.0 completo con \texttt{GoogleSignIn} $\rightarrow$ \texttt{GoogleSignInAuthentication} $\rightarrow$ \texttt{FirebaseAuth.signInWithCredential}. Al completar, se verifica si el usuario ya existe en Firestore; si no, se crea un documento nuevo.
+  \item \textbf{Recuperación de contraseña:} Se invoca \texttt{FirebaseAuth.sendPasswordResetEmail} con el correo proporcionado. Firebase envía un correo en español (idioma configurado en \texttt{main.dart}).
+  \item \textbf{Post-login:} Se consulta el rol del usuario en Firestore. Según el rol:
+  \begin{itemize}
+    \item \texttt{admin} $\rightarrow$ \texttt{/admin/dashboard}
+    \item \texttt{business} $\rightarrow$ \texttt{/business/dashboard}
+    \item \texttt{user} $\rightarrow$ \texttt{/home}
+  \end{itemize}
+\end{enumerate}
+
+\begin{techbox}
+  El idioma de Firebase Auth se configura globalmente en \texttt{main.dart} con \texttt{FirebaseAuth.instance.setLanguageCode('es')}. Esto asegura que todos los correos transaccionales (verificación, recuperación de contraseña, cambio de email) lleguen en español al usuario.
+\end{techbox}
+
+% --- 4.4 Register Screen ---
+\section{Pantalla de Registro (\texttt{RegisterScreen})}
+
+\subsection{Descripción}
+Formulario de registro para nuevos usuarios. Para cuentas de usuario regular, se solicita correo y contraseña. Para cuentas de hueca (dueño de negocio), el flujo es diferente: se ingresa únicamente el correo y se envía un enlace de creación de contraseña por correo electrónico, evitando que el administrador que crea la cuenta conozca la contraseña del dueño.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Campo de nombre completo} (\texttt{TextFormField}) con validación de no vacío.
+  \item \textbf{Campo de correo electrónico} con validación de formato.
+  \item \textbf{Campo de contraseña} con requisitos de seguridad (mínimo 6 caracteres).
+  \item \textbf{Campo de confirmación de contraseña} con validación de coincidencia.
+  \item \textbf{Botón ``Registrarse''} con indicador de carga.
+  \item \textbf{Enlace ``Ya tengo cuenta''} que navega a \texttt{/login}.
+\end{itemize}
+
+\subsection{Lógica de Registro}
+\begin{enumerate}
+  \item Se crea el usuario en Firebase Auth con \texttt{createUserWithEmailAndPassword}.
+  \item Se envía un correo de verificación con \texttt{sendEmailVerification}.
+  \item Se crea el documento del usuario en Firestore con los campos iniciales (nombre, correo, rol, fecha de creación).
+  \item Se redirige al usuario a \texttt{/home} o al flujo de preferencias si no las ha completado.
+\end{enumerate}
+
+% --- 4.5 Home Screen ---
+\section{Pantalla Principal (\texttt{HomeScreen})}
+
+\subsection{Descripción}
+Pantalla central de descubrimiento que presenta un feed de huecas en formato de tarjetas desplazables. Incluye una barra de búsqueda, filtros por sector/categoría y la hueca recomendada según el perfil gastronómico del usuario. Es el punto de entrada principal después del login.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Saludo personalizado} con el nombre del usuario y su perfil gastronómico (emoji + nombre).
+  \item \textbf{Barra de búsqueda} (\texttt{TextField}) con icono de lupa, que filtra huecas por nombre, categoría o tags en tiempo real.
+  \item \textbf{Chips de filtro horizontal} (\texttt{FilterChip}) con las categorías principales: ``Todos'', ``Sopas'', ``Carnes'', ``Comida Rápida'', ``Postres'', ``Antojitos'', ``Mercado''.
+  \item \textbf{Sección ``Recomendado para ti''} con tarjetas de huecas que coinciden con los tags del perfil gastronómico del usuario.
+  \item \textbf{Lista de huecas} en formato de tarjetas verticales (\texttt{Card}) con:
+  \begin{itemize}
+    \item Imagen principal de la hueca con bordes redondeados.
+    \item Nombre de la hueca en texto bold.
+    \item Categoría y sector en chips pequeños.
+    \item Calificación promedio con estrellas.
+    \item Rango de precios.
+    \item Botón de favorito (corazón con toggle).
+    \item Indicador de distancia (si la geolocalización está activa).
+  \end{itemize}
+  \item \textbf{Pull-to-refresh} para recargar los datos desde Firestore.
+  \item \textbf{Botón flotante} (FAB) para acceder rápidamente al mapa interactivo.
+\end{itemize}
+
+\subsection{Lógica de Negocio}
+\begin{itemize}
+  \item Las huecas se cargan en tiempo real desde Firestore mediante \texttt{StreamProvider} (provider \texttt{huecasProvider}).
+  \item El filtrado por búsqueda y categoría se ejecuta localmente sobre la lista cacheada.
+  \item El algoritmo de recomendación compara los tags del perfil gastronómico del usuario con los tags de cada hueca y ordena por coincidencia.
+  \item Al tocar una tarjeta, se navega a \texttt{/hueca\_detail} con la instancia de la hueca como parámetro \texttt{extra}.
+\end{itemize}
+
+% --- 4.6 Map Screen ---
+\section{Mapa Interactivo (\texttt{MapScreen})}
+
+\subsection{Descripción}
+Pantalla de mapa interactivo que muestra la ubicación georreferenciada de todas las huecas registradas en la plataforma. Permite la exploración geográfica, filtrado por sectores, búsqueda por nombre y la activación de la navegación hacia una hueca seleccionada.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Mapa de Google Maps} (\texttt{GoogleMap}) ocupando toda la pantalla, con estilo de mapa personalizado para resaltar las calles y reducir la prominencia visual de elementos no relevantes.
+  \item \textbf{Marcadores personalizados} para cada hueca, con icono diferenciado por categoría.
+  \item \textbf{Barra de búsqueda superior} flotante con transparencia parcial.
+  \item \textbf{Chips de filtro por sector} (Centro Histórico, La Mariscal, Norte, Sur, Valles) en barra horizontal deslizable.
+  \item \textbf{Bottom Sheet deslizable} que aparece al tocar un marcador, mostrando:
+  \begin{itemize}
+    \item Nombre y foto de la hueca.
+    \item Dirección, categoría y calificación.
+    \item Botón ``Ver detalle'' que navega a \texttt{/hueca\_detail}.
+    \item Botón ``Navegar'' que abre la navegación GPS hacia la hueca.
+  \end{itemize}
+  \item \textbf{Botón de ubicación actual} (FAB) que centra el mapa en la posición GPS del usuario.
+  \item \textbf{Selector de idioma} para alternar la visualización de nombres y descripciones entre español e inglés.
+\end{itemize}
+
+\subsection{Lógica de Negocio}
+\begin{itemize}
+  \item La geolocalización se obtiene con \texttt{Geolocator} solicitando permiso de ubicación al usuario.
+  \item Los marcadores se generan dinámicamente a partir de los datos de Firestore, filtrando según el sector y la búsqueda activa.
+  \item La navegación GPS se gestiona con \texttt{MapNavigationHelper}, que ofrece opciones de abrir en Google Maps, Waze u otras apps de navegación instaladas.
+\end{itemize}
+
+\begin{decisionbox}
+  Se eligió \textbf{Google Maps} como motor de mapas principal por su excelente cobertura cartográfica en Quito y su familiaridad para los usuarios ecuatorianos. Como complemento, se integra \textbf{Flutter Map} (basado en OpenStreetMap) para funcionalidades de visualización de rutas donde se requiere mayor personalización visual del mapa.
+\end{decisionbox}
+
+% --- 4.7 Hueca Detail Screen ---
+\section{Detalle de Hueca (\texttt{HuecaDetailScreen})}
+
+\subsection{Descripción}
+Pantalla de detalle completa de una hueca individual. Es la pantalla más rica en contenido de toda la aplicación, presentando toda la información disponible del establecimiento en un diseño de scroll vertical con secciones colapsables.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Carrusel de fotos automático} (\texttt{PageView}) en la parte superior:
+  \begin{itemize}
+    \item Desplazamiento automático con temporizador de 4 segundos.
+    \item Contador dinámico ``1/5'' superpuesto.
+    \item Al tocar una foto, se abre un visor a pantalla completa con \texttt{InteractiveViewer} para hacer zoom.
+    \item Si no hay fotos, se muestra un placeholder con icono de restaurante.
+  \end{itemize}
+  \item \textbf{Encabezado} con:
+  \begin{itemize}
+    \item Nombre de la hueca (headlineMedium).
+    \item Chip de categoría con color.
+    \item Calificación promedio con estrellas y número de reseñas.
+    \item Rango de precios.
+    \item Botón de favorito animado.
+    \item Botón de compartir (\texttt{share\_plus}).
+    \item Indicador de si es ``Verificada'' (checkmark verde).
+  \end{itemize}
+  \item \textbf{Sección de Información General:}
+  \begin{itemize}
+    \item Descripción bilingüe (español/inglés) con toggle de idioma.
+    \item Dirección con icono de ubicación y acción de abrir en mapa.
+    \item Horario de atención con indicador de estado actual (Abierto/Cerrado).
+    \item Teléfono con acción de llamar directamente (\texttt{url\_launcher}).
+    \item Tags/etiquetas de especialidades.
+  \end{itemize}
+  \item \textbf{Sección de Menú:}
+  \begin{itemize}
+    \item Lista de platos organizados por categoría (Entradas, Platos Fuertes, Bebidas, Postres).
+    \item Cada plato muestra: nombre (ES/EN), descripción, precio y foto opcional.
+    \item Botón de toggle para ver el menú en inglés (para turistas).
+  \end{itemize}
+  \item \textbf{Sección de Sucursales:}
+  \begin{itemize}
+    \item Lista de sucursales con nombre, dirección y botón de navegación individual.
+    \item Si la hueca solo tiene una ubicación, esta sección no se muestra.
+  \end{itemize}
+  \item \textbf{Sección de Reseñas:}
+  \begin{itemize}
+    \item Promedio de calificación con gráfico de barras de distribución (5 a 1 estrellas).
+    \item Lista de reseñas individuales con: avatar del usuario, nombre, fecha, calificación y comentario.
+    \item Formulario para agregar nueva reseña con selector de estrellas y campo de texto.
+  \end{itemize}
+  \item \textbf{Sección de Suscripción a Notificaciones:}
+  \begin{itemize}
+    \item Switch toggle para suscribirse/desuscribirse de las promociones de esta hueca.
+    \item Icono de campana con badge animado.
+    \item Texto explicativo ``Recibe promociones y novedades de esta hueca''.
+  \end{itemize}
+  \item \textbf{Barra de acciones inferior} fija:
+  \begin{itemize}
+    \item Botón ``Navegar'' (icono de dirección) que abre la navegación GPS.
+    \item Botón ``Llamar'' (icono de teléfono).
+    \item Botón ``Compartir'' (icono de share).
+  \end{itemize}
+\end{itemize}
+
+\begin{funcbox}
+\textbf{Funcionalidades clave del detalle de hueca:}
+\begin{enumerate}
+  \item \textbf{Carrusel auto-scroll:} Timer de 4 segundos que avanza automáticamente las fotos. Se pausa al interactuar manualmente.
+  \item \textbf{Visor de fotos a pantalla completa:} \texttt{InteractiveViewer} con \texttt{BoxFit.contain} para zoom pinch-to-zoom.
+  \item \textbf{Traducción de menú:} Toggle entre español e inglés que muestra los campos \texttt{nameEn}/\texttt{descriptionEn} cuando están disponibles.
+  \item \textbf{Sistema de reseñas:} Creación, lectura y cálculo de promedio en tiempo real.
+  \item \textbf{Suscripción a notificaciones:} Se almacena en el campo \texttt{subscribedHuecas} del perfil del usuario en Firestore.
+  \item \textbf{Navegación GPS:} Abre la aplicación de mapas del dispositivo con las coordenadas del establecimiento.
+\end{enumerate}
+\end{funcbox}
+
+% --- 4.8 Album Screen ---
+\section{Álbum de Stickers (\texttt{AlbumScreen})}
+
+\subsection{Descripción}
+Pantalla de gamificación que muestra el ``álbum de stickers'' del usuario, una colección visual de todas las huecas que ha visitado físicamente y verificado mediante escaneo de código QR. Cada hueca visitada desbloquea un sticker coleccionable con su imagen y nombre.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Encabezado} con contador de progreso: ``X/Y huecas visitadas''.
+  \item \textbf{Barra de progreso circular} o lineal que muestra el porcentaje de completitud.
+  \item \textbf{Grid de stickers} (2--3 columnas):
+  \begin{itemize}
+    \item \textbf{Stickers desbloqueados:} Muestran la foto de la hueca, su nombre y un checkmark verde. Se pueden tocar para ver el detalle.
+    \item \textbf{Stickers bloqueados:} Silueta gris con icono de candado y el nombre parcialmente oculto (``????''). Generan curiosidad y motivan la visita.
+  \end{itemize}
+  \item \textbf{Mensaje motivacional} según el progreso (e.g., ``¡Sigue explorando!'', ``¡Casi completas tu colección!'').
+\end{itemize}
+
+\subsection{Lógica de Gamificación}
+El álbum se actualiza cuando el usuario escanea exitosamente un código QR en una hueca. La lista de huecas visitadas se almacena en el campo \texttt{visitedHuecas} del perfil del usuario en Firestore. El porcentaje de completitud se calcula como la razón entre huecas visitadas y el total de huecas activas en la plataforma.
+
+% --- 4.9 Scan Screen ---
+\section{Escáner QR (\texttt{ScanScreen})}
+
+\subsection{Descripción}
+Pantalla de escaneo de códigos QR que permite al usuario registrar su visita presencial a una hueca. Al escanear el código QR único del establecimiento, la visita se valida y se agrega al álbum del usuario.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Vista de cámara} a pantalla completa con el escáner de código QR activo (\texttt{MobileScanner}).
+  \item \textbf{Overlay visual} con un recuadro de enfoque animado en el centro de la pantalla.
+  \item \textbf{Instrucciones} ``Apunta la cámara al código QR de la hueca'' en texto superpuesto.
+  \item \textbf{Botón de linterna} (toggle) para iluminar en ambientes oscuros.
+  \item \textbf{Botón de cambio de cámara} (frontal/trasera).
+  \item \textbf{Feedback de escaneo exitoso:} Animación de confeti + diálogo de éxito con el nombre de la hueca y el sticker desbloqueado.
+  \item \textbf{Feedback de escaneo fallido:} Diálogo con mensaje de error (QR no válido, ya visitada, etc.).
+\end{itemize}
+
+\subsection{Lógica de Validación QR}
+\begin{enumerate}
+  \item El código QR contiene un identificador único de la hueca (formato: \texttt{huequito://hueca/<huecaId>}).
+  \item Se verifica que el ID corresponda a una hueca existente en Firestore.
+  \item Se verifica que el usuario no haya registrado ya esta hueca en su álbum.
+  \item Si es válida, se agrega el ID al array \texttt{visitedHuecas} del usuario y se navega a la pantalla de recompensa.
+  \item Si se alcanza un hito (5, 10, 15, 20 huecas), se muestra una animación especial de logro.
+\end{enumerate}
+
+% --- 4.10 Profile Screen ---
+\section{Perfil de Usuario (\texttt{ProfileScreen})}
+
+\subsection{Descripción}
+Pantalla de perfil que muestra la información del usuario, sus estadísticas de uso, configuraciones de la aplicación y opciones de cuenta.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Sección de perfil:}
+  \begin{itemize}
+    \item Foto de perfil circular (de Google o placeholder con iniciales).
+    \item Nombre del usuario.
+    \item Correo electrónico.
+    \item Perfil gastronómico asignado (emoji + nombre).
+    \item Botón ``Editar perfil'' que navega a \texttt{/edit\_profile}.
+  \end{itemize}
+  \item \textbf{Estadísticas:}
+  \begin{itemize}
+    \item Número de huecas visitadas.
+    \item Número de huecas favoritas.
+    \item Reseñas escritas.
+  \end{itemize}
+  \item \textbf{Sección de Configuración:}
+  \begin{itemize}
+    \item \textbf{Modo Oscuro:} Switch toggle.
+    \item \textbf{Tamaño de texto:} Selector de 3 opciones (A-, A, A+).
+    \item \textbf{Alto contraste:} Switch toggle.
+    \item \textbf{Idioma:} Selector español/inglés.
+  \end{itemize}
+  \item \textbf{Sección de Enlaces:}
+  \begin{itemize}
+    \item ``Preguntas Frecuentes'' $\rightarrow$ \texttt{FAQScreen}.
+    \item ``Términos y Condiciones'' $\rightarrow$ \texttt{TermsScreen}.
+    \item ``Cambiar a Panel de Negocio'' (visible solo si el usuario tiene rol \texttt{business}).
+    \item ``Panel de Administración'' (visible solo si el usuario tiene rol \texttt{admin}).
+  \end{itemize}
+  \item \textbf{Botón ``Cerrar Sesión''} (rojo) con confirmación.
+\end{itemize}
+
+% --- 4.11 Route List Screen ---
+\section{Lista de Rutas Gastronómicas (\texttt{RouteListScreen})}
+
+\subsection{Descripción}
+Catálogo de rutas gastronómicas prediseñadas que conectan múltiples huecas en recorridos temáticos. Cada ruta tiene un tema gastronómico (e.g., ``Ruta del Hornado'', ``Tour de Mercados''), una dificultad estimada y un tiempo de recorrido.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Lista de tarjetas de rutas} con:
+  \begin{itemize}
+    \item Nombre de la ruta (bilingüe).
+    \item Descripción breve.
+    \item Número de paradas (huecas).
+    \item Distancia total estimada (km).
+    \item Duración estimada (horas/minutos).
+    \item Dificultad (Fácil/Moderada/Difícil) con icono de color.
+    \item Sector de la ciudad.
+    \item Imagen representativa.
+  \end{itemize}
+  \item \textbf{Filtros} por sector, dificultad y duración.
+  \item \textbf{Botón ``Ver en mapa''} que navega a \texttt{/route\_map}.
+\end{itemize}
+
+\subsection{Navegación}
+Al tocar una ruta, se navega a \texttt{/route\_detail} con el modelo de la ruta como parámetro.
+
+% --- 4.12 Route Detail Screen ---
+\section{Detalle de Ruta (\texttt{RouteDetailScreen})}
+
+\subsection{Descripción}
+Vista detallada de una ruta gastronómica con la lista ordenada de paradas (huecas) y la opción de iniciar la navegación.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Encabezado} con nombre de la ruta, descripción completa y metadatos (distancia, duración, dificultad).
+  \item \textbf{Lista de paradas numeradas} con:
+  \begin{itemize}
+    \item Indicador numérico de orden (1, 2, 3...).
+    \item Foto miniatura de la hueca.
+    \item Nombre y categoría.
+    \item Dirección.
+    \item Botón ``Ver detalle'' que navega al detalle de la hueca.
+  \end{itemize}
+  \item \textbf{Botón ``Iniciar Ruta''} (FAB naranja) que inicia la navegación paso a paso.
+\end{itemize}
+
+% --- 4.13 Route Map Screen ---
+\section{Mapa de Ruta (\texttt{RouteMapScreen})}
+
+\subsection{Descripción}
+Pantalla de mapa que muestra visualmente una o todas las rutas gastronómicas con las paradas marcadas y las líneas de ruta trazadas entre ellas.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Mapa Flutter Map} (OpenStreetMap) con:
+  \begin{itemize}
+    \item Marcadores numerados para cada parada de la ruta.
+    \item Polylines coloreadas (trazos de la ruta) entre paradas consecutivas.
+    \item Recuadro de ajuste automático (\texttt{fitBounds}) para mostrar toda la ruta.
+  \end{itemize}
+  \item \textbf{Panel inferior} con la lista de paradas y el progreso.
+  \item \textbf{Selector de idioma} (ES/EN) para los nombres de las paradas.
+  \item \textbf{Botón ``Iniciar Navegación''} que comienza la guía paso a paso.
+\end{itemize}
+
+\begin{decisionbox}
+  Para la visualización de rutas se eligió \textbf{Flutter Map} (OpenStreetMap) en lugar de Google Maps porque permite mayor personalización visual del estilo del mapa y de los trazos de ruta, además de no incurrir en costos de API cuando se visualizan múltiples rutas simultáneamente.
+\end{decisionbox}
+
+% --- 4.14 Navigation Screen ---
+\section{Navegación GPS (\texttt{NavigationScreen})}
+
+\subsection{Descripción}
+Pantalla de navegación en tiempo real que guía al usuario desde su posición actual hasta una hueca específica, mostrando la ruta óptima, la distancia restante y las instrucciones paso a paso.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Mapa a pantalla completa} con la ubicación del usuario en tiempo real y el destino marcado.
+  \item \textbf{Polyline de la ruta} calculada mediante la Google Routes API v2.
+  \item \textbf{Panel inferior} con:
+  \begin{itemize}
+    \item Distancia restante.
+    \item Tiempo estimado de llegada.
+    \item Nombre de la hueca destino.
+  \end{itemize}
+  \item \textbf{Botón ``Abrir en Google Maps''} para transferir la navegación a la app nativa.
+  \item \textbf{Botón ``Cancelar''} para salir de la navegación.
+\end{itemize}
+
+% --- 4.15 Route Navigation Screen ---
+\section{Navegación de Ruta Completa (\texttt{RouteNavigationScreen})}
+
+\subsection{Descripción}
+Extensión de la pantalla de navegación que guía al usuario a través de toda una ruta gastronómica (múltiples paradas). Muestra la parada actual, la siguiente y el progreso general de la ruta.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item Mapa con la ruta completa y todas las paradas.
+  \item Indicador de la parada actual (resaltada) y las siguientes.
+  \item Panel de progreso con el conteo de paradas visitadas vs.\ total.
+  \item Botón ``Siguiente parada'' al llegar al destino actual.
+  \item Notificación de proximidad cuando el usuario está cerca de la siguiente hueca.
+\end{itemize}
+
+% --- 4.16 Reward Screen ---
+\section{Pantalla de Recompensa (\texttt{RewardScreen})}
+
+\subsection{Descripción}
+Pantalla de celebración que se muestra cuando el usuario escanea exitosamente un código QR y desbloquea un nuevo sticker en su álbum. Presenta una animación festiva con confeti y el sticker desbloqueado.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Animación de confeti} (\texttt{confetti}) en toda la pantalla.
+  \item \textbf{Sticker desbloqueado} con la imagen de la hueca, ampliado y con efecto de brillo.
+  \item \textbf{Mensaje de felicitación} (``¡Nuevo sticker desbloqueado!'').
+  \item \textbf{Nombre de la hueca visitada.}
+  \item \textbf{Botón ``Ver mi álbum''} que navega a \texttt{/album}.
+  \item \textbf{Botón ``Seguir explorando''} que regresa al home.
+\end{itemize}
+
+% --- 4.17 Settings Screens ---
+\section{Pantallas de Configuración}
+
+\subsection{Preguntas Frecuentes (\texttt{FAQScreen})}
+Pantalla con listado de preguntas frecuentes organizadas en tarjetas expandibles (\texttt{ExpansionTile}). Cada pregunta se despliega al tocarla, mostrando la respuesta detallada. Las preguntas cubren temas como: ¿Qué es una hueca?, ¿Cómo escaneo un QR?, ¿Cómo funciona el álbum?, ¿Cómo puedo registrar mi hueca?, entre otras. El contenido se muestra en el idioma configurado por el usuario.
+
+\subsection{Términos y Condiciones (\texttt{TermsScreen})}
+Pantalla de texto scrollable con los términos de uso y política de privacidad de la aplicación. El contenido se presenta con formato de secciones numeradas con encabezados y párrafos. Incluye información sobre el uso de datos, geolocalización, fotografías y derechos de los usuarios. También se muestra en el idioma configurado.
+
+% --- 4.18 Splash Screen ---
+\section{Pantalla de Carga (\texttt{SplashScreen})}
+
+\subsection{Descripción}
+Pantalla de carga inicial que se muestra mientras se inicializan los servicios de Firebase y se verifica el estado de autenticación del usuario. Presenta el logo de Hue-Quito con una animación de carga.
+
+\subsection{Lógica de Inicialización}
+\begin{enumerate}
+  \item Se inicializa Firebase.
+  \item Se verifica si hay un usuario autenticado en caché.
+  \item Si existe sesión activa, se consulta el rol y se redirige al panel correspondiente.
+  \item Si no hay sesión, se muestra la pantalla de bienvenida.
+\end{enumerate}
+
+
+% =============================================================================
+% CAPÍTULO 5: MÓDULO DE DUEÑO DE HUECA
+% =============================================================================
+\chapter{Módulo de Dueño de Hueca (Panel de Negocio)}
+
+Este módulo comprende todas las pantallas y funcionalidades disponibles para los propietarios de huecas y encargados de sucursales, accesible mediante un panel dedicado con navegación propia.
+
+\section{Layout del Panel de Negocio (\texttt{BusinessLayout})}
+
+\subsection{Descripción}
+Contenedor shell persistente que aloja todas las pantallas del portal de negocios. Proporciona una barra de navegación inferior (\texttt{BottomNavigationBar}) fija con 5 pestañas sincronizadas con el enrutamiento GoRouter.
+
+\subsection{Pestañas de Navegación}
+\begin{longtable}{>{\bfseries}p{1cm} p{3cm} p{3cm} p{6cm}}
+\toprule
+\textbf{Idx} & \textbf{Etiqueta} & \textbf{Icono} & \textbf{Ruta} \\
+\midrule
+0 & Dashboard & \texttt{Icons.bar\_chart} & \texttt{/business/dashboard} \\
+1 & Menú & \texttt{Icons.restaurant\_menu} & \texttt{/business/menu} \\
+2 & Avisos & \texttt{Icons.campaign} & \texttt{/business/notifications} \\
+3 & Mi QR & \texttt{Icons.qr\_code} & \texttt{/business/qr} \\
+4 & Perfil & \texttt{Icons.store} & \texttt{/business/profile} \\
+\bottomrule
+\end{longtable}
+
+\begin{decisionbox}
+El panel de negocio utiliza un \texttt{ShellRoute} independiente del \texttt{StatefulShellRoute} del usuario normal, lo que permite que cada sección tenga su propio estado de navegación y que el dueño pueda gestionar su negocio sin interferir con la experiencia de usuario final.
+\end{decisionbox}
+
+% --- 5.2 Dashboard ---
+\section{Dashboard de Negocio (\texttt{BusinessDashboardScreen})}
+
+\subsection{Descripción}
+Panel analítico principal que muestra métricas de impacto de la hueca en tiempo real. Incluye indicadores clave de rendimiento (KPIs), metas semanales con barras de progreso y acceso al tutorial interactivo de onboarding.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Cabecera con gradiente:} Contenedor con \texttt{LinearGradient} del color primario, mostrando un contador gigante de \textbf{``Vistas Totales del Perfil''} en tipografía de 48px.
+  \item \textbf{Cuadrícula de KPIs} (2$\times$2):
+  \begin{enumerate}
+    \item \textbf{Favoritos} (\texttt{Icons.favorite}, rojo): Número de comensales que marcaron la hueca como favorita.
+    \item \textbf{En Rutas} (\texttt{Icons.map}, verde): Número de rutas gastronómicas que incluyen esta hueca.
+    \item \textbf{Sellos Dados} (\texttt{Icons.local\_activity}, naranja): Total de sellos de fidelización otorgados.
+    \item \textbf{Reseñas} (\texttt{Icons.rate\_review}, azul): Número total de reseñas recibidas.
+  \end{enumerate}
+  \item \textbf{Banner de Tutorial:} Tarjeta con gradiente oscuro (\texttt{\#0F172A} a \texttt{\#1E293B}), icono de cohete y botón ``Ver Guía'' que lanza el diálogo de onboarding interactivo.
+  \item \textbf{Progreso Semanal:}
+  \begin{itemize}
+    \item Meta de vistas (1000): \texttt{LinearProgressIndicator} con porcentaje.
+    \item Meta de favoritos (100): \texttt{LinearProgressIndicator} con porcentaje.
+  \end{itemize}
+  \item \textbf{Menú contextual} (\texttt{PopupMenuButton}): Opción ``Eliminar Hueca'' que despliega el diálogo de confirmación segura.
+\end{itemize}
+
+\subsection{Sincronización de Métricas en Tiempo Real}
+El dashboard utiliza un \texttt{StreamBuilder} conectado directamente al documento de Firestore de la hueca, garantizando que cualquier cambio en las métricas (nueva reseña, nuevo favorito, sello otorgado) se refleje instantáneamente sin necesidad de recargar la pantalla. Adicionalmente, al cargar el dashboard por primera vez en cada sesión, se ejecuta \texttt{syncHuecaMetrics()} para recalcular y corregir posibles discrepancias entre los contadores almacenados y los datos reales de las subcolecciones.
+
+\begin{techbox}
+La función \texttt{syncHuecaMetrics()} realiza un recálculo exhaustivo consultando:
+\begin{enumerate}
+  \item La subcolección \texttt{reviews} para obtener el conteo y promedio reales.
+  \item Todos los documentos de \texttt{users} para contar cuántos tienen esta hueca en \texttt{favoriteHuecas}.
+  \item La colección \texttt{routes} para contar en cuántas rutas aparece la hueca como parada.
+\end{enumerate}
+Esto corrige drift natural entre escrituras concurrentes sin necesidad de Cloud Functions.
+\end{techbox}
+
+% --- 5.3 Onboarding Dialog ---
+\section{Tutorial de Onboarding (\texttt{BusinessOnboardingDialog})}
+
+\subsection{Descripción}
+Diálogo modal de inducción interactivo que se muestra automáticamente la primera vez que un dueño accede al panel de negocio. Guía al propietario paso a paso por todas las funcionalidades disponibles.
+
+\subsection{Diapositivas del Tutorial}
+\begin{enumerate}
+  \item \textbf{Bienvenida al Panel:} Explicación general de las capacidades del panel.
+  \item \textbf{Dashboard de Métricas:} Cómo interpretar los KPIs y las metas.
+  \item \textbf{Gestión de Menú:} Cómo agregar platos manualmente y con IA/OCR.
+  \item \textbf{Sistema de QR:} Cómo funcionan los sellos de fidelización y el QR dinámico antifraude.
+  \item \textbf{Notificaciones:} Cómo enviar promociones a los comensales suscritos.
+  \item \textbf{Perfil del Negocio:} Cómo gestionar fotos, horarios, sucursales y stickers secretos.
+\end{enumerate}
+
+La visualización del tutorial se registra en \texttt{SharedPreferences} con la clave \texttt{has\_seen\_business\_tutorial\_\{huecaId\}} para no mostrarlo en sesiones posteriores.
+
+% --- 5.4 Menu Management ---
+\section{Gestión de Menú Digital (\texttt{BusinessMenuScreen})}
+
+\subsection{Descripción}
+Pantalla de administración del menú gastronómico digital. Ofrece cuatro modalidades de ingreso de platos, desde la digitalización inteligente con IA hasta el ingreso manual, adaptándose a diferentes niveles de madurez tecnológica de los propietarios.
+
+\subsection{Modalidades de Ingreso de Platos}
+
+\begin{longtable}{>{\bfseries}p{4cm} p{2cm} p{7cm}}
+\toprule
+\textbf{Modalidad} & \textbf{Icono} & \textbf{Descripción} \\
+\midrule
+Escanear Carta Completa (IA) & \texttt{Icons.auto\_awesome} & Captura una foto de la carta/menú físico completo. El motor OCR (\texttt{MenuOcrService}) extrae automáticamente todos los platos, precios y categorías, y genera traducciones al inglés. \\
+\addlinespace
+Escanear 1 Plato por Foto (IA) & \texttt{Icons.camera\_enhance} & Toma una foto individual de un plato. Extrae nombre y precio con OCR y pre-rellena el formulario del plato. \\
+\addlinespace
+Subir Múltiples Fotos & \texttt{Icons.photo\_library} & Selecciona varias fotos de la galería. Cada foto se procesa individualmente con OCR para extraer nombres y precios. \\
+\addlinespace
+Añadir Manualmente & \texttt{Icons.edit\_note} & Formulario manual completo para registrar un plato desde cero con todos los campos bilingües. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Lista de Platos}
+Cada plato en la lista muestra:
+\begin{itemize}
+  \item Miniatura de la foto del plato (58$\times$58px).
+  \item Nombre en español con badge azul ``EN'' mostrando la traducción al inglés.
+  \item Precio con prefijo \$ en color primario.
+  \item Categoría del plato.
+  \item Descripción bilingüe (español + inglés con bandera británica).
+  \item Etiqueta de advertencia si el plato no tiene fotografía asignada.
+  \item Botones de editar y eliminar (solo para el dueño; los encargados ven modo solo lectura).
+\end{itemize}
+
+\begin{decisionbox}
+Las cuatro modalidades de ingreso de platos fueron diseñadas para democratizar el acceso tecnológico: un dueño de hueca del Mercado Central que nunca ha usado un celular de forma avanzada puede simplemente tomar una foto de su pizarra de precios, mientras que un propietario más tecnificado puede editar manualmente cada detalle. La traducción automática al inglés es transparente y obligatoria, garantizando que todo menú sea bilingüe para turistas.
+\end{decisionbox}
+
+% --- 5.5 OCR Service ---
+\section{Motor de Digitalización OCR (\texttt{MenuOcrService})}
+
+\subsection{Descripción}
+Servicio de procesamiento visual que utiliza \textbf{Google ML Kit Text Recognition} para convertir fotografías de menús físicos en registros digitales estructurados con platos, precios y traducciones.
+
+\subsection{Pipeline de Procesamiento}
+\begin{enumerate}
+  \item \textbf{Filtrado de ruido:} Descarta líneas con metadatos irrelevantes (teléfonos, WhatsApp, RUC, facturación, SRI, IVA, horarios, WiFi, marcas comerciales).
+  \item \textbf{Detección espacial:} Agrupa líneas por fila según altura mediana y detecta cartas estructuradas en 2 columnas verticales.
+  \item \textbf{Extracción de precios:} Reconoce múltiples formatos: con prefijo (\$12), con sufijo (12 USD), decimales (4.50) y puntos de menú (... 39).
+  \item \textbf{Detección de matrices de precios por tamaño:} Identifica variantes como ``Sencilla \$4.00, Doble \$5.50, Combo \$6.50''.
+  \item \textbf{Recomposición de títulos fragmentados:} Une líneas rotas en 2 partes (ej: ``SUPER'' + ``BANDEJA'').
+  \item \textbf{Clasificación de categoría:} Inferencia léxica automática: Bebidas, Postres, Entradas/Sopas, Platos Típicos, Platos Fuertes.
+  \item \textbf{Traducción automática:} Envía nombres y descripciones a \texttt{TranslationService} para generar las versiones en inglés.
+\end{enumerate}
+
+% --- 5.6 Dish Form ---
+\section{Formulario de Plato (\texttt{DishFormScreen})}
+
+\subsection{Descripción}
+Formulario detallado para registrar o editar un plato del menú. Incluye traducción automática bidireccional con IA, selector de fotografía y conmutador de disponibilidad.
+
+\subsection{Campos del Formulario}
+\begin{itemize}
+  \item \textbf{Fotografía del plato:} Selector cuadrado de 140$\times$140px con opciones de cámara, galería o eliminar. La imagen se sube a Firebase Storage con compresión al 75\%.
+  \item \textbf{Banner de auto-traducción IA:} Botón ``Traducir'' que procesa simultáneamente nombre y descripción al inglés.
+  \item \textbf{Nombre del Plato (Español)*:} Con botón de traducción unitaria.
+  \item \textbf{Nombre en Inglés:} Generado automáticamente o editable manualmente.
+  \item \textbf{Precio y Categoría:} Campo decimal y dropdown con 8 categorías (Platos Fuertes, Platos Típicos, Entradas y Guarniciones, Sopas y Caldos, Bebidas, Postres, Especialidades, Otros).
+  \item \textbf{Descripciones bilingües:} Campos multilínea español e inglés.
+  \item \textbf{Disponibilidad:} Switch toggle ``Disponible en la Carta'' / ``Marcado como agotado temporalmente''.
+\end{itemize}
+
+\begin{techbox}
+\textbf{Fallback de traducción automática:} Si el comerciante guarda un plato sin haber traducido manualmente los campos al inglés, el sistema invoca silenciosamente \texttt{TranslationService.translateEsToEn()} antes de persistir en Firestore, garantizando que ningún plato quede sin traducción para los turistas.
+\end{techbox}
+
+% --- 5.7 Gallery Management ---
+\section{Gestión de Galería Fotográfica (\texttt{GalleryManagementScreen})}
+
+\subsection{Descripción}
+Administración de la galería de fotos de la hueca con restricciones de negocio: máximo 5 fotos y mínimo 1 foto obligatoria. La primera foto del array se designa automáticamente como portada.
+
+\subsection{Reglas de Negocio}
+\begin{itemize}
+  \item \textbf{Máximo 5 fotos:} El botón de carga se deshabilita al alcanzar el límite. Muestra el contador ``X/5''.
+  \item \textbf{Mínimo 1 foto:} No se permite eliminar la última foto restante.
+  \item \textbf{Portada automática:} La foto en el índice 0 del array recibe el badge ``Portada'' con borde primario resaltado. Al eliminarla, la siguiente foto asume el rol de portada.
+  \item \textbf{Compresión:} Las fotos se suben a Firebase Storage con calidad al 70\% para optimizar el ancho de banda y el almacenamiento.
+\end{itemize}
+
+% --- 5.8 QR Generator ---
+\section{Generador de QR Dinámico (\texttt{BusinessQrScreen})}
+
+\subsection{Descripción}
+Generador de códigos QR para la entrega de sellos de fidelización a los comensales. Implementa mecanismos \textbf{antifraude} basados en caducidad de tokens cada 30 segundos.
+
+\subsection{Mecanismo Antifraude}
+\begin{itemize}
+  \item Cada 30 segundos, un \texttt{Timer.periodic} genera un nuevo UUID v4 que se incrusta en el payload del código QR.
+  \item El QR anterior deja de ser válido, impidiendo que capturas de pantalla se compartan para reclamar sellos fraudulentamente.
+  \item El contador de sellos es configurable de 1 a 10 mediante controles de incremento/decremento.
+\end{itemize}
+
+\subsection{Estructura del Payload QR}
+\begin{lstlisting}[style=dartcode]
+{
+  "type": "points",
+  "business_id": "ID_HUECA",
+  "branch_id": "ID_SUCURSAL",
+  "branch_name": "NOMBRE_SUCURSAL",
+  "points": 1,
+  "timestamp": 1729000000000,
+  "token": "UUID-V4-DINAMICO"
+}
+\end{lstlisting}
+
+\subsection{Detección de Rol}
+El sistema detecta automáticamente si el usuario autenticado es dueño general (Matriz) o encargado de sucursal, estampando la sucursal emisora correspondiente en el QR.
+
+% --- 5.9 QR Secret Sticker ---
+\section{QR del Sticker Secreto (\texttt{QrSecretStickerScreen})}
+
+\subsection{Descripción}
+Pantalla de visualización e impresión del código QR estático del \textbf{Sticker Secreto} de la hueca o sucursal. Este QR se imprime físicamente y se esconde en el establecimiento para que los comensales lo busquen y escaneen, desbloqueando un cromo exclusivo en su álbum digital.
+
+\subsection{Funcionalidades}
+\begin{itemize}
+  \item \textbf{Visualización del QR:} Código de 250$\times$250px renderizado con \texttt{QrImageView}.
+  \item \textbf{Exportación:} Rasterización a imagen PNG de alta resolución (3x pixel ratio) mediante \texttt{RepaintBoundary}.
+  \item \textbf{Compartir:} Uso de \texttt{Share.shareXFiles} para enviar por WhatsApp o guardar para impresión.
+  \item \textbf{Avatar del sticker:} Imagen circular de 72px mostrando la ilustración del cromo.
+\end{itemize}
+
+\begin{decisionbox}
+El sistema de stickers secretos transforma la visita a una hueca en una \textbf{experiencia de búsqueda del tesoro} (treasure hunt). Al esconder el QR en un lugar del local, se incentiva a los comensales a explorar el espacio físico, interactuar con el personal y crear una conexión emocional con el establecimiento que va más allá de la transacción gastronómica.
+\end{decisionbox}
+
+% --- 5.10 Branch Management ---
+\section{Gestión de Sucursales (\texttt{BranchManagementScreen})}
+
+\subsection{Descripción}
+Panel centralizado de administración de todos los locales y sucursales del negocio. Soporta tanto el modo de dueño de negocio como el modo de superadministrador (\texttt{isAdminMode}).
+
+\subsection{Funcionalidades}
+\begin{itemize}
+  \item \textbf{Listado de sucursales} con badge de ``Matriz'' o ``Sucursal \#N''.
+  \item \textbf{Información por local:} Nombre, dirección, sector, coordenadas GPS (4 decimales), teléfono y correo del encargado asignado.
+  \item \textbf{Creación de nuevos locales:} Botón ``Nuevo Local'' que abre el formulario de sucursal.
+  \item \textbf{Edición de locales existentes.}
+  \item \textbf{Eliminación de sucursales:} Con revocación automática de accesos del encargado.
+\end{itemize}
+
+\subsection{Reglas de Negocio}
+\begin{itemize}
+  \item \textbf{Inviolabilidad de la Matriz:} El local índice 0 (Matriz) no puede ser eliminado.
+  \item \textbf{Mínimo 1 local:} El sistema prohíbe eliminar el último local disponible.
+  \item \textbf{Revocación en cascada:} Al eliminar una sucursal con encargado asignado, la cuenta del encargado se degrada automáticamente a rol \texttt{user} y se elimina su invitación de \texttt{branch\_invitations}.
+\end{itemize}
+
+% --- 5.11 Branch Form ---
+\section{Formulario de Sucursal (\texttt{BranchFormScreen})}
+
+\subsection{Descripción}
+Formulario para la creación o modificación de una sucursal. Incluye selector de ubicación GPS mediante mapa interactivo y sistema de invitación de encargados por correo electrónico.
+
+\subsection{Campos del Formulario}
+\begin{itemize}
+  \item \textbf{Nombre del Local} (ej: ``Sucursal Sur'', ``Local Cumbayá'').
+  \item \textbf{Sector en Quito:} Dropdown con 10 sectores oficiales: Centro Histórico, La Mariscal, Floresta, Norte, Sur, Cumbayá, Tumbaco, Valle de los Chillos, Calderón, Conocoto.
+  \item \textbf{Dirección Escrita.}
+  \item \textbf{Coordenadas GPS:} Módulo interactivo con botón ``Abrir Mapa para Mover el Pin'' que lanza \texttt{LocationPickerScreen}.
+  \item \textbf{Teléfono de Contacto.}
+  \item \textbf{Correo del Encargado (Opcional):} Al asignar un nuevo encargado, el sistema crea su cuenta en Firebase Auth mediante una instancia secundaria (sin cerrar la sesión del dueño) y envía un correo de configuración de contraseña.
+\end{itemize}
+
+\begin{techbox}
+\textbf{Patrón de App Secundaria:} Para crear la cuenta del encargado sin cerrar la sesión del dueño actual, se instancia un \texttt{FirebaseApp} temporal (\texttt{AdminUserCreator\_\{timestamp\}}) que se utiliza exclusivamente para el \texttt{createUserWithEmailAndPassword} y se destruye inmediatamente después. Esto resuelve la limitación de Firebase Auth donde crear un usuario automáticamente inicia sesión con esa cuenta.
+\end{techbox}
+
+% --- 5.12 Location Picker ---
+\section{Selector de Ubicación GPS (\texttt{LocationPickerScreen})}
+
+\subsection{Descripción}
+Mapa interactivo de pantalla completa para fijar la ubicación exacta del local. Utiliza un pin central estático con el mapa móvil debajo, garantizando precisión milimétrica. Incluye geocodificación inversa automática con detección de sector.
+
+\subsection{Elementos de Interfaz}
+\begin{itemize}
+  \item \textbf{Mapa Flutter Map:} Teselas de CartoDB Dark (modo oscuro) u OpenStreetMap (modo claro).
+  \item \textbf{Pin central estático:} Icono de ubicación de 48px con etiqueta ``Ubica tu local aquí''.
+  \item \textbf{Botón GPS:} \texttt{FloatingActionButton} que centra el mapa en la posición satelital del dispositivo.
+  \item \textbf{Tarjeta de confirmación:} Muestra la dirección detectada, el sector de Quito y las coordenadas con 5 decimales.
+  \item \textbf{Debounce de 600ms:} Evita saturar el servicio de geocodificación mientras el usuario arrastra el mapa.
+\end{itemize}
+
+% --- 5.13 Notification Management ---
+\section{Gestión de Notificaciones (\texttt{BusinessNotificationScreen})}
+
+\subsection{Descripción}
+Pantalla de creación y administración de notificaciones promocionales dirigidas a los comensales suscritos. Incluye un generador de texto asistido por IA, vista previa de la notificación nativa de Android y sistema de programación temporal.
+
+\subsection{Flujo de Creación de Notificación}
+\begin{enumerate}
+  \item El dueño selecciona la \textbf{categoría}: Promoción, Evento Especial, Nuevo Plato o Noticia.
+  \item Opcionalmente selecciona la \textbf{sucursal emisora}.
+  \item Escribe el \textbf{título} y \textbf{mensaje} (o utiliza las sugerencias generadas por \texttt{AiGenerationService}).
+  \item Opcionalmente agrega una \textbf{etiqueta de descuento} (ej: ``-20\%'', ``2x1'').
+  \item Opcionalmente \textbf{programa la emisión} para una fecha y hora futura.
+  \item El sistema genera una \textbf{vista previa} que simula la notificación nativa de Android tal como la verá el comensal.
+  \item Al enviar, la notificación se registra con estado \texttt{pending} y queda en espera de aprobación del administrador.
+\end{enumerate}
+
+\subsection{Generación de Texto con IA}
+El \texttt{AiGenerationService} analiza el texto ingresado por el comerciante y genera 3 variantes de copy marketing según la categoría:
+\begin{itemize}
+  \item \textbf{Promoción:} Variantes de antojo y llamado a la acción, plan familiar, urgencia y tradición.
+  \item \textbf{Nuevo Plato:} Estreno en menú, primicia de autor, ingredientes de la tierra.
+  \item \textbf{Evento:} Ambiente y música, gran fiesta tradicional, celebración en el local.
+  \item \textbf{Noticia:} Aviso general, mejoras de atención, comunidad de comensales.
+\end{itemize}
+
+% --- 5.14 Profile Management ---
+\section{Gestión de Perfil de Negocio (\texttt{BusinessProfileScreen})}
+
+\subsection{Descripción}
+Pantalla integral de gestión del perfil público del negocio, datos de contacto, geolocalización, horarios de atención, plato insignia, cartilla de fidelización, sticker secreto y zona de peligro. Implementa control de acceso basado en roles.
+
+\subsection{Secciones del Perfil}
+
+\subsubsection{Información General}
+\begin{itemize}
+  \item Fotos de la Hueca (máx 5) $\rightarrow$ Galería.
+  \item Mis Locales / Sucursales $\rightarrow$ Gestión de sucursales.
+  \item Nombre de la Hueca (editable mediante diálogo).
+  \item Descripción Multilingüe (con traducción automática por IA).
+  \item Dirección Escrita.
+  \item Fijar Punto en el Mapa (GPS) $\rightarrow$ \texttt{LocationPickerScreen}.
+  \item Etiquetas/Tags (máximo 4, mediante chips interactivos).
+  \item Horario de Atención (modal con switches y campos por día de la semana).
+\end{itemize}
+
+\subsubsection{Plato Insignia}
+\begin{itemize}
+  \item Nombre del plato (bilingüe con traducción).
+  \item Descripción del plato (bilingüe con traducción).
+  \item Icono/imagen del plato con carga desde galería.
+\end{itemize}
+
+\subsubsection{Fidelización y Premios}
+\begin{itemize}
+  \item Número de sellos necesarios para completar la cartilla.
+  \item Descripción del premio por cartilla llena.
+  \item Imagen del sello/sticker normal.
+  \item Imagen del premio.
+\end{itemize}
+
+\subsubsection{Sticker Secreto}
+\begin{itemize}
+  \item Nombre del sticker (específico por sucursal si es encargado).
+  \item Imagen del sticker con previsualización.
+  \item Botón ``Ver QR'' $\rightarrow$ \texttt{QrSecretStickerScreen}.
+\end{itemize}
+
+\subsubsection{Zona de Peligro (Solo Dueño)}
+Contenedor con borde rojo y fondo tenue, icono de advertencia, explicación de consecuencias irreversibles y botón ``Eliminar Hueca Permanentemente'' que despliega el diálogo de eliminación segura.
+
+\subsection{Control de Acceso Basado en Roles}
+\begin{itemize}
+  \item \textbf{Dueño de Matriz:} Acceso total a todos los campos y secciones.
+  \item \textbf{Encargado de Sucursal:} Campos globales bloqueados en modo solo lectura con icono de candado. Solo puede modificar:
+  \begin{itemize}
+    \item Horario de atención de su sucursal.
+    \item Nombre e imagen de su propio sticker secreto.
+  \end{itemize}
+\end{itemize}
+
+% --- 5.15 Menu Review ---
+\section{Revisión de Menú OCR (\texttt{MenuReviewScreen})}
+
+\subsection{Descripción}
+Pantalla intermedia de revisión que se muestra después del escaneo OCR de una carta completa. Permite al dueño revisar, editar, eliminar o confirmar cada plato detectado antes de incorporarlo al menú digital oficial.
+
+\subsection{Funcionalidades}
+\begin{itemize}
+  \item Lista de platos detectados con opción de editar nombre, precio, categoría y descripción.
+  \item Foto vinculada al plato (si se usó el modo de escaneo individual o múltiple).
+  \item Toggle individual para incluir o excluir platos específicos.
+  \item Botón ``Confirmar y Guardar Todo'' que persiste los platos seleccionados en Firestore.
+  \item Estadísticas de detección (número de platos encontrados, precios detectados).
+\end{itemize}
+
+% --- 5.16 Delete Dialogs ---
+\section{Diálogos de Eliminación Segura}
+
+\subsection{Eliminación de Hueca (\texttt{DeleteHuecaDialog})}
+Diálogo de confirmación de múltiples pasos para eliminar permanentemente una hueca. Muestra todas las consecuencias de la eliminación:
+\begin{itemize}
+  \item Eliminación de todas las reseñas y valoraciones.
+  \item Eliminación de todos los sellos e historiales de fidelización.
+  \item Eliminación de todas las notificaciones asociadas.
+  \item Remoción de la hueca de todas las rutas gastronómicas.
+  \item Remoción de favoritos y suscripciones de todos los usuarios.
+  \item Degradación del rol del dueño a usuario normal.
+\end{itemize}
+Requiere que el usuario escriba el nombre de la hueca para confirmar (\textit{type-to-confirm}).
+
+\subsection{Eliminación de Usuario (\texttt{DeleteUserDialog})}
+Diálogo de confirmación para desvincular un usuario del sistema. Garantiza que:
+\begin{itemize}
+  \item La hueca \textbf{nunca} se elimina al eliminar un usuario; solo se desvincula el propietario.
+  \item Si el usuario era encargado de sucursal, se revoca su acceso.
+  \item La hueca queda disponible para reasignación.
+\end{itemize}
+
+% =============================================================================
+% CAPÍTULO 6: MÓDULO DE ADMINISTRACIÓN
+% =============================================================================
+\chapter{Módulo de Administración (Panel de Superusuario)}
+
+Este módulo comprende el panel de control del superadministrador de la plataforma, con capacidad de gestión centralizada de todas las huecas, usuarios, rutas, reseñas y notificaciones del sistema.
+
+\section{Layout de Administración (\texttt{AdminLayout})}
+
+\subsection{Descripción}
+Estructura shell para todas las vistas administrativas. Utiliza un esquema de colores diferenciado (fondo oscuro \texttt{\#0F172A}) para distinguirse visualmente del panel de negocio y de la app de usuario.
+
+\subsection{Pestañas de Navegación}
+\begin{longtable}{>{\bfseries}p{1cm} p{3cm} p{3cm} p{6cm}}
+\toprule
+\textbf{Idx} & \textbf{Etiqueta} & \textbf{Icono} & \textbf{Ruta} \\
+\midrule
+0 & Dashboard & \texttt{Icons.dashboard} & \texttt{/admin/dashboard} \\
+1 & Huecas & \texttt{Icons.restaurant} & \texttt{/admin/huecas} \\
+2 & Avisos & \texttt{Icons.campaign} & \texttt{/admin/notifications} \\
+3 & Rutas & \texttt{Icons.alt\_route} & \texttt{/admin/routes} \\
+4 & Usuarios & \texttt{Icons.people} & \texttt{/admin/users} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Elementos Distintivos}
+\begin{itemize}
+  \item \textbf{Badge SUPERADMIN:} Caja ámbar (\texttt{Colors.amber.shade600}) con icono de escudo y tipografía bold de 10px en la barra superior.
+  \item \textbf{Badge de notificaciones pendientes:} Círculo rojo con contador numérico sobre el icono de ``Avisos''.
+  \item \textbf{Botón ``Volver a la App Principal'':} Redirige a \texttt{/home}.
+\end{itemize}
+
+% --- 6.2 Admin Dashboard ---
+\section{Dashboard de Administración (\texttt{AdminDashboardScreen})}
+
+\subsection{Descripción}
+Centro de control gerencial con métricas globales de la plataforma, accesos directos a flujos de creación y cola prioritaria de moderación de notificaciones.
+
+\subsection{KPIs Globales (4 tarjetas)}
+\begin{enumerate}
+  \item \textbf{Huecas:} Total registradas y conteo de activas. Redirige a \texttt{/admin/huecas}.
+  \item \textbf{Usuarios:} Total registrados y conteo de cuentas de negocio. Redirige a \texttt{/admin/users}.
+  \item \textbf{Avisos Pendientes:} Total pendiente de aprobación con indicador ``Todo al día'' o ``Requieren revisión''. Redirige a \texttt{/admin/notifications}.
+  \item \textbf{Rutas Activas:} Total de circuitos gastronómicos. Redirige a \texttt{/admin/routes}.
+\end{enumerate}
+
+\subsection{Acciones Rápidas}
+\begin{itemize}
+  \item \textbf{Nueva Hueca} $\rightarrow$ \texttt{/admin/huecas/new}
+  \item \textbf{Nueva Ruta} $\rightarrow$ \texttt{/admin/routes/new}
+  \item \textbf{Reseñas} $\rightarrow$ \texttt{/admin/reviews}
+\end{itemize}
+
+\subsection{Moderación de Avisos}
+Muestra hasta 3 avisos pendientes con el nombre de la hueca, el título de la notificación y un botón ``Revisar''. Si no hay avisos pendientes, muestra un indicador de check verde ``Todo al día''.
+
+% --- 6.3 Admin Huecas ---
+\section{Gestión de Huecas (\texttt{AdminHuecasScreen})}
+
+\subsection{Descripción}
+Gestión integral del catálogo de huecas: búsqueda en tiempo real, filtros multicriterio, activación/pausa de locales, asignación de propietarios y eliminación en cascada.
+
+\subsection{Filtros Disponibles}
+\begin{itemize}
+  \item \textbf{Todas:} Muestra todas las huecas registradas.
+  \item \textbf{Activas:} Solo huecas con \texttt{isActive = true}.
+  \item \textbf{Pausadas:} Solo huecas desactivadas temporalmente.
+  \item \textbf{Sin Dueño:} Huecas sin propietario asignado.
+\end{itemize}
+
+\subsection{Tarjeta de Hueca}
+Cada tarjeta muestra:
+\begin{itemize}
+  \item Imagen miniatura (70$\times$70px), nombre, sector, rating con estrellas, número de reseñas.
+  \item Badge de ``Dueño Asignado'' (azul) o ``Sin Dueño'' (naranja).
+  \item Conteo de sucursales.
+  \item Switch de activación/desactivación directa.
+  \item \textbf{4 botones de acción:}
+  \begin{enumerate}
+    \item \textbf{Locales (N):} Verde teal $\rightarrow$ Gestión de sucursales.
+    \item \textbf{Dueño:} Azul $\rightarrow$ Diálogo de asignación de propietario.
+    \item \textbf{Editar:} Gris oscuro $\rightarrow$ Formulario de edición.
+    \item \textbf{Eliminar:} Rojo $\rightarrow$ Diálogo de eliminación segura.
+  \end{enumerate}
+\end{itemize}
+
+\subsection{Regla de Oro: Invariante 1-a-1}
+Una cuenta de negocio solo puede administrar \textbf{una única hueca}. Si se asigna a un usuario que ya administra otra hueca, el sistema advierte que se realizará una \textbf{transferencia} y desvincula automáticamente la hueca anterior.
+
+% --- 6.4 Admin Hueca Edit ---
+\section{Editor de Hueca (\texttt{AdminHuecaEditScreen})}
+
+\subsection{Descripción}
+Formulario de alta y edición de huecas con dos modalidades: registro rápido (solo campos esenciales) y registro detallado (GPS, imágenes, plato estrella, descripciones bilingües).
+
+\subsection{Campos}
+\begin{itemize}
+  \item \textbf{Requeridos:} Nombre, dirección.
+  \item \textbf{Selectores:} Sector de Quito (15 opciones), rango de precios (\$, \$\$, \$\$\$), propietario.
+  \item \textbf{Opcionales} (en \texttt{ExpansionTile}): URL de imagen, coordenadas GPS, descripciones bilingües, plato insignia.
+  \item \textbf{Switch de estado:} Hueca activa/pausada.
+\end{itemize}
+
+Al crear una nueva hueca, el sistema genera automáticamente: rating inicial 5.0, tarjeta de fidelización (5 sellos, premio ``porción de cortesía''), cromo secreto con timestamp único y métricas en cero.
+
+% --- 6.5 Admin Users ---
+\section{Gestión de Usuarios (\texttt{AdminUsersScreen})}
+
+\subsection{Descripción}
+Gestión y auditoría de cuentas con permisos de negocio y superadministradores. Garantiza que los usuarios comunes (comensales) no saturen la consola administrativa.
+
+\subsection{Funcionalidades Clave}
+\begin{itemize}
+  \item \textbf{Filtro estricto:} Excluye usuarios con rol \texttt{user} del listado (solo muestra negocios y admins).
+  \item \textbf{Buscador multifactor:} Filtra por nombre, correo, UID, nombre de hueca o sucursal.
+  \item \textbf{Filtros por chip:} Todos, Con Hueca/Local, Sucursales, Sin Asignar, Admins.
+  \item \textbf{Creación de cuenta de negocio:} Aprovisionamiento \textit{passwordless} que genera una clave temporal, crea la cuenta en Firebase Auth y envía correo de configuración de contraseña.
+  \item \textbf{Reenvío de correo de contraseña:} Para cuentas que no recibieron o perdieron el correo inicial.
+  \item \textbf{Cambio de rol:} Modal para conmutar entre \texttt{user}, \texttt{business} y \texttt{admin}.
+  \item \textbf{Eliminación de usuario:} Garantiza que la hueca \textbf{nunca} se elimina; solo se desvincula el propietario.
+\end{itemize}
+
+\begin{decisionbox}
+El sistema de creación de cuentas de negocio fue diseñado con el principio de \textbf{separación de credenciales}: el administrador nunca conoce ni establece la contraseña del dueño de hueca. En su lugar, se envía un correo de configuración de contraseña al email del comerciante, respetando la privacidad y seguridad del futuro usuario. Este flujo utiliza instancias efímeras de \texttt{FirebaseApp} para no interferir con la sesión activa del administrador.
+\end{decisionbox}
+
+% --- 6.6 Admin Routes ---
+\section{Gestión de Rutas (\texttt{AdminRoutesScreen})}
+
+\subsection{Descripción}
+Catálogo y administración de los circuitos gastronómicos de la plataforma. Permite visualizar, buscar, editar y eliminar rutas temáticas.
+
+\subsection{Tarjeta de Ruta}
+\begin{itemize}
+  \item Banner superior con imagen de portada (120px).
+  \item Nombre bilingüe de la ruta.
+  \item Badge con conteo de paradas.
+  \item Extracto narrativo.
+  \item Métricas: distancia y tiempo estimado de caminata.
+  \item Botones de editar y eliminar.
+\end{itemize}
+
+% --- 6.7 Admin Route Edit ---
+\section{Editor de Rutas (\texttt{AdminRouteEditScreen})}
+
+\subsection{Descripción}
+Editor visual de rutas gastronómicas con organizador interactivo de paradas por arrastre (\textit{drag \& drop}). Permite definir nombre bilingüe, narrativa histórica, horario recomendado y seleccionar huecas como paradas de la ruta.
+
+\subsection{Sección de Paradas}
+\begin{itemize}
+  \item Botón ``Añadir Parada'' con buscador de huecas disponibles.
+  \item Lista reordenable (\texttt{ReorderableListView.builder}) con número de orden, nombre de la parada, sector y botón de remoción.
+  \item Reordenamiento en vivo con ajuste automático de índices.
+  \item Validación: mínimo 1 parada para guardar la ruta.
+\end{itemize}
+
+% --- 6.8 Admin Reviews ---
+\section{Moderación de Reseñas (\texttt{AdminReviewsScreen})}
+
+\subsection{Descripción}
+Consola de moderación global de opiniones de comensales. Permite auditar y eliminar contenido inapropiado con recálculo automático de la calificación de la hueca.
+
+\subsection{Funcionalidades}
+\begin{itemize}
+  \item \textbf{Filtros por estrellas:} Chips de ``Todas'', 1 a 5 estrellas.
+  \item \textbf{Resaltado visual:} Las reseñas con calificación $\leq 2$ estrellas se muestran con borde rojizo para alertar al moderador.
+  \item \textbf{Eliminación con recálculo:} Al borrar una reseña, se recalcula automáticamente la media aritmética del rating y se actualiza \texttt{reviewCount} en el documento de la hueca.
+  \item \textbf{Consulta global:} Utiliza \texttt{collectionGroup('reviews')} para obtener reseñas de todas las huecas en una sola consulta.
+\end{itemize}
+
+% --- 6.9 Admin Notifications ---
+\section{Moderación de Notificaciones (\texttt{AdminNotificationsScreen})}
+
+\subsection{Descripción}
+Panel de moderación y aprobación de anuncios solicitados por los dueños de negocios para emisión a los comensales. Implementa un flujo de moderación completo con dos pestañas: ``Pendientes'' e ``Historial Completo''.
+
+\subsection{Pestaña Pendientes}
+\begin{itemize}
+  \item Tarjeta con emoji de categoría, nombre de la hueca, sucursal emisora y badge de descuento.
+  \item Indicador de horario: Banner azul si está programada (con fecha) o verde si es inmediata.
+  \item \textbf{Simulador de notificación Android:} Recuadro que imita la bandeja de notificaciones del sistema operativo, mostrando el icono de la app, marca de tiempo, título formateado y cuerpo del mensaje tal como lo verá el comensal.
+  \item Botones: ``Rechazar'' (rojo, requiere justificación escrita) y ``Aprobar y Emitir'' (verde).
+\end{itemize}
+
+\subsection{Pestaña Historial Completo}
+Tarjetas con badge de estado (Aprobada en verde, Rechazada en rojo, Pendiente en ámbar), detalle de programación y motivo de rechazo si aplica.
+
+\begin{techbox}
+El flujo de moderación de notificaciones protege a los comensales de spam y contenido inapropiado, al tiempo que brinda retroalimentación constructiva a los negocios. Al rechazar una notificación, el administrador debe escribir una justificación obligatoria que se almacena en el campo \texttt{rejectionReason} del documento, visible para el dueño del negocio.
+\end{techbox}
+
+% =============================================================================
+% CAPÍTULO 7: SERVICIOS TRANSVERSALES
+% =============================================================================
+\chapter{Servicios Transversales}
+
+\section{Servicio de Direcciones (\texttt{DirectionsService})}
+
+Calcula rutas de desplazamiento a pie y en vehículo utilizando la \textbf{Google Routes API v2}. La clave API se inyecta en tiempo de compilación mediante \texttt{--dart-define=MAPS\_API\_KEY} para no exponerla en el código fuente. Soporta waypoints intermedios para rutas multi-parada.
+
+\section{Servicio de Geocodificación (\texttt{GeocodingService})}
+
+Realiza geocodificación inversa desde coordenadas GPS a direcciones legibles en Quito, con detección heurística de sectores urbanos. Implementa un caché en memoria indexado por coordenadas redondeadas a 4 decimales y utiliza la API de Nominatim (OpenStreetMap) con timeout de 4 segundos.
+
+\subsection{Detección de Sectores}
+Combina dos estrategias:
+\begin{enumerate}
+  \item \textbf{Detección textual:} Busca palabras clave en los componentes de dirección (Cumbayá, La Mariscal, Centro Histórico, etc.).
+  \item \textbf{Fallback por bounding boxes:} Utiliza rangos de latitud/longitud para clasificar áreas geográficas cuando la detección textual no es concluyente.
+\end{enumerate}
+
+\section{Servicio de Notificaciones (\texttt{NotificationService})}
+
+Gestión de notificaciones push locales nativas en Android. Implementa el patrón \textbf{Singleton} y configura un canal de alta importancia con sonido y vibración. Evita duplicidad de notificaciones verificando IDs ya mostrados en \texttt{SharedPreferences}.
+
+\section{Servicio de Generación IA (\texttt{AiGenerationService})}
+
+Motor de generación de textos de marketing culinario que detecta palabras clave de comida típica ecuatoriana (fritada, corvina, hornado, yahuarlocro) y temporales (hoy, viernes, fin de semana) para generar copy contextualizado en 3 variantes.
+
+\section{Servicio de Digitalización OCR de Menús con IA (\texttt{MenuOcrService})}
+
+El servicio \texttt{MenuOcrService} es el núcleo de inteligencia artificial visual para la digitalización desatendida o asistida de cartas gastronómicas físicas. Utiliza la librería nativa \textbf{Google ML Kit Text Recognition} combinada con algoritmos heurísticos propios diseñados específicamente para menús de restaurantes y puestos tradicionales:
+
+\begin{enumerate}
+  \item \textbf{Extracción de Texto y Bounding Boxes:} Procesa imágenes desde cámara o galería extrayendo bloques, líneas y coordenadas espaciales ($x, y, w, h$) directamente en el dispositivo móvil sin enviar datos a servidores externos, optimizando tiempo y privacidad.
+  \item \textbf{Filtrado Inteligente de Ruido:} Aplica expresiones regulares para suprimir información no culinaria: números telefónicos, RUC, referencias tributarias (SRI, IVA), horarios comerciales, claves WiFi y marcas de gaseosas o cervezas.
+  \item \textbf{Análisis Espacial y Agrupación:} Agrupa elementos en filas según la altura mediana de las líneas y detecta automáticamente cartas diagramadas en dos columnas verticales.
+  \item \textbf{Detección Multiformato de Precios:} Reconoce patrones monetarios flexibles con prefijo (\texttt{\$12}), sufijo (\texttt{12 USD}), coma o punto decimal (\texttt{4,50} / \texttt{4.50}) y guías de puntos (\texttt{Seco de Chivo ... 4.50}).
+  \item \textbf{Matrices de Tamaños y Variantes:} Detecta platos con múltiples porciones en una misma línea (ejemplo: \textit{``Entero \$8.00 / Medio \$4.50''}) desglosándolos adecuadamente.
+  \item \textbf{Clasificación Automática de Categorías:} Asigna heurísticamente cada plato a categorías predeterminadas (\textit{Platos Fuertes, Platos Típicos, Entradas/Sopas, Bebidas, Postres}) según su léxico culinario.
+  \item \textbf{Integración con Traducción y Revisión:} Envía automáticamente los títulos extraídos a \texttt{TranslationService} para generar las versiones en inglés y entrega los resultados estructurados a la pantalla de revisión (\texttt{MenuReviewScreen}) para validación final del comerciante.
+\end{enumerate}
+
+\section{Servicio de Traducción (\texttt{TranslationService})}
+
+Traducción automática español--inglés utilizando la API gratuita de Google Translate. Implementa fallback silencioso: en caso de error de red o timeout, retorna el texto original en español sin interrumpir la experiencia del usuario.
+
+% =============================================================================
+% CAPÍTULO 8: SISTEMA DE GAMIFICACIÓN
+% =============================================================================
+\chapter{Sistema de Gamificación}
+
+\section{Visión General}
+
+El sistema de gamificación de Hue-Quito incentiva la visita presencial a los establecimientos mediante tres mecánicas complementarias:
+
+\begin{enumerate}
+  \item \textbf{Sellos de Fidelización:} Cartilla digital por cada hueca con un número configurable de sellos necesarios para obtener un premio.
+  \item \textbf{Stickers Secretos:} Cromos coleccionables escondidos físicamente en los establecimientos.
+  \item \textbf{Álbum por Sectores:} Progreso de recolección de cromos agrupados por sector geográfico.
+\end{enumerate}
+
+\section{Flujo de Sellos}
+
+\begin{enumerate}
+  \item El dueño genera un QR dinámico en su panel (\texttt{BusinessQrScreen}) seleccionando la cantidad de sellos (1--10).
+  \item El comensal escanea el QR con \texttt{ScanScreen}.
+  \item El sistema valida el token UUID, la hueca y el timestamp.
+  \item Se registran los sellos en el perfil del usuario (\texttt{gamification.huecaStamps[huecaId]}).
+  \item Se calculan puntos: cada sello = 10 puntos.
+  \item Se registra la entrada en \texttt{huecas/\{id\}/stamp\_history}.
+  \item Al completar la cartilla, se desbloquea el premio configurado por el dueño.
+\end{enumerate}
+
+\section{Flujo de Stickers Secretos}
+
+\begin{enumerate}
+  \item El dueño imprime el QR estático del sticker secreto (\texttt{QrSecretStickerScreen}).
+  \item Lo esconde en algún lugar del establecimiento.
+  \item El comensal lo encuentra y lo escanea.
+  \item El sistema valida el \texttt{secret} code y registra el cromo en la colección del usuario.
+  \item Se otorgan 50 puntos bonus.
+  \item El cromo aparece en el álbum del usuario agrupado por sector.
+\end{enumerate}
+
+\section{Niveles de Gamificación}
+
+\begin{longtable}{>{\bfseries}p{3cm} p{3cm} p{7cm}}
+\toprule
+\textbf{Nivel} & \textbf{Puntos} & \textbf{Título} \\
+\midrule
+1 & 0+ & Turista Novato / Explorador Novato \\
+2 & 100+ & Comensal Curioso \\
+3 & 300+ & Conocedor de Huecas \\
+4 & 600+ & Experto Gastronómico \\
+5 & 1000+ & Leyenda de las Huecas \\
+\bottomrule
+\end{longtable}
+
+% =============================================================================
+% CAPÍTULO 9: INTERNACIONALIZACIÓN
+% =============================================================================
+\chapter{Internacionalización y Bilingüismo}
+
+\section{Estrategia Bilingüe}
+
+Hue-Quito implementa un sistema bilingüe completo (español/inglés) que abarca tres niveles:
+
+\begin{enumerate}
+  \item \textbf{Interfaz de usuario:} Textos estáticos de la UI que se alternan según la configuración del \texttt{settingsProvider} (idioma \texttt{es} o \texttt{en}).
+  \item \textbf{Contenido dinámico:} Nombres y descripciones de huecas, platos, rutas y notificaciones almacenados en formato bilingüe en Firestore (estructura \texttt{Map} con claves \texttt{es} y \texttt{en}).
+  \item \textbf{Traducción automática:} Motor de traducción (\texttt{TranslationService}) que genera traducciones al inglés para contenido ingresado por los propietarios, garantizando que ningún menú ni descripción quede sin versión en inglés.
+\end{enumerate}
+
+\begin{decisionbox}
+La decisión de hacer obligatoria la traducción automática responde al perfil de uso de la aplicación: Quito recibe anualmente más de 500,000 turistas internacionales que visitan el Centro Histórico (Patrimonio de la Humanidad) y buscan experiencias gastronómicas auténticas. Un menú que solo existe en español ecuatoriano coloquial (con términos como ``locro de papa'', ``tripa mishqui'' o ``yahuarlocro'') resulta ininteligible para el visitante extranjero.
+\end{decisionbox}
+
+% =============================================================================
+% CAPÍTULO 10: REGLAS DE NEGOCIO GLOBALES
+% =============================================================================
+\chapter{Reglas de Negocio Globales}
+
+\section{Invariantes del Sistema}
+
+\begin{enumerate}
+  \item \textbf{Invariante 1-a-1 de Negocios:} Un usuario con rol \texttt{business} solo puede administrar \textbf{una única hueca} como dueño general, o \textbf{una única sucursal} como encargado. Toda reasignación desvincula automáticamente relaciones preexistentes.
+
+  \item \textbf{Integridad Referencial en Eliminación de Usuario:} La eliminación de un usuario \textbf{nunca} borra la hueca ni sus sucursales; solo desvincula el \texttt{ownerId} o \texttt{managerEmail}. La hueca queda disponible para reasignación.
+
+  \item \textbf{Integridad Referencial en Eliminación de Hueca:} La eliminación de una hueca desencadena un \textbf{borrado en cascada exhaustivo} que incluye:
+  \begin{itemize}
+    \item Subcolecciones (\texttt{reviews}, \texttt{stamp\_history}, \texttt{sticker\_history}).
+    \item Notificaciones asociadas en la colección \texttt{notifications}.
+    \item Invitaciones pendientes en \texttt{branch\_invitations}.
+    \item Referencias en paradas de \texttt{routes}.
+    \item Entradas en \texttt{favoriteHuecas} y \texttt{subscribedHuecas} de todos los usuarios.
+    \item Restablecimiento del rol del propietario a \texttt{user}.
+  \end{itemize}
+
+  \item \textbf{Inviolabilidad de la Matriz:} El local índice 0 (Matriz) de cualquier hueca no puede ser eliminado.
+
+  \item \textbf{Máximo de Fotos:} Cada hueca puede tener un máximo de 5 fotografías en su galería y un mínimo de 1.
+
+  \item \textbf{Máximo de Tags:} Cada hueca puede tener un máximo de 4 etiquetas (tags).
+
+  \item \textbf{Moderación Obligatoria:} Toda notificación enviada por un dueño de negocio debe ser aprobada por un administrador antes de ser emitida a los comensales.
+
+  \item \textbf{Bilingüismo Obligatorio:} Todo plato del menú debe tener versión en español e inglés. Si el dueño no traduce manualmente, el sistema genera la traducción automáticamente.
+\end{enumerate}
+
+\section{Roles de Usuario}
+
+\begin{longtable}{>{\bfseries}p{2.5cm} p{10.5cm}}
+\toprule
+\textbf{Rol} & \textbf{Descripción y Permisos} \\
+\midrule
+\texttt{user} & Usuario comensal estándar. Acceso a exploración, búsqueda, favoritos, reseñas, escaneo QR, álbum de stickers y suscripción a notificaciones. \\
+\addlinespace
+\texttt{business} & Dueño de hueca o encargado de sucursal. Acceso al panel de negocio con gestión de menú, perfil, QR, notificaciones y sucursales. Los permisos varían según si es dueño (acceso total) o encargado (acceso limitado). \\
+\addlinespace
+\texttt{admin} & Superadministrador de la plataforma. Acceso total al panel de administración con gestión de todas las huecas, usuarios, rutas, reseñas y notificaciones. Puede crear cuentas de negocio, asignar propietarios y moderar contenido. \\
+\bottomrule
+\end{longtable}
+
+% =============================================================================
+% CAPÍTULO 11: DEPENDENCIAS
+% =============================================================================
+\chapter{Dependencias del Proyecto}
+
+\begin{longtable}{>{\ttfamily}p{5.5cm} p{2cm} p{5.5cm}}
+\toprule
+\textbf{Paquete} & \textbf{Versión} & \textbf{Propósito} \\
+\midrule
+flutter\_riverpod & 3.3.2 & Gestión de estado reactivo \\
+go\_router & 17.5.0 & Navegación declarativa \\
+firebase\_core & 4.15.0 & Inicialización de Firebase \\
+firebase\_auth & 6.7.0 & Autenticación \\
+cloud\_firestore & 6.10.0 & Base de datos en la nube \\
+firebase\_storage & 13.6.0 & Almacenamiento de archivos \\
+google\_maps\_flutter & 2.18.1 & Mapas de Google \\
+flutter\_map & 8.3.2 & Mapas OpenStreetMap \\
+geolocator & 14.0.3 & Geolocalización GPS \\
+latlong2 & 0.10.1 & Coordenadas geográficas \\
+http & 1.6.0 & Peticiones HTTP \\
+flutter\_polyline\_points & 3.1.0 & Decodificación de polylines \\
+mobile\_scanner & 7.4.2 & Escaneo de códigos QR \\
+qr\_flutter & 4.1.0 & Generación de códigos QR \\
+google\_sign\_in & 6.2.1 & Autenticación con Google \\
+google\_fonts & 8.2.1 & Tipografías de Google \\
+lucide\_icons & 0.257.0 & Iconografía \\
+image\_picker & 1.2.3 & Selector de imágenes \\
+google\_mlkit\_text\_recognition & 0.16.0 & OCR con ML Kit \\
+flutter\_local\_notifications & 22.3.2 & Notificaciones locales \\
+share\_plus & 13.3.0 & Compartir contenido \\
+url\_launcher & 6.3.2 & Abrir URLs y teléfono \\
+map\_launcher & 4.6.0 & Lanzar apps de mapas \\
+confetti & 0.8.0 & Efectos de confeti \\
+shared\_preferences & 2.5.5 & Almacenamiento local \\
+intl\_phone\_field & 3.2.0 & Campo de teléfono \\
+\bottomrule
+\end{longtable}
+
+\end{document}

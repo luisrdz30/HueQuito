@@ -4,6 +4,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/providers/settings_provider.dart';
+import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
@@ -47,23 +49,130 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   Future<void> _saveScannedData() async {
     if (_scannedData == null) return;
+    final lang = ref.read(settingsProvider).language;
+    final isEn = lang == 'en';
     
     setState(() => _isProcessing = true);
     
     try {
+      // Validar si la hueca está confirmada por administración y activa
+      final targetHuecaId = _scannedData!['business_id']?.toString() ?? '';
+      if (targetHuecaId.isNotEmpty) {
+        final huecasList = ref.read(huecasProvider).value ?? [];
+        final matchedHueca = huecasList.where((h) => h.id == targetHuecaId).firstOrNull;
+        if (matchedHueca != null && (!matchedHueca.isSectorConfirmed || !matchedHueca.isActive)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isEn
+                  ? 'This spot is pending admin confirmation. Stamps cannot be recorded yet.'
+                  : 'Esta hueca está pendiente de confirmación por administración. Los sellos no están habilitados aún.'),
+              backgroundColor: Colors.amber.shade900,
+            ));
+          }
+          _resetScanner();
+          return;
+        }
+      }
+
       final userRepo = ref.read(userRepositoryProvider);
       final user = await userRepo.getCurrentUser();
       if (user == null) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inicia sesión para guardar sellos')));
+        // Modo Invitado: Guardar localmente en el dispositivo
+        final guestGamification = await UserRepository.getGuestGamification();
+
+        if (_scannedData!['type'] == 'points') {
+          final huecaId = _scannedData!['business_id'];
+          final stamps = (_scannedData!['points'] as num?)?.toInt() ?? 1;
+          final branchId = _scannedData!['branch_id'] ?? 'matriz';
+          final branchName = _scannedData!['branch_name'] ?? (isEn ? 'Main Branch' : 'Matriz Principal');
+
+          final huecaStampsMap = Map<String, dynamic>.from(guestGamification['huecaStamps'] ?? {});
+          final currentStamps = (huecaStampsMap[huecaId] as num?)?.toInt() ?? 0;
+          final currentPoints = (guestGamification['points'] as num?)?.toInt() ?? 0;
+          final currentTotal = (guestGamification['totalStamps'] as num?)?.toInt() ?? 0;
+
+          huecaStampsMap[huecaId] = currentStamps + stamps;
+          guestGamification['huecaStamps'] = huecaStampsMap;
+          guestGamification['points'] = currentPoints + (stamps * 10);
+          guestGamification['totalStamps'] = currentTotal + stamps;
+
+          await UserRepository.saveGuestGamification(guestGamification);
+
+          try {
+            await FirebaseFirestore.instance.collection('huecas').doc(huecaId).collection('stamp_history').add({
+              'userId': 'guest_local',
+              'stamps': stamps,
+              'branchId': branchId,
+              'branchName': branchName,
+              'date': FieldValue.serverTimestamp(),
+            });
+            await FirebaseFirestore.instance.collection('huecas').doc(huecaId).update({
+              'metrics.stampsGiven': FieldValue.increment(stamps)
+            });
+          } catch (_) {}
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isEn
+                  ? 'Stamp from $branchName saved on your device! (Log in to sync with the cloud)'
+                  : '¡Sello de $branchName guardado en tu celular! (Inicia sesión para sincronizarlo a la nube)'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 4),
+            ));
+          }
+        } else if (_scannedData!['type'] == 'secret_sticker' || _scannedData!['type'] == 'cromo') {
+          final huecaId = _scannedData!['business_id'] ?? '';
+          final branchId = _scannedData!['branch_id'] ?? 'matriz';
+          final branchName = _scannedData!['branch_name'] ?? (isEn ? 'Main Branch' : 'Matriz Principal');
+          final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? (isEn ? 'Secret Sticker' : 'Sticker Secreto');
+
+          final stickerKey = '${huecaId}_$branchId';
+          final currentPoints = (guestGamification['points'] as num?)?.toInt() ?? 0;
+          List<dynamic> collected = List.from(guestGamification['collectedStickers'] ?? []);
+          bool isNew = !collected.contains(stickerKey);
+          if (isNew) {
+            collected.add(stickerKey);
+            guestGamification['points'] = currentPoints + 50;
+          }
+          guestGamification['collectedStickers'] = collected;
+
+          await UserRepository.saveGuestGamification(guestGamification);
+
+          if (huecaId.isNotEmpty) {
+            try {
+              await FirebaseFirestore.instance.collection('huecas').doc(huecaId).collection('sticker_history').add({
+                'userId': 'guest_local',
+                'branchId': branchId,
+                'branchName': branchName,
+                'stickerName': stickerName,
+                'date': FieldValue.serverTimestamp(),
+              });
+            } catch (_) {}
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isNew
+                  ? (isEn
+                      ? 'New secret sticker "$stickerName" saved on device! (+50 pts)'
+                      : '¡Nuevo sticker secreto "$stickerName" guardado en tu celular! (+50 pts)')
+                  : (isEn
+                      ? 'Sticker "$stickerName" already recorded!'
+                      : '¡Sticker "$stickerName" ya registrado!')),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 4),
+            ));
+          }
+        }
         _resetScanner();
         return;
       }
-      
+
       if (_scannedData!['type'] == 'points') {
         final huecaId = _scannedData!['business_id'];
         final stamps = _scannedData!['points'];
         final branchId = _scannedData!['branch_id'] ?? 'matriz';
-        final branchName = _scannedData!['branch_name'] ?? 'Matriz Principal';
+        final branchName = _scannedData!['branch_name'] ?? (isEn ? 'Main Branch' : 'Matriz Principal');
         
         final currentStamps = (user.gamification['huecaStamps'] ?? {})[huecaId] ?? 0;
         final currentPoints = user.gamification['points'] ?? 0;
@@ -91,15 +200,17 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('¡Sello de $branchName guardado exitosamente!'),
+            content: Text(isEn
+                ? 'Stamp from $branchName saved successfully!'
+                : '¡Sello de $branchName guardado exitosamente!'),
             backgroundColor: Colors.green,
           ));
         }
       } else if (_scannedData!['type'] == 'secret_sticker' || _scannedData!['type'] == 'cromo') {
         final huecaId = _scannedData!['business_id'] ?? '';
         final branchId = _scannedData!['branch_id'] ?? 'matriz';
-        final branchName = _scannedData!['branch_name'] ?? 'Matriz Principal';
-        final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? 'Sticker Secreto';
+        final branchName = _scannedData!['branch_name'] ?? (isEn ? 'Main Branch' : 'Matriz Principal');
+        final stickerName = _scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? (isEn ? 'Secret Sticker' : 'Sticker Secreto');
         
         final stickerKey = '${huecaId}_$branchId';
         final currentPoints = user.gamification['points'] ?? 0;
@@ -130,14 +241,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(isNew 
-                ? '¡Nuevo sticker secreto "$stickerName" coleccionado! (+50 pts)' 
-                : '¡Sticker "$stickerName" registrado!'),
+                ? (isEn
+                    ? 'New secret sticker "$stickerName" collected! (+50 pts)'
+                    : '¡Nuevo sticker secreto "$stickerName" coleccionado! (+50 pts)')
+                : (isEn
+                    ? 'Sticker "$stickerName" recorded!'
+                    : '¡Sticker "$stickerName" registrado!')),
             backgroundColor: Colors.green,
           ));
         }
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al guardar: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isEn ? 'Error saving: $e' : 'Error al guardar: $e')),
+        );
+      }
     }
     
     _resetScanner();
@@ -157,6 +276,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(settingsProvider).language;
+    final isEn = lang == 'en';
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -176,7 +298,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent, Colors.black.withOpacity(0.8)],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.6),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.8),
+                  ],
                 ),
               ),
             ),
@@ -189,13 +315,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(20)),
                   child: Row(
                     children: [
-                      Icon(Icons.qr_code_scanner, color: AppTheme.primary, size: 18),
-                      SizedBox(width: 8),
-                      Text('Apunta al QR del puesto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                      const Icon(Icons.qr_code_scanner, color: AppTheme.primary, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        isEn ? 'Point at the stall QR' : 'Apunta al QR del puesto',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
@@ -203,12 +332,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => _controller.toggleTorch(),
-                      child: Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black45, shape: BoxShape.circle), child: Icon(Icons.flash_on, color: Colors.white, size: 20))
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: Colors.black45, shape: BoxShape.circle),
+                        child: const Icon(Icons.flash_on, color: Colors.white, size: 20),
+                      ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _controller.switchCamera(),
-                      child: Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black45, shape: BoxShape.circle), child: Icon(Icons.flip_camera_ios, color: Colors.white, size: 20))
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: Colors.black45, shape: BoxShape.circle),
+                        child: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 20),
+                      ),
                     ),
                   ],
                 )
@@ -227,44 +364,50 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 ),
                 child: Stack(
                   children: [
-                    Center(child: Container(width: 50, height: 50, decoration: BoxDecoration(border: Border.all(color: AppTheme.primary.withOpacity(0.5), width: 1), shape: BoxShape.circle))),
-                    Center(child: Icon(Icons.center_focus_strong, color: AppTheme.primary.withOpacity(0.5), size: 40)),
+                    Center(
+                      child: Container(
+                        width: 50, height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5), width: 1),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Icon(
+                        Icons.center_focus_strong,
+                        color: AppTheme.primary.withValues(alpha: 0.5),
+                        size: 40,
+                      ),
+                    ),
                     // Laser (visual only)
                     Positioned(
                       top: 120, left: 10, right: 10,
-                      child: Container(height: 2, decoration: BoxDecoration(color: AppTheme.primary, boxShadow: [BoxShadow(color: AppTheme.primary, blurRadius: 10)])),
+                      child: Container(
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary,
+                          boxShadow: const [BoxShadow(color: AppTheme.primary, blurRadius: 10)],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
             
-          if (_scannedData == null)
-            Positioned(
-              bottom: 120, left: 0, right: 0,
-              child: Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(color: Theme.of(context).cardColor.withOpacity(0.9), borderRadius: BorderRadius.circular(20)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.keyboard, color: AppTheme.primary, size: 18),
-                      SizedBox(width: 8),
-                      Text('Ingresar código manual', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+
           
           // Detection Result Sheet
           if (_scannedData != null)
             Positioned(
               bottom: 16, left: 16, right: 16,
               child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -272,46 +415,111 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: AppTheme.tertiary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                          child: Row(children: [Icon(Icons.circle, color: AppTheme.tertiary, size: 8), SizedBox(width: 4), Text('QR CONFIRMADO', style: TextStyle(color: AppTheme.tertiary, fontSize: 10, fontWeight: FontWeight.bold))]),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.tertiary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.circle, color: AppTheme.tertiary, size: 8),
+                              const SizedBox(width: 4),
+                              Text(
+                                isEn ? 'QR CONFIRMED' : 'QR CONFIRMADO',
+                                style: const TextStyle(color: AppTheme.tertiary, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
-                        Row(children: [Icon(Icons.location_on, color: AppTheme.secondary, size: 12), SizedBox(width: 4), Text('GPS validado', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10))]),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, color: AppTheme.secondary, size: 12),
+                            const SizedBox(width: 4),
+                            Text(
+                              isEn ? 'GPS validated' : 'GPS validado',
+                              style: TextStyle(
+                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     
                     // Specific UI depending on QR payload
                     if (_scannedData!['type'] == 'points') ...[
                       Row(
                         children: [
-                          Container(width: 48, height: 48, decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(Icons.restaurant, color: AppTheme.primary)),
-                          SizedBox(width: 12),
+                          Container(
+                            width: 48, height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.restaurant, color: AppTheme.primary),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_scannedData!['branch_name'] != null ? 'Local: ${_scannedData!['branch_name']}' : 'Local ID: ${_scannedData!['business_id']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                Text('Consumo registrado', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
+                                Text(
+                                  _scannedData!['branch_name'] != null
+                                      ? '${isEn ? "Spot" : "Local"}: ${_scannedData!['branch_name']}'
+                                      : 'ID: ${_scannedData!['business_id']}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                Text(
+                                  isEn ? 'Dining recorded' : 'Consumo registrado',
+                                  style: TextStyle(
+                                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           )
                         ],
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Row(
                           children: [
-                            Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.1), shape: BoxShape.circle), child: Icon(Icons.stars, color: AppTheme.secondary, size: 20)),
-                            SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.secondary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.stars, color: AppTheme.secondary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('+${_scannedData!['points']} Puntos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('Añadidos a tu Pasaporte Gastronómico', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
+                                  Text(
+                                    isEn
+                                        ? '+${_scannedData!['points']} Points'
+                                        : '+${_scannedData!['points']} Puntos',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  Text(
+                                    isEn
+                                        ? 'Added to your Gastronomic Passport'
+                                        : 'Añadidos a tu Pasaporte Gastronómico',
+                                    style: TextStyle(
+                                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -321,38 +529,72 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     ] else if (_scannedData!['type'] == 'cromo' || _scannedData!['type'] == 'secret_sticker') ...[
                       Row(
                         children: [
-                          Container(width: 48, height: 48, decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(Icons.military_tech, color: AppTheme.secondary)),
-                          SizedBox(width: 12),
+                          Container(
+                            width: 48, height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.secondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.military_tech, color: AppTheme.secondary),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('¡Has encontrado un Sticker Secreto!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(
+                                  isEn ? 'You found a Secret Sticker!' : '¡Has encontrado un Sticker Secreto!',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
                                 Text(
                                   _scannedData!['branch_name'] != null
-                                      ? 'Local: ${_scannedData!['branch_name']}'
-                                      : 'Sticker exclusivo descubierto',
-                                  style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12),
+                                      ? '${isEn ? "Spot" : "Local"}: ${_scannedData!['branch_name']}'
+                                      : (isEn ? 'Exclusive sticker unlocked' : 'Sticker exclusivo descubierto'),
+                                  style: TextStyle(
+                                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
                           )
                         ],
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Row(
                           children: [
-                            Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.1), shape: BoxShape.circle), child: Icon(Icons.card_giftcard, color: AppTheme.primary, size: 20)),
-                            SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.card_giftcard, color: AppTheme.primary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${_scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? "Sticker Secreto"} (+50 pts)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('Se añadirá a tu colección de cromos', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 10)),
+                                  Text(
+                                    '${_scannedData!['sticker_name'] ?? _scannedData!['cromo_id'] ?? (isEn ? "Secret Sticker" : "Sticker Secreto")} (+50 pts)',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  Text(
+                                    isEn
+                                        ? 'Will be added to your sticker album'
+                                        : 'Se añadirá a tu colección de cromos',
+                                    style: TextStyle(
+                                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -360,22 +602,48 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         ),
                       ),
                     ] else ...[
-                      Text('QR no reconocido por el sistema Hue-Quito.', style: TextStyle(color: Colors.red)),
-                      Text('Contenido: ${_scannedData!['raw']}', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      Text(
+                        isEn
+                            ? 'QR code not recognized by HueQuito.'
+                            : 'QR no reconocido por el sistema Hue-Quito.',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      Text(
+                        '${isEn ? "Content" : "Contenido"}: ${_scannedData!['raw']}',
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
                     ],
                     
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _saveScannedData,
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.verified), SizedBox(width: 8), Text('Canjear y Guardar')]),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.verified),
+                            const SizedBox(width: 8),
+                            Text(isEn ? 'Redeem & Save' : 'Canjear y Guardar'),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     GestureDetector(
                       onTap: _resetScanner,
-                      child: Center(child: Text('¿No es este puesto? Volver a enfocar', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12, decoration: TextDecoration.underline))),
+                      child: Center(
+                        child: Text(
+                          isEn
+                              ? 'Not this spot? Refocus camera'
+                              : '¿No es este puesto? Volver a enfocar',
+                          style: TextStyle(
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                            fontSize: 12,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

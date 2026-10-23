@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'admin@huequito.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isBusinessOwner(huecaId) {
+      return isAuthenticated() && (
+        (resource != null && resource.data.ownerId == request.auth.uid) ||
+        (exists(/databases/$(database)/documents/huecas/$(huecaId)) &&
+         get(/databases/$(database)/documents/huecas/$(huecaId)).data.ownerId == request.auth.uid)
+      );
+    }
+
+    // 1. Huecas (Locales y Restaurantes)
+    match /huecas/{huecaId} {
+      // Cualquier persona (incluidos invitados) puede explorar las huecas
+      allow read: if true;
+
+      // Crear o eliminar huecas: Administradores
+      allow create, delete: if isAdmin();
+
+      // Actualizar: Administrador, dueño del local o comensales que registran métricas
+      allow update: if isAdmin() 
+        || isBusinessOwner(huecaId)
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['metrics', 'updatedAt']);
+
+      // Subcolección de reseñas
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      }
+
+      // Subcolección de historial de sellos
+      match /stamp_history/{historyId} {
+        allow create: if true; // Permite registrar sello a clientes o invitados
+        allow read: if isAdmin() || isBusinessOwner(huecaId);
+      }
+
+      // Subcolección de historial de cromos secretos
+      match /sticker_history/{historyId} {
+        allow create: if true; // Permite registrar cromo secreto
+        allow read: if isAdmin() || isBusinessOwner(huecaId);
+      }
+
+      // Otras subcolecciones de huecas (canjes, historial de pagos, etc.)
+      match /{allChildren=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // 2. Usuarios y Perfiles
+    match /users/{userId} {
+      // Permitir lectura y escritura completa para evitar bloqueos en inicio de sesión o creación de perfil
+      allow read, write: if true;
+
+      // Subcolecciones de usuario (sector_albums, etc.)
+      match /{allChildren=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // 3. Rutas Gastronómicas
+    match /routes/{routeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Solicitudes de Huecas
+    match /hueca_requests/{requestId} {
+      allow create: if true;
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.requestedBy == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // 5. Mensajes de Soporte
+    match /support_messages/{messageId} {
+      allow create: if true;
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.senderUid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // 6. Notificaciones
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 7. Invitaciones de sucursales
+    match /branch_invitations/{invitationId} {
+      allow read, write: if true;
+    }
+
+    // 8. Configuración global y suscripciones
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 9. Notificaciones para Administradores
+    match /admin_notifications/{notifId} {
+      allow read, write: if true;
+    }
+  }
+}

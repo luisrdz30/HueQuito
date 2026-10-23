@@ -151,10 +151,11 @@ class _AdminRoutesScreenState extends ConsumerState<AdminRoutesScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF0F172A), // Botón oscuro
+        backgroundColor: const Color(0xFF0F172A),
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add, color: Colors.tealAccent, fontWeight: FontWeight.bold),
-        label: const Text('Nueva Ruta', style: TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 3,
+        icon: const Icon(Icons.add_road, color: Colors.amber, size: 20),
+        label: const Text('Nueva Ruta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         onPressed: () => context.push('/admin/routes/new'),
       ),
     );
@@ -218,16 +219,44 @@ class _AdminRoutesScreenState extends ConsumerState<AdminRoutesScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.teal.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '$stopsCount paradas',
-                        style: TextStyle(color: Colors.teal.shade800, fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
+                    Row(
+                      children: [
+                        if (route.name['en'] != null &&
+                            route.name['en'].toString().isNotEmpty &&
+                            route.name['en'] != route.name['es']) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.g_translate, size: 11, color: Colors.blue),
+                                SizedBox(width: 3),
+                                Text(
+                                  'EN',
+                                  style: TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$stopsCount paradas',
+                            style: TextStyle(color: Colors.teal.shade800, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -256,17 +285,16 @@ class _AdminRoutesScreenState extends ConsumerState<AdminRoutesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        foregroundColor: const Color(0xFF0F172A),
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        visualDensity: VisualDensity.compact,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F172A),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      icon: const Icon(Icons.edit, size: 15, color: Color(0xFF0F172A)),
-                      label: const Text('Editar', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                      icon: const Icon(Icons.edit, size: 14, color: Colors.amber),
+                      label: const Text('Editar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       onPressed: () => context.push('/admin/routes/edit', extra: route),
                     ),
                     const SizedBox(width: 8),
@@ -275,12 +303,11 @@ class _AdminRoutesScreenState extends ConsumerState<AdminRoutesScreen> {
                         backgroundColor: const Color(0xFFFEF2F2),
                         foregroundColor: const Color(0xFFDC2626),
                         side: const BorderSide(color: Color(0xFFFECACA)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        visualDensity: VisualDensity.compact,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: const Icon(Icons.delete_outline, size: 15, color: Color(0xFFDC2626)),
-                      label: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                      label: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       onPressed: () => _deleteRoute(route),
                     ),
                   ],

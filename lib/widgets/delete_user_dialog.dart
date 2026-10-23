@@ -170,17 +170,17 @@ class _DeleteUserDialogContentState extends State<_DeleteUserDialogContent> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.email_outlined, size: 16, color: Color(0xFF0F172A)),
+                  Icon(Icons.email_outlined, size: 16, color: isDark ? Colors.amber : const Color(0xFF0F172A)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       widget.user.email.isNotEmpty ? widget.user.email : 'Sin correo registrado',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.w500),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -283,15 +283,16 @@ class _DeleteUserDialogContentState extends State<_DeleteUserDialogContent> {
                 controller: _confirmationController,
                 autofocus: false,
                 textCapitalization: TextCapitalization.characters,
+                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'ELIMINAR',
                   hintStyle: TextStyle(color: Colors.grey[400]),
                   filled: true,
-                  fillColor: isDark ? Colors.black26 : Colors.grey[100],
+                  fillColor: isDark ? const Color(0xFF0F172A) : Colors.grey[100],
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

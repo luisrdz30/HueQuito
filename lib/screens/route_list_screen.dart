@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/screens/route_map_screen.dart';
+import 'package:hue_quito/widgets/tour_mode_selection_dialog.dart';
 
 class RouteListScreen extends ConsumerStatefulWidget {
   const RouteListScreen({super.key});
@@ -16,172 +18,237 @@ class RouteListScreen extends ConsumerStatefulWidget {
 }
 
 class _RouteListScreenState extends ConsumerState<RouteListScreen> {
-  int _selectedTab = 0; // 0 for List, 1 for Map
-  String _selectedSector = 'Todos';
+  int _selectedTab = 0; // 0 for Mis Tours, 1 for Mapa Interactivo
 
-  String _cleanStr(String str) {
-    return str.toLowerCase().trim()
-        .replaceAll('á', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ó', 'o')
-        .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n');
+  void _openCreateTourDialog(BuildContext context, String lang) {
+    TourModeSelectionDialog.show(context, language: lang);
+  }
+
+  Future<void> _confirmDeleteTour(BuildContext context, RouteModel tour, String lang) async {
+    final isEn = lang == 'en';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(isEn ? 'Delete Tour' : 'Eliminar Tour'),
+        content: Text(
+          isEn
+              ? 'Are you sure you want to remove "${tour.name['en'] ?? tour.name['es']}" from your profile?'
+              : '¿Estás seguro de que deseas eliminar "${tour.name['es'] ?? tour.name['en']}" de tu perfil?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(isEn ? 'Cancel' : 'Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(isEn ? 'Delete' : 'Eliminar', style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final user = ref.read(currentUserProvider).value;
+      final uid = user?.uid ?? 'guest';
+      await ref.read(routeRepositoryProvider).deleteUserTour(tour.id, userId: uid);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEn ? 'Tour deleted' : 'Tour eliminado correctamente'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final routesAsync = ref.watch(routesProvider);
+    final userToursAsync = ref.watch(userToursStreamProvider);
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
-    final defaultAll = lang == 'es' ? 'Todos' : 'All';
-    final isCurrentAll = _cleanStr(_selectedSector) == 'todos' ||
-        _cleanStr(_selectedSector) == 'all' ||
-        _cleanStr(_selectedSector).contains('todos') ||
-        _cleanStr(_selectedSector).contains('all');
-    if (isCurrentAll) {
-      _selectedSector = defaultAll;
-    }
+    final isEn = lang == 'en';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        toolbarHeight: 90,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.restaurant, color: AppTheme.primary, size: 24),
-                SizedBox(width: 8),
-                Text('Hue-Quito', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
-                Spacer(),
-                // Sector Filter Dropdown
-                if (_selectedTab == 0)
-                  huecasAsync.when(
-                    data: (huecasList) {
-                      final allSectorSet = <String>{};
-                      for (var h in huecasList) {
-                        if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
-                        for (var b in h.allBranches) {
-                          if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());
-                        }
-                      }
-                      final sectors = [
-                        defaultAll,
-                        ...allSectorSet.toList()..sort(),
-                      ];
-                      if (isCurrentAll) {
-                        _selectedSector = defaultAll;
-                      } else {
-                        final matchingSector = sectors.firstWhere(
-                          (s) => _cleanStr(s) == _cleanStr(_selectedSector),
-                          orElse: () => defaultAll,
-                        );
-                        _selectedSector = matchingSector;
-                      }
-                      if (!sectors.contains(_selectedSector)) {
-                        _selectedSector = defaultAll;
-                      }
-                      return Container(
-                        height: 32,
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]), borderRadius: BorderRadius.circular(20)),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedSector,
-                            icon: Icon(Icons.keyboard_arrow_down, size: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) setState(() => _selectedSector = newValue);
-                            },
-                            items: sectors.map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.location_on, size: 14, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                                    SizedBox(width: 4),
-                                    Text(value.length > 15 ? '${value.substring(0,12)}...' : value),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      );
-                    },
-                    loading: () => SizedBox.shrink(),
-                    error: (_,__) => SizedBox.shrink(),
+            const Icon(Icons.restaurant, color: AppTheme.primary, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Hue-Quito',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
                   ),
-              ],
             ),
-            SizedBox(height: 16),
-            Text(lang == 'es' ? 'Circuitos Gastronómicos' : 'Gastronomic Tours', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-            Text(lang == 'es' ? 'Recorridos para saborear Quito' : 'Tours to savor Quito', style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
           ],
         ),
+        actions: [
+          if (_selectedTab == 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: Text(
+                  isEn ? 'New Tour' : 'Crear Tour',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _openCreateTourDialog(context, lang),
+              ),
+            ),
+        ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Toggle Segmented Control
+          // Section Title & Subtitle (Clean layout without overlapping)
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEn ? 'My Gastronomic Tours' : 'Mis Tours Gastronómicos',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isEn ? 'Your custom food routes in Quito' : 'Tus recorridos personalizados para saborear Quito',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white70 : AppTheme.textMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Segmented Toggle for "Mis Tours" vs "Mapa interactivo"
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Container(
-              padding: EdgeInsets.all(4),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
+                color: isDark ? const Color(0xFF1E293B) : Colors.grey[200],
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Row(
                 children: [
+                  // Tab 0: Mis Tours
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedTab = 0),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedTab == 0 ? Colors.white : Colors.transparent,
+                          color: _selectedTab == 0
+                              ? (isDark ? AppTheme.primary : Colors.white)
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(25),
-                          boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
+                          boxShadow: _selectedTab == 0
+                              ? [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? AppTheme.primary.withOpacity(0.35)
+                                        : Colors.black.withOpacity(0.08),
+                                    blurRadius: isDark ? 8 : 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : [],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.list, size: 18, color: _selectedTab == 0 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                            SizedBox(width: 8),
-                            Text(lang == 'es' ? 'Lista de circuitos' : 'Tour List', style: TextStyle(
-                              color: _selectedTab == 0 ? Theme.of(context).colorScheme.onSurface : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13
-                            )),
+                            Icon(
+                              Icons.explore_rounded,
+                              size: 18,
+                              color: _selectedTab == 0
+                                  ? (isDark ? Colors.white : AppTheme.primary)
+                                  : (isDark ? Colors.grey[400] : AppTheme.textMedium),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              isEn ? 'My Tours' : 'Mis Tours',
+                              style: TextStyle(
+                                color: _selectedTab == 0
+                                    ? (isDark ? Colors.white : AppTheme.primary)
+                                    : (isDark ? Colors.grey[400] : AppTheme.textMedium),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ),
+
+                  // Tab 1: Mapa interactivo (kept intact)
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedTab = 1),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedTab == 1 ? Colors.white : Colors.transparent,
+                          color: _selectedTab == 1
+                              ? (isDark ? AppTheme.primary : Colors.white)
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(25),
-                          boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
+                          boxShadow: _selectedTab == 1
+                              ? [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? AppTheme.primary.withOpacity(0.35)
+                                        : Colors.black.withOpacity(0.08),
+                                    blurRadius: isDark ? 8 : 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : [],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.map_outlined, size: 18, color: _selectedTab == 1 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
-                            SizedBox(width: 8),
-                            Text(lang == 'es' ? 'Mapa interactivo' : 'Interactive Map', style: TextStyle(
-                              color: _selectedTab == 1 ? Theme.of(context).colorScheme.onSurface : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13
-                            )),
+                            Icon(
+                              Icons.map_outlined,
+                              size: 18,
+                              color: _selectedTab == 1
+                                  ? (isDark ? Colors.white : AppTheme.primary)
+                                  : (isDark ? Colors.grey[400] : AppTheme.textMedium),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              isEn ? 'Interactive Map' : 'Mapa interactivo',
+                              style: TextStyle(
+                                color: _selectedTab == 1
+                                    ? (isDark ? Colors.white : AppTheme.primary)
+                                    : (isDark ? Colors.grey[400] : AppTheme.textMedium),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -192,269 +259,504 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             ),
           ),
 
-          // Main Content Area
+          // Main View Content
           Expanded(
             child: _selectedTab == 0
-                ? routesAsync.when(
-                    data: (routes) {
+                ? userToursAsync.when(
+                    data: (userTours) {
                       return huecasAsync.when(
                         data: (huecasList) {
-                          // Filter routes by selected sector
-                          List<RouteModel> filteredRoutes = routes;
-                          if (!isCurrentAll) {
-                            final selSec = _cleanStr(_selectedSector);
-                            filteredRoutes = routes.where((route) {
-                              return route.stops.any((stop) {
-                                final hueca = huecasList.where((h) => h.id == stop['huecaId']).firstOrNull;
-                                if (hueca == null) return false;
-                                return _cleanStr(hueca.sector) == selSec ||
-                                    hueca.allBranches.any((b) => _cleanStr(b.sector) == selSec);
-                              });
-                            }).toList();
-                          }
-
-                          if (filteredRoutes.isEmpty) {
-                            return Center(child: Text(lang == 'es' ? 'No hay rutas en este sector.' : 'No routes in this area.'));
+                          if (userTours.isEmpty) {
+                            return _buildEmptyToursState(context, isEn, isDark, lang);
                           }
 
                           return ListView.builder(
-                            padding: EdgeInsets.only(bottom: 100),
-                            itemCount: filteredRoutes.length + 1, // +1 for the footer
+                            padding: const EdgeInsets.only(top: 4, bottom: 120),
+                            itemCount: userTours.length,
                             itemBuilder: (context, index) {
-                              if (index == filteredRoutes.length) {
-                                return _buildFooter();
-                              }
-                              final route = filteredRoutes[index];
-                              bool isFeatured = index == 0; // First item is featured
-                              return _buildRouteCard(context, route, lang, huecasList, isFeatured);
+                              final tour = userTours[index];
+                              return _buildCustomTourCard(
+                                context,
+                                tour: tour,
+                                lang: lang,
+                                isEn: isEn,
+                                isDark: isDark,
+                                huecasList: huecasList,
+                              );
                             },
                           );
                         },
-                        loading: () => Center(child: CircularProgressIndicator()),
-                        error: (e,s) => Center(child: Text('Error cargando huecas')),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => Center(child: Text('Error cargando huecas: $e')),
                       );
                     },
-                    loading: () => Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Center(child: Text('Error: $err')),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, _) => Center(child: Text('Error: $err')),
                   )
-                : RouteMapScreen(initialSector: _selectedSector), // Display Map Screen here!
+                : const RouteMapScreen(initialSector: 'Todos'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooter() {
-    final lang = ref.watch(settingsProvider).language;
-    if (_selectedSector == 'Todos' || _selectedSector == 'All') {
-      _selectedSector = lang == 'es' ? 'Todos' : 'All';
-    }
-    return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.secondary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  // ==========================================
+  // EMPTY STATE FOR "MIS TOURS"
+  // ==========================================
+  Widget _buildEmptyToursState(BuildContext context, bool isEn, bool isDark, String lang) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
         children: [
+          const SizedBox(height: 30),
           Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.2), shape: BoxShape.circle),
-            child: Icon(Icons.explore, color: AppTheme.secondary, size: 20),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(lang == 'es' ? '¿Prefieres explorar libremente sin ruta fija?' : 'Prefer exploring freely without a fixed route?', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                SizedBox(height: 4),
-                Text(lang == 'es' ? 'Toca "Mapa interactivo" arriba o filtra para ver todas las huecas directamente en el mapa por sector.' : 'Tap "Interactive Map" above or filter to see all spots directly on the map by sector.', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
-              ],
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
             ),
-          )
+            child: const Center(
+              child: Icon(Icons.explore_outlined, color: AppTheme.primary, size: 48),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            isEn ? 'You haven’t created a tour yet!' : '¡Aún no tienes tours creados!',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isEn
+                ? 'Design your own gastronomic adventure in Quito. Answer quick cravings questions to get spots ordered by proximity, or pick your favorite huecas step by step.'
+                : 'Diseña tu propio recorrido gastronómico en Quito. Responde unas preguntas de antojo para sugerirte huecas por cercanía, o elígelas libremente parada por parada.',
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: isDark ? Colors.white70 : AppTheme.textMedium,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 28),
+
+          // Two creation cards directly inside empty state
+          _buildQuickActionCard(
+            context,
+            isDark: isDark,
+            emoji: '🪄',
+            title: isEn ? 'Question-guided Tour' : 'Tour Asistido por Preguntas',
+            subtitle: isEn
+                ? 'We ask what you crave and suggest spots closest to your route.'
+                : 'Te preguntamos tus antojos y te sugerimos huecas priorizando cercanía.',
+            onTap: () => context.push('/tour_wizard'),
+          ),
+          const SizedBox(height: 12),
+
+          _buildQuickActionCard(
+            context,
+            isDark: isDark,
+            emoji: '🗺️',
+            title: isEn ? 'Build it My Way' : 'Armar a mi Manera',
+            subtitle: isEn
+                ? 'Manually select huecas, reorder stops and see total driving time.'
+                : 'Elige las huecas del catálogo, ordénalas y calcula el tiempo en auto.',
+            onTap: () => context.push('/create_tour'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRouteCard(BuildContext context, RouteModel route, String lang, List<Hueca> huecasList, bool isFeatured) {
+  Widget _buildQuickActionCard(
+    BuildContext context, {
+    required bool isDark,
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark ? Colors.grey[800]! : Colors.grey[250] ?? Colors.grey[300]!,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 26)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white70 : AppTheme.textMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // CUSTOM TOUR CARD
+  // ==========================================
+  Widget _buildCustomTourCard(
+    BuildContext context, {
+    required RouteModel tour,
+    required String lang,
+    required bool isEn,
+    required bool isDark,
+    required List<Hueca> huecasList,
+  }) {
+    // Resolve Huecas for this tour
+    final List<Hueca> routeStops = [];
+    for (var s in tour.stops) {
+      final h = huecasList.where((h) => h.id == s['huecaId']).firstOrNull;
+      if (h != null) routeStops.add(h);
+    }
+
+    final tourTitle = tour.name[lang] ?? tour.name['es'] ?? (isEn ? 'My Tour' : 'Mi Tour');
+    final distanceText = tour.metrics['distance']?.toString() ?? '0 km';
+    final timeText = tour.metrics['estimatedTime']?.toString() ?? '0 min';
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Image
+          // Banner Image & Title Header
           Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.network(route.bannerImageUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
-              ),
-              Container(
-                height: 180,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withOpacity(0.7), Colors.transparent]),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                child: Image.network(
+                  tour.bannerImageUrl,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 160,
+                    color: Colors.grey[800],
+                    child: const Icon(Icons.restaurant, color: Colors.white, size: 40),
+                  ),
                 ),
               ),
-              Positioned(
-                top: 16, left: 16,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      Icon(Icons.stars, color: Colors.white, size: 12),
-                      SizedBox(width: 4),
-                      Text(lang == 'es' ? 'Circuito Popular' : 'Popular Tour', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              Container(
+                height: 160,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.8),
+                      Colors.transparent,
                     ],
                   ),
                 ),
               ),
+              // Badge
               Positioned(
-                bottom: 16, left: 16, right: 16,
-                child: Text(route.name[lang] ?? route.name['es'] ?? '', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.1)),
-              )
+                top: 14,
+                left: 14,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person, color: Colors.white, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        isEn ? 'My Custom Tour' : 'Tour Personalizado',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Delete Button
+              Positioned(
+                top: 10,
+                right: 10,
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.black.withOpacity(0.5),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                    onPressed: () => _confirmDeleteTour(context, tour, lang),
+                  ),
+                ),
+              ),
+              // Title
+              Positioned(
+                bottom: 14,
+                left: 16,
+                right: 16,
+                child: Text(
+                  tourTitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    height: 1.15,
+                  ),
+                ),
+              ),
             ],
           ),
-          
+
           Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Text(route.narrative[lang] ?? route.narrative['es'] ?? '', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 13, height: 1.4)),
-                  SizedBox(height: 16),
-                  
-                  // Metrics Box
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(16)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildMetricCol(Icons.straighten, route.metrics['distance'] ?? '', 'Distancia'),
-                        _buildMetricCol(Icons.directions_walk, route.metrics['estimatedTime'] ?? '', 'A pie'),
-                        _buildMetricCol(Icons.storefront, '${route.stops.length} huecas', 'Paradas'),
-                      ],
-                    ),
+                // Metrics Box
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[850] : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  SizedBox(height: 20),
-                  
-                  Text(lang == 'es' ? 'PARADAS DEL RECORRIDO' : 'TOUR STOPS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-                  SizedBox(height: 16),
-                  
-                  // Timeline (Inlined)
-                  ...route.stops.map((stop) {
-                    final hueca = huecasList.firstWhere((h) => h.id == stop['huecaId'], orElse: () => huecasList.first);
-                    final isLast = route.stops.last == stop;
-                    return IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: [
-                              Container(
-                                width: 24, height: 24,
-                                decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-                                child: Center(child: Text('${stop['order']}', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
-                              ),
-                              if (!isLast) Expanded(child: Container(width: 2, color: AppTheme.primary.withOpacity(0.3))),
-                            ],
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(bottom: 16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(child: Text(hueca.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                      Text(hueca.sector, style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                    ],
-                                  ),
-                                  Builder(
-                                    builder: (context) {
-                                      final dishName = () {
-                                        if (hueca.mainDish['name'] is Map) {
-                                          final m = hueca.mainDish['name'] as Map;
-                                          return (m[lang] ?? m['es'] ?? m['en'] ?? m.values.firstOrNull ?? '').toString();
-                                        }
-                                        return hueca.mainDish['name']?.toString() ?? '';
-                                      }();
-                                      return RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
-                                          children: [
-                                            TextSpan(text: lang == 'es' ? 'Especialidad: ' : 'Specialty: ', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                            TextSpan(text: dishName, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))),
-                                          ]
-                                        ),
-                                      );
-                                    },
-                                  )
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  }),
-                  
-                  SizedBox(height: 16),
-                  Row(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => context.push('/route_detail', extra: route),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppTheme.primary),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          child: Text(lang == 'es' ? 'Ver Tour' : 'View Tour', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), padding: EdgeInsets.symmetric(vertical: 12)),
-                          onPressed: () {
-                            // Find all huecas for this route
-                            final List<Hueca> routeStops = [];
-                            for (var s in route.stops) {
-                              final h = huecasList.where((h) => h.id == s['huecaId']).firstOrNull;
-                              if (h != null) routeStops.add(h);
-                            }
-                            context.push('/route_navigation', extra: {'route': route, 'stops': routeStops});
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.navigation, size: 16, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text(lang == 'es' ? 'Iniciar Ruta' : 'Start Route', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ),
+                      _buildMetricCol(Icons.storefront, '${tour.stops.length} huecas', isEn ? 'Stops' : 'Paradas'),
+                      _buildMetricCol(Icons.straighten, distanceText, isEn ? 'Distance' : 'Distancia'),
+                      _buildMetricCol(Icons.directions_car, timeText, isEn ? 'By Car' : 'En auto'),
                     ],
                   ),
+                ),
+                const SizedBox(height: 18),
+
+                // Stops Timeline
+                Text(
+                  isEn ? 'STOPS IN THIS TOUR' : 'PARADAS DEL RECORRIDO',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                ...List.generate(tour.stops.length, (index) {
+                  final stop = tour.stops[index];
+                  final hueca = huecasList.firstWhere(
+                    (h) => h.id == stop['huecaId'],
+                    orElse: () => Hueca(
+                      id: stop['huecaId']?.toString() ?? '',
+                      name: 'Hueca',
+                      description: {'es': ''},
+                      address: '',
+                      sector: 'Quito',
+                      location: const GeoPoint(-0.2186, -78.5080),
+                      phone: '',
+                      schedule: {},
+                      mainDish: {},
+                      loyaltyCard: {},
+                      secretSticker: {},
+                      menuItems: [],
+                      tags: [],
+                      priceLevel: '\$',
+                      rating: 5.0,
+                      reviewCount: 1,
+                      images: [],
+                      ownerId: '',
+                      isActive: true,
+                      metrics: {},
+                    ),
+                  );
+                  final isLast = index == tour.stops.length - 1;
+
+                  return IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (!isLast)
+                              Expanded(
+                                child: Container(
+                                  width: 2,
+                                  color: AppTheme.primary.withOpacity(0.3),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        hueca.name,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      hueca.sector,
+                                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                                if (hueca.mainDish['name'] != null)
+                                  Builder(builder: (context) {
+                                    final dishName = () {
+                                      if (hueca.mainDish['name'] is Map) {
+                                        final m = hueca.mainDish['name'] as Map;
+                                        return (m[lang] ?? m['es'] ?? m['en'] ?? '').toString();
+                                      }
+                                      return hueca.mainDish['name']?.toString() ?? '';
+                                    }();
+                                    return Text(
+                                      '🍴 $dishName',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark ? Colors.white70 : AppTheme.textMedium,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  }),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+
+                // Action Buttons: Ver Tour & Iniciar Ruta
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => context.push('/route_detail', extra: tour),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppTheme.primary, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(
+                          isEn ? 'View Tour' : 'Ver Tour',
+                          style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 1,
+                        ),
+                        onPressed: () {
+                          context.push('/route_navigation', extra: {
+                            'route': tour,
+                            'stops': routeStops,
+                          });
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.navigation, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              isEn ? 'Start Route' : 'Iniciar Ruta',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -464,9 +766,9 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
     return Column(
       children: [
         Icon(icon, color: AppTheme.primary, size: 20),
-        SizedBox(height: 4),
-        Text(val, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(val, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
       ],
     );
   }

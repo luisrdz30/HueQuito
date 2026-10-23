@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/widgets/business_onboarding_dialog.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
+import 'package:hue_quito/screens/business/subscription_payment_screen.dart';
 
 class BusinessDashboardScreen extends ConsumerStatefulWidget {
   const BusinessDashboardScreen({super.key});
@@ -74,6 +76,11 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.support_agent, color: Colors.white),
+            tooltip: 'Contactar al Superadmin',
+            onPressed: () => context.push('/business/support'),
+          ),
+          IconButton(
             icon: const Icon(Icons.help_outline, color: Colors.white),
             tooltip: 'Guía del Negocio',
             onPressed: () {
@@ -87,7 +94,9 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
             icon: const Icon(Icons.more_vert, color: Colors.white),
             tooltip: 'Opciones de Negocio',
             onSelected: (val) {
-              if (val == 'delete') {
+              if (val == 'support') {
+                context.push('/business/support');
+              } else if (val == 'delete') {
                 final hueca = ref.read(myHuecaProvider).value;
                 if (hueca != null) {
                   showDeleteHuecaConfirmationDialog(
@@ -99,6 +108,19 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
               }
             },
             itemBuilder: (ctx) => [
+              const PopupMenuItem(
+                value: 'support',
+                child: Row(
+                  children: [
+                    Icon(Icons.support_agent, color: AppTheme.primary, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Contactar al Admin',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -320,6 +342,9 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                         ),
                       ),
 
+                      // Tarjeta interactiva de estado de suscripción y corte de pago
+                      _buildSubscriptionBanner(context, hueca, isDark),
+
                       // Banner interactivo: Guía y tutorial para poner el negocio en orden
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
@@ -514,5 +539,350 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
         ],
       ),
     );
+  }
+
+  Widget _buildSubscriptionBanner(BuildContext context, Hueca hueca, bool isDark) {
+    final subRepo = ref.watch(subscriptionRepositoryProvider);
+    final subSettings = ref.watch(subscriptionSettingsProvider).value ?? const SubscriptionSettings();
+    final subInfo = subRepo.evaluateHuecaSubscription(hueca: hueca, settings: subSettings);
+
+    switch (subInfo.state) {
+      case HuecaSubscriptionState.freeTier:
+        final progress = (subInfo.stampsGiven / subInfo.maxFreeStamps).clamp(0.0, 1.0);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.rocket_launch, color: AppTheme.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Fase Gratuita de Prueba',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '${subInfo.stampsGiven} / ${subInfo.maxFreeStamps} sellos',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary, fontSize: 13),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 7,
+                    backgroundColor: isDark ? Colors.white12 : Colors.grey.shade200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Goza de todas las herramientas de Hue-Quito sin costo hasta alcanzar la meta de 50 sellos entregados a clientes.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: isDark ? Colors.white70 : AppTheme.textMedium,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case HuecaSubscriptionState.gracePeriod:
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF78350F), const Color(0xFF451A03)]
+                    : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.amber.shade700, width: 1.5),
+              boxShadow: [
+                BoxShadow(color: Colors.amber.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 3)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.amber.shade600, shape: BoxShape.circle),
+                      child: const Icon(Icons.notifications_active, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '¡Meta Alcanzada! Suscripción Requerida',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
+                            ),
+                          ),
+                          Text(
+                            '${subInfo.stampsGiven} sellos entregados • Periodo de corte',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Has culminado tu fase gratuita. Tienes ${subInfo.daysRemainingInGrace} días de gracia para realizar la transferencia de \$${subInfo.price.toStringAsFixed(2)} y subir tu comprobante antes de que tu local se pause en el mapa.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                if (subInfo.rejectionReason != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Observación: "${subInfo.rejectionReason}"',
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => SubscriptionPaymentScreen(hueca: hueca),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.receipt_long, size: 18),
+                    label: Text(
+                      'Pagar Suscripción (\$${subInfo.price.toStringAsFixed(2)})',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case HuecaSubscriptionState.underReview:
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF0C4A6E), const Color(0xFF082F49)]
+                    : [const Color(0xFFF0F9FF), const Color(0xFFE0F2FE)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.lightBlue.shade400),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: Colors.lightBlue.shade600, shape: BoxShape.circle),
+                  child: const Icon(Icons.hourglass_top_rounded, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Comprobante en Verificación',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.lightBlue.shade200 : Colors.lightBlue.shade900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Tu transferencia está siendo validada por la administración (24-48h). Tu local permanece activo y visible en la app.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          height: 1.35,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case HuecaSubscriptionState.active:
+        final cutoff = subInfo.nextCutoffDate;
+        final cutoffStr = cutoff != null ? '${cutoff.day}/${cutoff.month}/${cutoff.year}' : 'Próximo mes';
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green.shade400),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.verified, color: AppTheme.accentGreen, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Plan Aliado Hue-Quito Activo',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                          color: isDark ? Colors.green.shade200 : Colors.green.shade900,
+                        ),
+                      ),
+                      Text(
+                        'Suscripción vigente • Próximo corte: $cutoffStr',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+      case HuecaSubscriptionState.suspended:
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF7F1D1D), const Color(0xFF450A0A)]
+                    : [const Color(0xFFFEF2F2), const Color(0xFFFEE2E2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.red.shade600, width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 26),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Cuenta Suspendida por Pago Pendiente',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.red.shade200 : Colors.red.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'El periodo de gracia de 7 días ha vencido. Tu hueca está oculta temporalmente de las búsquedas, catálogo y mapas de la aplicación.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                if (subInfo.rejectionReason != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Motivo de rechazo: "${subInfo.rejectionReason}"',
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 11.5, fontWeight: FontWeight.bold),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => SubscriptionPaymentScreen(hueca: hueca),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.upload_file, size: 18),
+                    label: const Text(
+                      'Subir Comprobante para Reactivar',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+    }
   }
 }

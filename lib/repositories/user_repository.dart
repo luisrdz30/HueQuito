@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,8 +53,15 @@ class UserModel {
 }
 
 class UserRepository {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore? _firestore;
+  final FirebaseAuth? _firebaseAuth;
+
+  UserRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
+      : _firestore = firestore,
+        _firebaseAuth = auth;
+
+  FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
+  FirebaseAuth get _auth => _firebaseAuth ?? FirebaseAuth.instance;
 
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
@@ -74,21 +83,77 @@ class UserRepository {
           'preferences': {'favoriteDishes': [], 'dietaryRestrictions': []},
           'favoriteHuecas': [],
           'createdAt': FieldValue.serverTimestamp(),
-        });
+        }, SetOptions(merge: true));
         doc = await docRef.get();
       }
       
       if (doc.exists) {
         UserModel userModel = UserModel.fromFirestore(doc);
-        // Also fetch sector albums
-        final albums = await _db.collection('users').doc(user.uid).collection('sector_albums').get();
-        userModel.sectorAlbums.addAll(albums.docs.map((d) => d.data()).toList());
+
+        // If Firestore had a placeholder name/pic, but Google Auth has real name/photo, sync them!
+        final googleName = user.displayName;
+        final googlePhoto = user.photoURL;
+        final bool shouldUpdateName = googleName != null &&
+            googleName.trim().isNotEmpty &&
+            (userModel.name == 'Usuario' || userModel.name == 'Invitado' || userModel.name.trim().isEmpty);
+        final bool shouldUpdatePhoto = googlePhoto != null &&
+            googlePhoto.trim().isNotEmpty &&
+            (userModel.profilePicUrl.isEmpty ||
+                userModel.profilePicUrl.contains('placeholder') ||
+                userModel.profilePicUrl.contains('ui-avatars'));
+
+        if (shouldUpdateName || shouldUpdatePhoto) {
+          final updates = <String, dynamic>{};
+          if (shouldUpdateName) updates['name'] = googleName;
+          if (shouldUpdatePhoto) updates['profilePicUrl'] = googlePhoto;
+          if (user.email != null && user.email!.isNotEmpty && userModel.email.isEmpty) {
+            updates['email'] = user.email;
+          }
+          try {
+            await docRef.set(updates, SetOptions(merge: true));
+            userModel = UserModel(
+              uid: userModel.uid,
+              name: shouldUpdateName ? googleName : userModel.name,
+              email: updates.containsKey('email') ? user.email! : userModel.email,
+              role: userModel.role,
+              profilePicUrl: shouldUpdatePhoto ? googlePhoto : userModel.profilePicUrl,
+              gamification: userModel.gamification,
+              preferences: userModel.preferences,
+              sectorAlbums: userModel.sectorAlbums,
+              favoriteHuecas: userModel.favoriteHuecas,
+              subscribedHuecas: userModel.subscribedHuecas,
+              managedHuecaId: userModel.managedHuecaId,
+              managedBranchId: userModel.managedBranchId,
+            );
+          } catch (_) {}
+        }
+
+        // Also fetch sector albums safely
+        try {
+          final albums = await _db.collection('users').doc(user.uid).collection('sector_albums').get();
+          userModel.sectorAlbums.addAll(albums.docs.map((d) => d.data()).toList());
+        } catch (albumError) {
+          print('Warning: error fetching sector albums: $albumError');
+        }
+
         return userModel;
       }
     } catch (e) {
       print('Error fetching user: $e');
     }
-    return null;
+
+    // Resilient fallback: If Firebase Auth is authenticated, NEVER return null (which drops to guest mode)!
+    return UserModel(
+      uid: user.uid,
+      name: (user.displayName != null && user.displayName!.trim().isNotEmpty) ? user.displayName! : 'Usuario',
+      email: user.email ?? '',
+      role: 'user',
+      profilePicUrl: user.photoURL ?? 'https://ui-avatars.com/api/?name=${user.displayName ?? 'Usuario'}&background=random',
+      gamification: {'totalStamps': 0, 'level': 1, 'title': 'Novato'},
+      preferences: {'favoriteDishes': [], 'dietaryRestrictions': []},
+      sectorAlbums: [],
+      favoriteHuecas: [],
+    );
   }
   
   Future<void> toggleFavorite(String huecaId) async {
@@ -484,21 +549,134 @@ class UserRepository {
     await _db.collection('users').doc(uid).delete();
   }
 
-  /// ADMIN: Crear cuenta de usuario con rol 'business' desde el panel de admin
-  /// No requiere contraseña manual: genera una clave temporal segura y envía automáticamente
-  /// un correo electrónico al usuario para que defina su propia contraseña.
+  /// ADMIN: Crear o actualizar cuenta de usuario con rol 'business' desde el panel de admin o aprobación de solicitud.
+  /// Si el correo ya pertenece a un usuario registrado (ej. ingresó con Google o creó cuenta como comensal),
+  /// se limpia su historial antiguo de cliente (favoritos, álbumes, etc.) y se transforma su cuenta para
+  /// que gestione la hueca sin provocar error de correo duplicado.
+  /// Si es una cuenta nueva, genera una clave temporal segura y envía el correo para definir contraseña.
   Future<UserModel> createBusinessAccount({
     required String name,
     required String email,
     String? password,
     String? assignedHuecaId,
     String? assignedBranchId,
+    String? preferredUid,
   }) async {
+    final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Verificar si ya existe un usuario en Firestore con este UID o email
+    String? targetUid = (preferredUid != null && preferredUid.isNotEmpty && !preferredUid.startsWith('anon_'))
+        ? preferredUid
+        : null;
+
+    if (targetUid != null) {
+      final docCheck = await _db.collection('users').doc(targetUid).get();
+      if (!docCheck.exists) {
+        targetUid = null;
+      }
+    }
+
+    if (targetUid == null) {
+      // Buscar por email exacto (minúsculas)
+      final snap = await _db
+          .collection('users')
+          .where('email', isEqualTo: cleanEmail)
+          .limit(1)
+          .get();
+
+      if (snap.docs.isNotEmpty) {
+        targetUid = snap.docs.first.id;
+      } else {
+        // Búsqueda case-insensitive por si se guardó con mayúsculas
+        try {
+          final allUsers = await _db.collection('users').get();
+          for (final doc in allUsers.docs) {
+            final userEmail = doc.data()['email']?.toString().trim().toLowerCase();
+            if (userEmail == cleanEmail) {
+              targetUid = doc.id;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    // 2. Si ya existe el usuario: Limpiar datos antiguos de explorador/comensal y convertirlo a business
+    if (targetUid != null) {
+      // Limpiar álbumes antiguos de explorador en subcolección
+      try {
+        final albumsSnap = await _db.collection('users').doc(targetUid).collection('sector_albums').get();
+        for (final albumDoc in albumsSnap.docs) {
+          await albumDoc.reference.delete();
+        }
+      } catch (e) {
+        print('Aviso limpiando albumes de explorador: $e');
+      }
+
+      // Decrementar métricas de favoritos en las huecas que tenía marcadas
+      try {
+        final oldDoc = await _db.collection('users').doc(targetUid).get();
+        final oldFavs = List<String>.from(oldDoc.data()?['favoriteHuecas'] ?? []);
+        for (final fHuecaId in oldFavs) {
+          _db.collection('huecas').doc(fHuecaId).set({
+            'metrics': {'favoriteCount': FieldValue.increment(-1)}
+          }, SetOptions(merge: true));
+        }
+      } catch (_) {}
+
+      final updatedData = <String, dynamic>{
+        'uid': targetUid,
+        'name': name.trim(),
+        'email': cleanEmail,
+        'role': 'business',
+        'profilePicUrl': 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name.trim())}&background=0F172A&color=ffffff',
+        'gamification': {'totalStamps': 0, 'level': 1, 'title': 'Dueño de Negocio'},
+        'preferences': {'favoriteDishes': [], 'dietaryRestrictions': []},
+        'favoriteHuecas': [],
+        'subscribedHuecas': [],
+      };
+
+      if (assignedHuecaId != null && assignedHuecaId.trim().isNotEmpty) {
+        updatedData['managedHuecaId'] = assignedHuecaId.trim();
+        if (assignedBranchId != null && assignedBranchId.trim().isNotEmpty) {
+          updatedData['managedBranchId'] = assignedBranchId.trim();
+        } else {
+          updatedData['managedBranchId'] = FieldValue.delete();
+        }
+      }
+
+      await _db.collection('users').doc(targetUid).set(updatedData, SetOptions(merge: true));
+
+      if (assignedHuecaId != null && assignedHuecaId.trim().isNotEmpty) {
+        if (assignedBranchId != null && assignedBranchId.trim().isNotEmpty) {
+          await assignBranchToBusinessUser(
+            uid: targetUid,
+            email: cleanEmail,
+            huecaId: assignedHuecaId.trim(),
+            branchId: assignedBranchId.trim(),
+          );
+        } else {
+          await assignHuecaToBusinessUser(targetUid, assignedHuecaId.trim());
+        }
+      }
+
+      // Enviar correo de restablecimiento/definición de contraseña por si acaso
+      try {
+        await _auth.setLanguageCode('es');
+        await _auth.sendPasswordResetEmail(email: cleanEmail);
+      } catch (e) {
+        print('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
+      }
+
+      final docSnap = await _db.collection('users').doc(targetUid).get();
+      return UserModel.fromFirestore(docSnap);
+    }
+
+    // 3. Si NO existe el usuario: Crear nueva cuenta en Firebase Auth con app secundaria
     final tempAppName = 'AdminUserCreator_${DateTime.now().millisecondsSinceEpoch}';
     FirebaseApp? tempApp;
-    UserCredential cred;
+    UserCredential? cred;
 
-    // Si no se proporcionó contraseña, generar una clave temporal segura
     final initialPassword = (password != null && password.trim().isNotEmpty)
         ? password.trim()
         : 'HueQuito_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}!Aa9';
@@ -511,23 +689,38 @@ class UserRepository {
 
       final tempAuth = FirebaseAuth.instanceFor(app: tempApp);
       cred = await tempAuth.createUserWithEmailAndPassword(
-        email: email.trim(),
+        email: cleanEmail,
         password: initialPassword,
       );
 
       await cred.user?.updateDisplayName(name.trim());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        // En caso de que exista en Auth pero no en Firestore con ese email:
+        final existingByEmail = await _db.collection('users').where('email', isEqualTo: cleanEmail).limit(1).get();
+        if (existingByEmail.docs.isNotEmpty) {
+          return await createBusinessAccount(
+            name: name,
+            email: email,
+            preferredUid: existingByEmail.docs.first.id,
+            assignedHuecaId: assignedHuecaId,
+            assignedBranchId: assignedBranchId,
+          );
+        }
+      }
+      rethrow;
     } finally {
       if (tempApp != null) {
         await tempApp.delete();
       }
     }
 
-    final newUid = cred.user!.uid;
+    final newUid = cred!.user!.uid;
 
     final userData = <String, dynamic>{
       'uid': newUid,
       'name': name.trim(),
-      'email': email.trim().toLowerCase(),
+      'email': cleanEmail,
       'role': 'business',
       'profilePicUrl': 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name.trim())}&background=0F172A&color=ffffff',
       'gamification': {'totalStamps': 0, 'level': 1, 'title': 'Dueño de Negocio'},
@@ -550,7 +743,7 @@ class UserRepository {
       if (assignedBranchId != null && assignedBranchId.trim().isNotEmpty) {
         await assignBranchToBusinessUser(
           uid: newUid,
-          email: email.trim(),
+          email: cleanEmail,
           huecaId: assignedHuecaId.trim(),
           branchId: assignedBranchId.trim(),
         );
@@ -562,12 +755,197 @@ class UserRepository {
     // Enviar correo para que el dueño/encargado defina su propia contraseña
     try {
       await _auth.setLanguageCode('es');
-      await _auth.sendPasswordResetEmail(email: email.trim());
+      await _auth.sendPasswordResetEmail(email: cleanEmail);
     } catch (e) {
       print('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
     }
 
     final docSnap = await _db.collection('users').doc(newUid).get();
     return UserModel.fromFirestore(docSnap);
+  }
+
+  /// Obtiene la gamificación almacenada localmente para usuarios en modo invitado
+  static Future<Map<String, dynamic>> getGuestGamification() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString('guest_gamification');
+      if (str != null && str.isNotEmpty) {
+        return Map<String, dynamic>.from(jsonDecode(str));
+      }
+    } catch (_) {}
+    return {
+      'points': 0,
+      'totalStamps': 0,
+      'level': 1,
+      'title': 'Explorador',
+      'huecaStamps': <String, dynamic>{},
+      'collectedStickers': <dynamic>[],
+    };
+  }
+
+  /// Guarda la gamificación del usuario invitado en SharedPreferences
+  static Future<void> saveGuestGamification(Map<String, dynamic> gamification) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('guest_gamification', jsonEncode(gamification));
+    } catch (_) {}
+  }
+
+  /// Si un usuario invitado inicia sesión o se registra, migra automáticamente sus sellos y cromos locales a su cuenta en la nube
+  Future<void> migrateGuestDataToUser(String uid) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString('guest_gamification');
+      if (str == null || str.isEmpty) return;
+      final guestData = Map<String, dynamic>.from(jsonDecode(str));
+
+      final docRef = _db.collection('users').doc(uid);
+      final doc = await docRef.get();
+      if (!doc.exists) return;
+      final userData = doc.data() ?? {};
+      final userGamification = Map<String, dynamic>.from(userData['gamification'] ?? {});
+
+      // 1. Fusionar sellos por hueca
+      final guestStamps = Map<String, dynamic>.from(guestData['huecaStamps'] ?? {});
+      final userStamps = Map<String, dynamic>.from(userGamification['huecaStamps'] ?? {});
+      guestStamps.forEach((k, v) {
+        final current = (userStamps[k] as num?)?.toInt() ?? 0;
+        final guestCount = (v as num?)?.toInt() ?? 0;
+        userStamps[k] = current + guestCount;
+      });
+
+      // 2. Fusionar cromos secretos
+      final guestStickers = List<dynamic>.from(guestData['collectedStickers'] ?? []);
+      final userStickers = Set<dynamic>.from(userGamification['collectedStickers'] ?? []);
+      userStickers.addAll(guestStickers);
+
+      // 3. Fusionar puntos y sellos totales
+      final guestPoints = (guestData['points'] as num?)?.toInt() ?? 0;
+      final userPoints = (userGamification['points'] as num?)?.toInt() ?? 0;
+      final guestTotalStamps = (guestData['totalStamps'] as num?)?.toInt() ?? 0;
+      final userTotalStamps = (userGamification['totalStamps'] as num?)?.toInt() ?? 0;
+      final guestRewards = (guestData['rewardsCount'] as num?)?.toInt() ?? 0;
+      final userRewards = (userGamification['rewardsCount'] as num?)?.toInt() ?? 0;
+
+      userGamification['huecaStamps'] = userStamps;
+      userGamification['collectedStickers'] = userStickers.toList();
+      userGamification['points'] = userPoints + guestPoints;
+      userGamification['totalStamps'] = userTotalStamps + guestTotalStamps;
+      userGamification['rewardsCount'] = userRewards + guestRewards;
+
+      await docRef.update({'gamification': userGamification});
+      await prefs.remove('guest_gamification');
+
+      // 4. Migrar perfil gastronómico descubierto en el quiz
+      final guestPersona = prefs.getString('guest_persona') ?? prefs.getString('last_selected_persona');
+      if (guestPersona != null && guestPersona.isNotEmpty) {
+        final currentPrefs = Map<String, dynamic>.from(userData['preferences'] ?? {});
+        currentPrefs['persona'] = guestPersona;
+        await docRef.update({'preferences': currentPrefs});
+        await prefs.setString('last_selected_persona', guestPersona);
+      }
+
+      // 5. Migrar sector seleccionado en el quiz
+      final guestSector = prefs.getString('guest_sector') ?? prefs.getString('last_selected_sector');
+      if (guestSector != null && guestSector.isNotEmpty) {
+        final currentPrefs = Map<String, dynamic>.from(userData['preferences'] ?? {});
+        currentPrefs['sector'] = guestSector;
+        await docRef.update({'preferences': currentPrefs});
+        await prefs.setString('last_selected_sector', guestSector);
+      }
+
+      // 6. Migrar tours personalizados creados como invitado
+      final guestToursStr = prefs.getString('guest_custom_tours');
+      if (guestToursStr != null && guestToursStr.isNotEmpty) {
+        final List<dynamic> guestTours = jsonDecode(guestToursStr);
+        final batch = _db.batch();
+        for (var t in guestTours) {
+          if (t is Map) {
+            final tourMap = Map<String, dynamic>.from(t);
+            final tourId = tourMap['id']?.toString() ?? _db.collection('users').doc(uid).collection('custom_tours').doc().id;
+            tourMap['id'] = tourId;
+            tourMap['creatorId'] = uid;
+            final tourDoc = _db.collection('users').doc(uid).collection('custom_tours').doc(tourId);
+            batch.set(tourDoc, tourMap, SetOptions(merge: true));
+          }
+        }
+        await batch.commit();
+      }
+    } catch (e) {
+      print('Error migrating guest data: $e');
+    }
+  }
+
+  /// Canjea el premio de una hueca. Descuenta únicamente [targetStamps] requeridos,
+  /// conservando los sellos excedentes para la siguiente cartilla (ej. 13 - 10 = 3 restantes)
+  /// e incrementa el contador de recompensas del usuario.
+  Future<int> claimHuecaReward({
+    required String? uid,
+    required String huecaId,
+    required int targetStamps,
+    required String rewardText,
+  }) async {
+    final isGuest = uid == null || uid.isEmpty || uid == 'guest';
+
+    if (isGuest) {
+      final guestData = await getGuestGamification();
+      final huecaStamps = Map<String, dynamic>.from(guestData['huecaStamps'] ?? {});
+      final currentStamps = (huecaStamps[huecaId] as num?)?.toInt() ?? 0;
+
+      final remainingStamps = currentStamps >= targetStamps ? (currentStamps - targetStamps) : 0;
+      huecaStamps[huecaId] = remainingStamps;
+      guestData['huecaStamps'] = huecaStamps;
+
+      final rewardsCount = (guestData['rewardsCount'] as num?)?.toInt() ?? 0;
+      guestData['rewardsCount'] = rewardsCount + 1;
+
+      await saveGuestGamification(guestData);
+
+      try {
+        await _db.collection('huecas').doc(huecaId).collection('redemptions').add({
+          'userId': 'guest_local',
+          'rewardText': rewardText,
+          'stampsUsed': targetStamps,
+          'stampsRemaining': remainingStamps,
+          'date': FieldValue.serverTimestamp(),
+        });
+        await _db.collection('huecas').doc(huecaId).update({
+          'metrics.rewardsRedeemed': FieldValue.increment(1),
+        });
+      } catch (_) {}
+
+      return remainingStamps;
+    } else {
+      final docRef = _db.collection('users').doc(uid);
+      final doc = await docRef.get();
+      final userData = doc.data() ?? {};
+      final gamification = Map<String, dynamic>.from(userData['gamification'] ?? {});
+      final huecaStamps = Map<String, dynamic>.from(gamification['huecaStamps'] ?? {});
+      final currentStamps = (huecaStamps[huecaId] as num?)?.toInt() ?? 0;
+
+      final remainingStamps = currentStamps >= targetStamps ? (currentStamps - targetStamps) : 0;
+      huecaStamps[huecaId] = remainingStamps;
+      gamification['huecaStamps'] = huecaStamps;
+
+      final rewardsCount = (gamification['rewardsCount'] as num?)?.toInt() ?? 0;
+      gamification['rewardsCount'] = rewardsCount + 1;
+
+      await docRef.update({'gamification': gamification});
+
+      try {
+        await _db.collection('huecas').doc(huecaId).collection('redemptions').add({
+          'userId': uid,
+          'rewardText': rewardText,
+          'stampsUsed': targetStamps,
+          'stampsRemaining': remainingStamps,
+          'date': FieldValue.serverTimestamp(),
+        });
+        await _db.collection('huecas').doc(huecaId).update({
+          'metrics.rewardsRedeemed': FieldValue.increment(1),
+        });
+      } catch (_) {}
+
+      return remainingStamps;
+    }
   }
 }

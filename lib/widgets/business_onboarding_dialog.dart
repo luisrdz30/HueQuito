@@ -37,7 +37,7 @@ class BusinessOnboardingDialog extends StatefulWidget {
 class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  static const int _totalPages = 6;
+  static const int _totalPages = 7;
 
   @override
   void dispose() {
@@ -131,6 +131,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                   _buildProfileSlide(),
                   _buildMenuSlide(),
                   _buildQrSlide(),
+                  _buildSubscriptionSlide(),
                   _buildNotificationsSlide(),
                   _buildDashboardSlide(),
                 ],
@@ -263,7 +264,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Pon tu hueca en orden en 5 sencillos pasos',
+            'Pon tu hueca en orden en 6 sencillos pasos',
             style: TextStyle(
               fontSize: 14,
               color: AppTheme.primary,
@@ -286,9 +287,10 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
             ),
           ),
           const SizedBox(height: 14),
-          _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, teléfonos y fotos reales'),
+          _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, fotos reales y Sticker Secreto imprimible'),
           _buildFeatureCheckItem(Icons.restaurant_menu, 'Pestaña Menú: Digitalización asistida por IA'),
-          _buildFeatureCheckItem(Icons.qr_code, 'Pestaña Mi QR: Código imprimible para fidelizar comensales'),
+          _buildFeatureCheckItem(Icons.qr_code, 'Pestaña Mi QR: Otorga puntos y sellos con QR dinámico antifraude'),
+          _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros 50 sellos entregados son 100% gratis'),
           _buildFeatureCheckItem(Icons.campaign, 'Pestaña Avisos: Envía promociones a tus clientes'),
           _buildFeatureCheckItem(Icons.bar_chart, 'Pestaña Dashboard: Vistas y favoritos en tiempo real'),
         ],
@@ -328,7 +330,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       tabName: 'Perfil',
       tabIcon: Icons.store,
       title: 'Aca pones todo sobre tu negocio',
-      subtitle: 'Fotos de tu local, horarios, teléfonos y ubicación',
+      subtitle: 'Fotos de tu local, horarios, teléfonos y tu Sticker Secreto',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -346,7 +348,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         child: Column(
           children: [
             Container(
-              height: 70,
+              height: 60,
               decoration: BoxDecoration(
                 color: Colors.orange.shade100,
                 borderRadius: BorderRadius.circular(10),
@@ -368,12 +370,12 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
             const SizedBox(height: 8),
             _buildMockField(Icons.location_on, 'Dirección: ${widget.hueca.address}'),
             _buildMockField(Icons.access_time, 'Horarios: Lun-Dom 08:00 - 18:00'),
-            _buildMockField(Icons.phone, 'WhatsApp / Teléfono de pedidos'),
+            _buildMockField(Icons.stars, 'Sticker Secreto: Descárgalo e imprímelo aquí'),
           ],
         ),
       ),
       description:
-          'En la pestaña "Perfil" personalizas la identidad de tu hueca. Agrega tus números de contacto para pedidos a domicilio, tus horarios de atención exactos y sube fotos de alta calidad de tu local y platos para atraer turistas.',
+          'En la pestaña "Perfil" personalizas la identidad de tu hueca: teléfonos de pedidos, horarios de atención y fotos de tu local. Además, aquí configuras y descargas tu Sticker Secreto oficial para imprimirlo y colocarlo físicamente en tu local.',
       actionLabel: 'Ir a Perfil',
       onAction: () {
         Navigator.of(context).pop();
@@ -462,8 +464,8 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '3',
       tabName: 'Mi QR',
       tabIcon: Icons.qr_code,
-      title: 'Aca descargas el QR de tu negocio',
-      subtitle: 'Imprímelo para tu caja y mesas para dar sellos',
+      title: 'Aca entregas sellos y puntos con QR',
+      subtitle: 'Elige los sellos a dar con un QR dinámico que se regenera',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -471,40 +473,99 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.blueGrey.shade200),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.qr_code_2, color: Colors.white, size: 50),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Pasaporte HueQuito', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  SizedBox(height: 2),
-                  Text('Tus clientes escanean aquí y acumulan sellos por su consumo.', style: TextStyle(color: Colors.blueGrey, fontSize: 11)),
-                  SizedBox(height: 4),
-                  Row(
+            Row(
+              children: [
+                Icon(Icons.qr_code_scanner, color: AppTheme.primary, size: 16),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text(
+                    'Mi QR de Caja',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blueGrey.shade200),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.stars, color: Colors.deepOrange, size: 14),
+                      Icon(Icons.history, size: 13, color: Colors.blueGrey),
                       SizedBox(width: 4),
-                      Text('Sticker Secreto Incluido', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold, fontSize: 10)),
+                      Text('Historial', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.qr_code_2, color: Colors.white, size: 48),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.orange.shade200),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 12, color: Colors.orange.shade900),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'Entrega: 1 a 10 sellos',
+                                style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 10.5),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Row(
+                        children: [
+                          Icon(Icons.timer_outlined, size: 12, color: Colors.teal),
+                          SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Se regenera cada 30s antifraude',
+                              style: TextStyle(color: Colors.teal, fontSize: 10, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
       description:
-          'En "Mi QR" encuentras tu código QR oficial para imprimirlo y colocarlo en el mostrador o mesas. Al escanearlo, tus comensales recibirán sellos digitales en su pasaporte gastronómico y desbloquearán tu sticker exclusivo.',
+          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros 50 sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
       actionLabel: 'Ver Mi QR',
       onAction: () {
         Navigator.of(context).pop();
@@ -513,10 +574,127 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
     );
   }
 
-  // SLIDE 4: Pestaña Avisos
-  Widget _buildNotificationsSlide() {
+  // SLIDE 4: Pestaña Plan Gratuito y Suscripción
+  Widget _buildSubscriptionSlide() {
     return _buildStepSlide(
       stepNumber: '4',
+      tabName: 'Suscripción',
+      tabIcon: Icons.card_membership,
+      title: 'Plan Gratuito y Suscripción',
+      subtitle: 'Comienza 100% gratis y escala según tu crecimiento',
+      mockupWidget: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade300),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.stars, color: Colors.green.shade800, size: 16),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Tus primeros 50 sellos son 100% GRATIS',
+                      style: TextStyle(
+                        color: Colors.green.shade900,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Meta Gratuita', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
+                        const Text('50 Sellos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        Text('Sin costo inicial', style: TextStyle(fontSize: 9.5, color: Colors.green.shade700, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Mensualidad', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
+                        const Text('\$9.99 / mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        const Text('7 días de gracia', style: TextStyle(fontSize: 9.5, color: Colors.orange, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.account_balance, color: Colors.amber.shade900, size: 14),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Transferencia (Banco Pichincha) con foto de comprobante',
+                      style: TextStyle(color: Color(0xFF78350F), fontSize: 10, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      description:
+          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 50 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 50 sellos, se activará la suscripción mensual de \$9.99/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
+      actionLabel: 'Ver Plan y Pagos',
+      onAction: () {
+        Navigator.of(context).pop();
+        context.go('/business/dashboard');
+      },
+    );
+  }
+
+  // SLIDE 5: Pestaña Avisos
+  Widget _buildNotificationsSlide() {
+    return _buildStepSlide(
+      stepNumber: '5',
       tabName: 'Avisos',
       tabIcon: Icons.campaign,
       title: 'Aca pides notificaciones y avisos',
@@ -581,10 +759,10 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
     );
   }
 
-  // SLIDE 5: Pestaña Dashboard
+  // SLIDE 6: Pestaña Dashboard
   Widget _buildDashboardSlide() {
     return _buildStepSlide(
-      stepNumber: '5',
+      stepNumber: '6',
       tabName: 'Dashboard',
       tabIcon: Icons.bar_chart,
       title: 'Aqui estan tus dashboards y métricas',
@@ -609,7 +787,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          'En este "Dashboard" revisas tus métricas reales: cuántas personas han visto tu ficha, cuántos comensales te han marcado como favorito y en cuántas rutas gastronómicas de Quito está incluido tu negocio.',
+          'En este "Dashboard" revisas tus métricas reales: cuántas personas han visto tu ficha, cuántos comensales te han marcado como favorito, en cuántas rutas gastronómicas de Quito estás y el estado de tu Plan Gratuito con tus días y sellos disponibles.',
       actionLabel: '¡Comenzar a Configurar!',
       onAction: () {
         Navigator.of(context).pop();

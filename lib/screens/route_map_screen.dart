@@ -25,6 +25,13 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
   HuecaBranch? _selectedBranch;
   late String _selectedSector;
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final LatLng _quitoCenter = LatLng(-0.2186, -78.5097); // Basilica as center
 
@@ -143,14 +150,14 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     if (_mapController == null) return;
     final points = <LatLng>[];
     for (var h in huecas) {
+      if (!h.isActive) continue;
       for (var b in h.allBranches) {
         if (_searchQuery.isNotEmpty) {
           final q = _cleanStr(_searchQuery);
-          final matchName = _cleanStr(h.name).contains(q) || _cleanStr(b.name).contains(q);
-          final bSec = _cleanStr(b.sector.trim().isNotEmpty ? b.sector : h.sector);
-          final matchSector = bSec.contains(q);
-          final matchAddress = _cleanStr(b.address).contains(q);
-          if (!matchName && !matchSector && !matchAddress) continue;
+          final matchBranch = _cleanStr(b.name).contains(q) ||
+              _cleanStr(b.address).contains(q) ||
+              _cleanStr(b.sector).contains(q);
+          if (!matchBranch && !h.matchesSearch(_searchQuery)) continue;
         }
         points.add(LatLng(b.location.latitude, b.location.longitude));
       }
@@ -173,6 +180,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     }
     final matchingPoints = <LatLng>[];
     for (var h in huecas) {
+      if (!h.isActive) continue;
       for (var b in h.allBranches) {
         if (_matchSector(b.sector, h.sector, sector)) {
           matchingPoints.add(LatLng(b.location.latitude, b.location.longitude));
@@ -191,17 +199,19 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     final q = _cleanStr(query);
     final matchingPoints = <LatLng>[];
     for (var h in huecas) {
-      for (var b in h.allBranches) {
-        final matchName = _cleanStr(h.name).contains(q) || _cleanStr(b.name).contains(q);
-        final bSec = _cleanStr(b.sector.trim().isNotEmpty ? b.sector : h.sector);
-        final matchSector = bSec.contains(q);
-        final matchAddress = _cleanStr(b.address).contains(q);
-        final dishEs = (h.mainDish['name'] is Map
-            ? (h.mainDish['name']['es'] ?? '')
-            : h.mainDish['name']?.toString() ?? '');
-        final matchDish = _cleanStr(dishEs).contains(q);
-        if (matchName || matchSector || matchAddress || matchDish) {
+      if (!h.isActive) continue;
+      if (h.matchesSearch(query)) {
+        for (var b in h.allBranches) {
           matchingPoints.add(LatLng(b.location.latitude, b.location.longitude));
+        }
+      } else {
+        for (var b in h.allBranches) {
+          final matchBranch = _cleanStr(b.name).contains(q) ||
+              _cleanStr(b.address).contains(q) ||
+              _cleanStr(b.sector).contains(q);
+          if (matchBranch) {
+            matchingPoints.add(LatLng(b.location.latitude, b.location.longitude));
+          }
         }
       }
     }
@@ -230,6 +240,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
         currentSecClean.contains('all');
 
     for (var hueca in huecas) {
+      if (!hueca.isActive) continue;
       for (var branch in hueca.allBranches) {
         // Filter by sector:
         if (!isAll) {
@@ -239,16 +250,10 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
         // Filter by search query across hueca name, branch name, dish, address or sector
         if (_searchQuery.isNotEmpty) {
           final q = _cleanStr(_searchQuery);
-          final matchName = _cleanStr(hueca.name).contains(q) ||
-              _cleanStr(branch.name).contains(q);
-          final dishEs = (hueca.mainDish['name'] is Map
-              ? (hueca.mainDish['name']['es'] ?? hueca.mainDish['name']['en'] ?? '')
-              : hueca.mainDish['name']?.toString() ?? '');
-          final matchDish = _cleanStr(dishEs.toString()).contains(q);
-          final bSec = _cleanStr(branch.sector.trim().isNotEmpty ? branch.sector : hueca.sector);
-          final matchSector = bSec.contains(q);
-          final matchAddress = _cleanStr(branch.address).contains(q);
-          if (!matchName && !matchDish && !matchSector && !matchAddress) continue;
+          final matchBranch = _cleanStr(branch.name).contains(q) ||
+              _cleanStr(branch.address).contains(q) ||
+              _cleanStr(branch.sector).contains(q);
+          if (!matchBranch && !hueca.matchesSearch(_searchQuery)) continue;
         }
         
         final bool isSelected = _selectedHueca != null &&
@@ -356,6 +361,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
                   ),
                   child: TextField(
+                    controller: _searchController,
                     onChanged: (val) {
                       setState(() => _searchQuery = val);
                       huecasAsync.whenData((h) {
@@ -365,18 +371,32 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: lang == 'es' ? 'Buscar hueca, sucursal, barrio o plato...' : 'Search place, branch, area...',
+                      hintText: lang == 'es' ? 'Buscar hueca, plato, sucursal o barrio...' : 'Search place, dish, branch or area...',
                       hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      suffixIcon: GestureDetector(
-                        onTap: () {
-                          if (_currentPosition != null && _mapController != null) {
-                            try {
-                              _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(_currentPosition!.latitude, _currentPosition!.longitude)));
-                            } catch (_) {}
-                          }
-                        },
-                        child: const Icon(Icons.my_location, color: AppTheme.primary)
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_searchQuery.isNotEmpty)
+                            IconButton(
+                              icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            ),
+                          IconButton(
+                            icon: const Icon(Icons.my_location, color: AppTheme.primary, size: 20),
+                            onPressed: () {
+                              if (_currentPosition != null && _mapController != null) {
+                                try {
+                                  _mapController!.animateCamera(CameraUpdate.newLatLng(LatLng(_currentPosition!.latitude, _currentPosition!.longitude)));
+                                } catch (_) {}
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                       ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -388,8 +408,13 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                 // Sector Filter Dropdown including all branches' sectors
                 huecasAsync.when(
                   data: (huecasList) {
+                    if (_selectedHueca != null && !_selectedHueca!.isActive) {
+                      _selectedHueca = null;
+                      _selectedBranch = null;
+                    }
                     final allSectorSet = <String>{};
                     for (var h in huecasList) {
+                      if (!h.isActive) continue;
                       if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
                       for (var b in h.allBranches) {
                         if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());

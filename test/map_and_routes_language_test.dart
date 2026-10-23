@@ -207,7 +207,7 @@ void main() {
       ProviderScope(
         overrides: [
           huecasProvider.overrideWith((ref) async => mockHuecas),
-          routesProvider.overrideWith((ref) async => mockRoutes),
+          userToursStreamProvider.overrideWith((ref) => Stream.value(mockRoutes)),
           settingsProvider.overrideWith(() => MockEnglishSettingsNotifier()),
         ],
         child: const MaterialApp(
@@ -219,22 +219,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify English labels are displayed
-    expect(find.text('Gastronomic Tours'), findsOneWidget);
-    expect(find.text('Tour List'), findsOneWidget);
+    expect(find.text('My Gastronomic Tours'), findsOneWidget);
+    expect(find.text('My Tours'), findsOneWidget);
     expect(find.text('Interactive Map'), findsOneWidget);
     expect(find.text('Colonial Flavors Route'), findsOneWidget);
-    expect(
-      find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('Specialty:')),
-      findsNWidgets(2),
-    );
-    expect(
-      find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('Quesadillas pastries')),
-      findsOneWidget,
-    );
-    expect(
-      find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('Hornado tradicional con llapingachos')),
-      findsOneWidget,
-    );
+    expect(find.text('🍴 Quesadillas pastries'), findsOneWidget);
+    expect(find.text('🍴 Hornado tradicional con llapingachos'), findsOneWidget);
   });
 
   testWidgets('RouteDetailScreen renders without error in English with plain string dish and travel step', (tester) async {

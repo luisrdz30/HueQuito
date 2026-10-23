@@ -75,7 +75,7 @@ void main() {
     // Slide 0: Bienvenida
     expect(find.text('¡Bienvenido a HueQuito!'), findsOneWidget);
     expect(find.text('Seco de Chivo La Esquina'), findsOneWidget);
-    expect(find.text('Pon tu hueca en orden en 5 sencillos pasos'), findsOneWidget);
+    expect(find.text('Pon tu hueca en orden en 6 sencillos pasos'), findsOneWidget);
 
     // Navegar al Slide 1 (Perfil)
     await tester.tap(find.text('Siguiente'));
@@ -92,16 +92,22 @@ void main() {
     // Navegar al Slide 3 (Mi QR)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aca descargas el QR de tu negocio'), findsOneWidget);
+    expect(find.text('Aca entregas sellos y puntos con QR'), findsOneWidget);
     expect(find.text('Ver Mi QR'), findsOneWidget);
 
-    // Navegar al Slide 4 (Avisos)
+    // Navegar al Slide 4 (Plan Gratuito y Suscripción)
+    await tester.tap(find.text('Siguiente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Plan Gratuito y Suscripción'), findsOneWidget);
+    expect(find.text('Ver Plan y Pagos'), findsOneWidget);
+
+    // Navegar al Slide 5 (Avisos)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
     expect(find.text('Aca pides notificaciones y avisos'), findsOneWidget);
     expect(find.text('Ir a Avisos'), findsOneWidget);
 
-    // Navegar al Slide 5 (Dashboard y Métricas)
+    // Navegar al Slide 6 (Dashboard y Métricas)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
     expect(find.text('Aqui estan tus dashboards y métricas'), findsOneWidget);

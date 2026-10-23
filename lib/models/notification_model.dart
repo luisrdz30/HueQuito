@@ -60,7 +60,7 @@ class NotificationModel {
           : null,
       approvedAt: (data['approvedAt'] is Timestamp)
           ? (data['approvedAt'] as Timestamp).toDate()
-          : null,
+          : (data['status'] == 'approved' ? DateTime.now() : null),
       rejectedAt: (data['rejectedAt'] is Timestamp)
           ? (data['rejectedAt'] as Timestamp).toDate()
           : null,

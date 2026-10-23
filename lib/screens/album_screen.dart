@@ -3,6 +3,7 @@ import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 
@@ -15,6 +16,22 @@ class AlbumScreen extends ConsumerStatefulWidget {
 
 class _AlbumScreenState extends ConsumerState<AlbumScreen> {
   int _selectedTab = 0; // 0 for Huecas, 1 for Sectores
+  Map<String, dynamic>? _guestGamification;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGuestGamification();
+  }
+
+  Future<void> _loadGuestGamification() async {
+    final data = await UserRepository.getGuestGamification();
+    if (mounted) {
+      setState(() {
+        _guestGamification = data;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,18 +60,42 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
       body: userAsync.when(
         data: (user) {
           final isGuest = user == null;
-          // ignore: unused_local_variable
 
           final displayUser = user ?? UserModel(
             uid: 'guest',
             email: '',
-            name: 'Invitado',
+            name: lang == 'es' ? 'Invitado' : 'Guest',
             profilePicUrl: 'https://ui-avatars.com/api/?name=Invitado&background=random',
-            gamification: {'level': 1, 'totalStamps': 0, 'title': 'Explorador'},
-            preferences: {}, sectorAlbums: [],
+            gamification: _guestGamification ?? {
+              'level': 1,
+              'points': 0,
+              'totalStamps': 0,
+              'title': 'Explorador',
+              'huecaStamps': <String, dynamic>{},
+              'collectedStickers': <dynamic>[],
+            },
+            preferences: {},
+            sectorAlbums: [],
           );
 
-          int totalStamps = displayUser.gamification['totalStamps'] ?? 0;
+          // Filtrar y calcular sellos exclusivamente de huecas activas y confirmadas
+          final allHuecas = huecasAsync.value ?? [];
+          final confirmedHuecaMap = {
+            for (final h in allHuecas.where((h) => h.isActive && h.isSectorConfirmed))
+              h.id: h
+          };
+
+          final userHuecaStamps = Map<String, dynamic>.from(displayUser.gamification['huecaStamps'] ?? {});
+          int totalConfirmedStamps = 0;
+          userHuecaStamps.forEach((hId, count) {
+            if (confirmedHuecaMap.containsKey(hId)) {
+              totalConfirmedStamps += (count as num?)?.toInt() ?? 0;
+            }
+          });
+
+          final int totalStamps = huecasAsync.value != null
+              ? totalConfirmedStamps
+              : (displayUser.gamification['totalStamps'] ?? 0);
 
           return Column(
             children: [
@@ -96,6 +137,35 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 ),
               ),
 
+              if (isGuest)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.phone_android, size: 18, color: Colors.amber.shade900),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          lang == 'es'
+                              ? 'Progreso guardado en este celular. Inicia sesión para respaldar en la nube.'
+                              : 'Progress saved on this device. Log in to sync to the cloud.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Tabs
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -107,13 +177,13 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 0 ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
+                            color: _selectedTab == 0 ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.primary : Colors.white) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
                             child: Text(lang == 'es' ? 'Cartillas por Hueca' : 'Cards by Spot', style: TextStyle(
-                              color: _selectedTab == 0 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                              color: _selectedTab == 0 ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.primary) : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
                           ),
@@ -127,13 +197,13 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 1 ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
+                            color: _selectedTab == 1 ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.primary : Colors.white) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
                             child: Text(lang == 'es' ? 'Cromos por Sector' : 'Stickers by Sector', style: TextStyle(
-                              color: _selectedTab == 1 ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                              color: _selectedTab == 1 ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.primary) : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                               fontWeight: FontWeight.bold,
                             )),
                           ),
@@ -150,7 +220,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               Expanded(
                 child: _selectedTab == 0
                     ? _buildHuecasList(huecasAsync, displayUser, isGuest, lang)
-                    : _buildSectorList(displayUser.sectorAlbums, lang),
+                    : _buildSectorList(huecasAsync, displayUser, isGuest, lang),
               ),
             ],
           );
@@ -167,23 +237,46 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         if (huecas.isEmpty) return Center(child: Text(lang == 'es' ? 'No hay huecas disponibles' : 'No huecas available'));
 
         var activeHuecas = huecas.where((Hueca h) {
-          if (isGuest || user.gamification['huecaStamps'] == null) return false;
-          return (user.gamification['huecaStamps'][h.id] ?? 0) > 0;
+          // Los sellos de huecas no confirmadas o inactivas no deben salir ni contarse
+          if (!h.isSectorConfirmed || !h.isActive) return false;
+          if (user.gamification['huecaStamps'] == null) return false;
+          return ((user.gamification['huecaStamps'][h.id] as num?)?.toInt() ?? 0) > 0;
         }).toList();
 
         if (activeHuecas.isEmpty) {
           return Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              lang == 'es' 
-                ? 'Aún no tienes sellos en ninguna hueca.\\n¡Empieza a explorar!'
-                : 'You have no stamps yet.\\nStart exploring!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.loyalty_outlined,
+                    size: 64,
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    lang == 'es' ? '¡Tu cartilla está esperando!' : 'Your card is waiting!',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    lang == 'es'
+                        ? 'Aún no tienes sellos en ninguna hueca.\n¡Visita un local y empieza a coleccionar!'
+                        : 'You have no stamps yet in any spot.\nVisit a local and start collecting!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
+                      height: 1.4,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
         }
 
         return ListView.builder(
@@ -192,8 +285,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           itemBuilder: (context, index) {
             final hueca = activeHuecas[index];
             int currentStamps = 0;
-            if (!isGuest && user.gamification['huecaStamps'] != null) {
-              currentStamps = user.gamification['huecaStamps'][hueca.id] ?? 0;
+            if (user.gamification['huecaStamps'] != null) {
+              currentStamps = (user.gamification['huecaStamps'][hueca.id] as num?)?.toInt() ?? 0;
             }
             int targetStamps = hueca.loyaltyCard['maxStamps'] ?? hueca.loyaltyCard['targetStamps'] ?? 5;
             String reward = '';
@@ -212,8 +305,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             final rewardImageUrl = hueca.loyaltyCard['rewardImage']?.toString() ?? '';
 
             return _buildHuecaCard(
-              lang: lang, 
-              title: hueca.name,
+              lang: lang,
+              hueca: hueca,
+              user: user,
               currentStamps: currentStamps,
               targetStamps: targetStamps,
               reward: reward,
@@ -232,7 +326,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
 
   Widget _buildHuecaCard({
     required String lang,
-    required String title,
+    required Hueca hueca,
+    required UserModel user,
     required int currentStamps,
     required int targetStamps,
     required String reward,
@@ -241,14 +336,19 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     required bool isGuest,
     required BuildContext context,
   }) {
-    bool isCompleted = currentStamps >= targetStamps;
+    final bool isCompleted = currentStamps >= targetStamps;
+    final int cardStampsFilled = isCompleted ? targetStamps : currentStamps;
+    final int extraStamps = isCompleted ? (currentStamps - targetStamps) : 0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        border: isCompleted ? Border.all(color: AppTheme.accentGreen.withOpacity(0.4), width: 1.5) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,53 +356,149 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+              Expanded(
+                child: Text(
+                  hueca.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isCompleted ? AppTheme.accentGreen.withOpacity(0.2) : AppTheme.secondary.withOpacity(0.1),
+                  color: isCompleted ? AppTheme.accentGreen.withOpacity(0.18) : AppTheme.secondary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  isCompleted ? (lang == 'es' ? '¡Completado!' : 'Completed!') : (lang == 'es' ? '$currentStamps/$targetStamps Sellos' : '$currentStamps/$targetStamps Stamps'),
-                  style: TextStyle(color: isCompleted ? Colors.green[800] : AppTheme.secondary, fontWeight: FontWeight.bold, fontSize: 12),
+                  isCompleted
+                      ? (extraStamps > 0
+                          ? (lang == 'es' ? '¡Completa! (+$extraStamps extra)' : 'Full! (+$extraStamps extra)')
+                          : (lang == 'es' ? '¡Completado!' : 'Completed!'))
+                      : (lang == 'es' ? '$currentStamps/$targetStamps Sellos' : '$currentStamps/$targetStamps Stamps'),
+                  style: TextStyle(
+                    color: isCompleted ? Colors.green[800] : AppTheme.secondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11.5,
+                  ),
                 ),
               )
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
+
           // Stamp visualization
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(targetStamps, (index) {
-              bool isStamped = index < currentStamps;
+              bool isStamped = index < cardStampsFilled;
               return Container(
                 width: 45,
                 height: 45,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isStamped ? AppTheme.primary.withOpacity(0.1) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
-                  border: Border.all(color: isStamped ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!, width: 2),
+                  color: isStamped
+                      ? AppTheme.primary.withOpacity(0.1)
+                      : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                  border: Border.all(
+                    color: isStamped
+                        ? AppTheme.primary
+                        : (isDark ? Colors.grey[700] : Colors.grey[300])!,
+                    width: 2,
+                  ),
                 ),
                 child: Center(
-                  child: isStamped 
-                    ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
-                        ? ClipOval(
-                            child: Image.network(
-                              stampImageUrl,
-                              width: 38,
-                              height: 38,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Icon(Icons.check_circle, color: AppTheme.primary, size: 28),
-                            ),
-                          )
-                        : Icon(Icons.check_circle, color: AppTheme.primary, size: 28))
-                    : Icon(Icons.restaurant, color: Colors.grey[400], size: 20),
+                  child: isStamped
+                      ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
+                          ? ClipOval(
+                              child: Image.network(
+                                stampImageUrl,
+                                width: 38,
+                                height: 38,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    Icon(Icons.check_circle, color: AppTheme.primary, size: 28),
+                              ),
+                            )
+                          : Icon(Icons.check_circle, color: AppTheme.primary, size: 28))
+                      : Icon(Icons.restaurant, color: Colors.grey[400], size: 20),
                 ),
               );
             }),
           ),
-          SizedBox(height: 16),
+
+          // Indicador de sellos guardados de más
+          if (extraStamps > 0) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.amber.withOpacity(0.12) : const Color(0xFFFFF9E6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.amber.shade700 : Colors.amber.shade400,
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.archive_outlined, color: Colors.amber.shade900, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              lang == 'es'
+                                  ? '+$extraStamps ${extraStamps == 1 ? "sello guardado" : "sellos guardados"} de más'
+                                  : '+$extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} stored',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12.5,
+                                color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade700,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                lang == 'es' ? 'SEGURO' : 'SAFE',
+                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          lang == 'es'
+                              ? 'Al reclamar tu premio, estos $extraStamps ${extraStamps == 1 ? "sello no se perderá y quedará" : "sellos no se perderán y quedarán"} en tu siguiente cartilla.'
+                              : 'Upon claiming, your $extraStamps extra ${extraStamps == 1 ? "stamp" : "stamps"} will be preserved in your next card.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 14),
           Row(
             children: [
               if (rewardImageUrl != null && rewardImageUrl.isNotEmpty) ...[
@@ -310,104 +506,720 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   borderRadius: BorderRadius.circular(6),
                   child: Image.network(
                     rewardImageUrl,
-                    width: 22,
-                    height: 22,
+                    width: 24,
+                    height: 24,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
+                    errorBuilder: (_, __, ___) => Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
               ] else ...[
-                Icon(Icons.card_giftcard, size: 16, color: AppTheme.accentRed),
-                SizedBox(width: 8),
+                Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
+                const SizedBox(width: 8),
               ],
               Expanded(
                 child: Text(
                   lang == 'es' ? 'Recompensa: $reward' : 'Reward: $reward',
                   style: TextStyle(
-                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                    color: isDark ? Colors.white70 : AppTheme.textMedium,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
-          )
+          ),
+
+          // Botón de Reclamar Recompensa
+          if (isCompleted) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: () => _showClaimRewardDialog(
+                  hueca: hueca,
+                  user: user,
+                  isGuest: isGuest,
+                  currentStamps: currentStamps,
+                  targetStamps: targetStamps,
+                  extraStamps: extraStamps,
+                  reward: reward,
+                  rewardImageUrl: rewardImageUrl,
+                  lang: lang,
+                ),
+                icon: const Icon(Icons.celebration, size: 18),
+                label: Text(
+                  lang == 'es' ? 'Reclamar Premio' : 'Claim Reward',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentGreen,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildSectorList(List<dynamic> sectorAlbums, String lang) {
-    if (sectorAlbums.isEmpty) {
-      return Center(child: Text(lang == 'es' ? 'Aún no tienes cromos por sector.' : 'No sector stickers yet.', textAlign: TextAlign.center, style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium))));
-    }
-
-    return ListView.builder(
-      padding: EdgeInsets.only(left: 16, right: 16, bottom: 80),
-      itemCount: sectorAlbums.length,
-      itemBuilder: (context, index) {
-        final album = sectorAlbums[index];
-        return _buildSectorCard(lang: lang, 
-          sectorName: album['sectorName'] ?? 'Sector',
-          stickersCount: (album['foundStickers'] as List).length,
-          totalStickers: 10, // hardcoded max for now
-          isCompleted: album['isCompleted'] ?? false,
-        );
-      },
-    );
-  }
-
-  Widget _buildSectorCard({required String lang, required String sectorName, required int stickersCount, required int totalStickers, required bool isCompleted}) {
-    double progress = stickersCount / totalStickers;
-    
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+  /// Diálogo interactivo para reclamar el premio y preservar los sellos de más
+  Future<void> _showClaimRewardDialog({
+    required Hueca hueca,
+    required UserModel user,
+    required bool isGuest,
+    required int currentStamps,
+    required int targetStamps,
+    required int extraStamps,
+    required String reward,
+    String? rewardImageUrl,
+    required String lang,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.stars, color: Colors.amber, size: 28),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                lang == 'es' ? '¡Reclamar Premio!' : 'Claim Reward!',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              hueca.name,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
                 children: [
-                  Icon(Icons.map, color: AppTheme.primary),
-                  SizedBox(width: 8),
-                  Text(sectorName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  if (rewardImageUrl != null && rewardImageUrl.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        rewardImageUrl,
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 30, color: AppTheme.primary),
+                      ),
+                    )
+                  else
+                    const Icon(Icons.card_giftcard, size: 36, color: AppTheme.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lang == 'es' ? 'Premio a recibir:' : 'Reward to claim:',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        Text(
+                          reward,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              if (isCompleted)
-                Icon(Icons.verified, color: AppTheme.accentGreen)
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(lang == 'es' ? '$stickersCount de $totalStickers cromos' : '$stickersCount of $totalStickers stickers', style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), fontSize: 12)),
-              Text('${(progress * 100).toInt()}%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
-            ],
-          ),
-          SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
             ),
-          )
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.green.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lang == 'es' ? 'Detalle de sellos:' : 'Stamps breakdown:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green.shade900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    lang == 'es'
+                        ? '• Sellos canjeados: $targetStamps sellos'
+                        : '• Redeemed stamps: $targetStamps stamps',
+                    style: TextStyle(fontSize: 11.5, color: Colors.green.shade900),
+                  ),
+                  Text(
+                    lang == 'es'
+                        ? '• Sellos que conservas: $extraStamps sellos'
+                        : '• Retained stamps: $extraStamps stamps',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Colors.green.shade900),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              lang == 'es'
+                  ? 'Muestra esta confirmación al personal del local para recibir tu beneficio.'
+                  : 'Show this confirmation to the local staff to receive your benefit.',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(lang == 'es' ? 'Cancelar' : 'Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentGreen,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(lang == 'es' ? 'Confirmar Canje' : 'Confirm Claim'),
+          ),
         ],
       ),
+    );
+
+    if (confirmed == true && mounted) {
+      final userRepo = ref.read(userRepositoryProvider);
+      final remaining = await userRepo.claimHuecaReward(
+        uid: isGuest ? 'guest' : user.uid,
+        huecaId: hueca.id,
+        targetStamps: targetStamps,
+        rewardText: reward,
+      );
+
+      if (isGuest) {
+        await _loadGuestGamification();
+      } else {
+        ref.invalidate(currentUserProvider);
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 64),
+                const SizedBox(height: 12),
+                Text(
+                  lang == 'es' ? '¡Premio Reclamado con Éxito!' : 'Reward Successfully Claimed!',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  lang == 'es'
+                      ? 'Presenta esta pantalla a ${hueca.name} para disfrutar de tu: $reward.'
+                      : 'Show this screen at ${hueca.name} to enjoy your: $reward.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.shade300),
+                  ),
+                  child: Text(
+                    lang == 'es'
+                        ? '⭐ Tu siguiente cartilla ya tiene $remaining ${remaining == 1 ? "sello" : "sellos"} acumulados.'
+                        : '⭐ Your next card already has $remaining ${remaining == 1 ? "stamp" : "stamps"} accumulated.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text(lang == 'es' ? '¡Listo!' : 'Done!'),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  bool _isHuecaStickerUnlocked(Hueca h, UserModel user, bool isGuest) {
+    // Si la hueca no está confirmada o está inactiva, no debe desbloquearse ni contarse
+    if (!h.isSectorConfirmed || !h.isActive) return false;
+    final collected = List<String>.from(user.gamification['collectedStickers'] ?? []);
+    final stickerId = h.secretSticker['id']?.toString() ?? '';
+    final matrizKey = '${h.id}_matriz';
+    if (collected.contains(h.id) ||
+        collected.contains(matrizKey) ||
+        (stickerId.isNotEmpty && collected.contains(stickerId))) {
+      return true;
+    }
+    for (final b in h.branches) {
+      if (collected.contains('${h.id}_${b.id}')) return true;
+      if (b.secretSticker != null) {
+        final bStickerId = b.secretSticker!['id']?.toString() ?? '';
+        if (bStickerId.isNotEmpty && collected.contains(bStickerId)) return true;
+      }
+    }
+    return false;
+  }
+
+  String _getSectorStickerName(Hueca h, String lang) {
+    final s = h.secretSticker;
+    if (s['name'] is Map) {
+      return s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? (lang == 'es' ? 'Cromo Secreto' : 'Secret Sticker');
+    }
+    if (s['name'] != null && s['name'].toString().isNotEmpty) {
+      return s['name'].toString();
+    }
+    return lang == 'es' ? 'Cromo de ${h.name}' : '${h.name} Sticker';
+  }
+
+  String _getSectorStickerImage(Hueca h) {
+    final s = h.secretSticker;
+    if (s['imageUrl'] != null && s['imageUrl'].toString().isNotEmpty) {
+      return s['imageUrl'].toString();
+    }
+    if (h.images.isNotEmpty) {
+      return h.images.first;
+    }
+    return '';
+  }
+
+  Widget _buildSectorList(AsyncValue<List<Hueca>> huecasAsync, UserModel user, bool isGuest, String lang) {
+    return huecasAsync.when(
+      data: (huecas) {
+        if (huecas.isEmpty) {
+          return Center(child: Text(lang == 'es' ? 'No hay huecas disponibles' : 'No huecas available'));
+        }
+
+        // Agrupar las huecas por sector (solo huecas confirmadas por admin y activas)
+        final Map<String, List<Hueca>> sectorsMap = {};
+        for (final h in huecas) {
+          if (!h.isSectorConfirmed || !h.isActive) continue;
+          final rawSector = h.sector.trim();
+          final sectorName = rawSector.isNotEmpty && rawSector != 'Todo Quito' ? rawSector : 'Centro Histórico';
+          sectorsMap.putIfAbsent(sectorName, () => []).add(h);
+        }
+
+        final sortedSectorNames = sectorsMap.keys.toList()..sort();
+
+        if (sortedSectorNames.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.map_outlined,
+                    size: 64,
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    lang == 'es' ? 'Sin cromos por sector' : 'No sector stickers yet',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    lang == 'es'
+                        ? 'Aún no tienes cromos por sector.\n¡Explora diferentes zonas de Quito para desbloquearlos!'
+                        : 'You have no stickers by sector yet.\nExplore different zones of Quito to unlock them!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium,
+                      height: 1.4,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+          itemCount: sortedSectorNames.length,
+          itemBuilder: (context, index) {
+            final sectorName = sortedSectorNames[index];
+            final huecasInSector = sectorsMap[sectorName]!;
+            final totalStickers = huecasInSector.length;
+            final unlockedCount = huecasInSector.where((h) => _isHuecaStickerUnlocked(h, user, isGuest)).length;
+            final isCompleted = unlockedCount >= totalStickers && totalStickers > 0;
+
+            return _buildSectorCard(
+              lang: lang,
+              sectorName: sectorName,
+              stickersCount: unlockedCount,
+              totalStickers: totalStickers,
+              isCompleted: isCompleted,
+              huecasInSector: huecasInSector,
+              user: user,
+              isGuest: isGuest,
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Center(child: Text(lang == 'es' ? 'Error cargando sectores' : 'Error loading sectors')),
+    );
+  }
+
+  Widget _buildSectorCard({
+    required String lang,
+    required String sectorName,
+    required int stickersCount,
+    required int totalStickers,
+    required bool isCompleted,
+    required List<Hueca> huecasInSector,
+    required UserModel user,
+    required bool isGuest,
+  }) {
+    double progress = totalStickers > 0 ? (stickersCount / totalStickers) : 0.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _showSectorStickersModal(
+        sectorName: sectorName,
+        huecas: huecasInSector,
+        user: user,
+        isGuest: isGuest,
+        lang: lang,
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+          border: isCompleted ? Border.all(color: AppTheme.accentGreen.withOpacity(0.4), width: 1.5) : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isCompleted ? AppTheme.accentGreen.withOpacity(0.12) : AppTheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isCompleted ? Icons.verified : Icons.map_rounded,
+                        color: isCompleted ? AppTheme.accentGreen : AppTheme.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(sectorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isCompleted ? AppTheme.accentGreen.withOpacity(0.15) : (isDark ? Colors.white10 : Colors.grey.shade100),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isCompleted
+                            ? (lang == 'es' ? '¡Completo!' : 'Completed!')
+                            : '$stickersCount / $totalStickers',
+                        style: TextStyle(
+                          color: isCompleted ? Colors.green.shade800 : (isDark ? Colors.white70 : AppTheme.textMedium),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.chevron_right, size: 16, color: isDark ? Colors.white54 : Colors.grey),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  lang == 'es'
+                      ? '$stickersCount de $totalStickers cromos desbloqueados'
+                      : '$stickersCount of $totalStickers stickers unlocked',
+                  style: TextStyle(
+                    color: (isDark ? Colors.white70 : AppTheme.textMedium),
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: isCompleted ? AppTheme.accentGreen : AppTheme.primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: (isDark ? Colors.grey[800] : Colors.grey[200]),
+                valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppTheme.accentGreen : AppTheme.primary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSectorStickersModal({
+    required String sectorName,
+    required List<Hueca> huecas,
+    required UserModel user,
+    required bool isGuest,
+    required String lang,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalStickers = huecas.length;
+    final unlockedHuecas = huecas.where((h) => _isHuecaStickerUnlocked(h, user, isGuest)).toList();
+    final unlockedCount = unlockedHuecas.length;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.collections_bookmark, color: AppTheme.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lang == 'es' ? 'Cromos de $sectorName' : '$sectorName Stickers',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        Text(
+                          lang == 'es'
+                              ? '$unlockedCount de $totalStickers cromos coleccionados'
+                              : '$unlockedCount of $totalStickers collected',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppTheme.textMedium,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.82,
+                  ),
+                  itemCount: huecas.length,
+                  itemBuilder: (context, index) {
+                    final hueca = huecas[index];
+                    final isUnlocked = _isHuecaStickerUnlocked(hueca, user, isGuest);
+                    final stickerName = _getSectorStickerName(hueca, lang);
+                    final stickerImg = _getSectorStickerImage(hueca);
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        context.push('/hueca_detail', extra: hueca);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isUnlocked ? Colors.amber.shade400 : (isDark ? Colors.white12 : Colors.grey.shade300),
+                            width: isUnlocked ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isUnlocked ? 0.08 : 0.02),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  if (isUnlocked && stickerImg.isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        stickerImg,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          color: Colors.amber.shade50,
+                                          child: Icon(Icons.star, color: Colors.amber.shade700, size: 40),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          isUnlocked ? Icons.star : Icons.lock_outline,
+                                          size: 40,
+                                          color: isUnlocked ? Colors.amber : (isDark ? Colors.white24 : Colors.grey.shade400),
+                                        ),
+                                      ),
+                                    ),
+                                  if (isUnlocked)
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.green,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.check, size: 12, color: Colors.white),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              isUnlocked ? stickerName : (lang == 'es' ? 'Cromo Misterioso' : 'Mystery Sticker'),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: isUnlocked ? null : (isDark ? Colors.white54 : Colors.grey.shade600),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              isUnlocked
+                                  ? hueca.name
+                                  : (lang == 'es' ? 'Visita ${hueca.name}' : 'Visit ${hueca.name}'),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isDark ? Colors.white38 : AppTheme.textMedium,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

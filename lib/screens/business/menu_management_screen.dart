@@ -11,6 +11,7 @@ import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/screens/business/dish_form_screen.dart';
 import 'package:hue_quito/screens/business/menu_review_screen.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 
 class BusinessMenuScreen extends ConsumerStatefulWidget {
   const BusinessMenuScreen({super.key});
@@ -77,8 +78,13 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
 
     setState(() => _isLoading = true);
 
+    final huecaMap = _currentHueca!.toMap();
+    huecaMap['menuItems'] = _menuItems;
+    final newSearchTags = Hueca.extractSearchKeywords(huecaMap);
+
     await FirebaseFirestore.instance.collection('huecas').doc(_currentHueca!.id).update({
       'menuItems': _menuItems,
+      'searchTags': newSearchTags,
     });
     ref.invalidate(myHuecaProvider);
     ref.invalidate(huecasProvider);
@@ -278,71 +284,20 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
   Future<void> _startAiMenuScan() async {
     if (_currentHueca == null) return;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : AppTheme.textDark;
-    final subtextColor = isDark ? Colors.grey[400] : AppTheme.textMedium;
-
-    // Selector de cámara o galería
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+    final file = await ImagePickerHelper.showImageSourceDialog(
       context: context,
-      backgroundColor: cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(
-                'Escanear Menú con IA',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '¿De dónde deseas cargar la foto de tu carta física?',
-                style: TextStyle(color: subtextColor, fontSize: 13),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppTheme.primary),
-                title: Text('Tomar foto con la cámara', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                subtitle: Text('Asegúrate de tener buena iluminación y enfocar los precios', style: TextStyle(color: subtextColor, fontSize: 11)),
-                onTap: () => Navigator.pop(ctx, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: AppTheme.primary),
-                title: Text('Elegir foto de la galería', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                subtitle: Text('Selecciona una imagen clara de tu menú o afiche', style: TextStyle(color: subtextColor, fontSize: 11)),
-                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'Escanear Menú con IA',
+      subtitle: '¿De dónde deseas cargar la foto de tu carta física o afiche?',
+      imageQuality: 90,
+      maxWidth: 1920,
     );
 
-    if (source == null) return;
-
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 90);
-    if (pickedFile == null) return;
+    if (file == null) return;
 
     setState(() => _isAiProcessing = true);
 
     try {
-      final ocrResult = await MenuOcrService.extractDishesFromImage(pickedFile.path);
+      final ocrResult = await MenuOcrService.extractDishesFromImage(file.path);
 
       if (!mounted) return;
       setState(() => _isAiProcessing = false);
@@ -421,70 +376,20 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
   Future<void> _startSingleDishScan() async {
     if (_currentHueca == null) return;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : AppTheme.textDark;
-    final subtextColor = isDark ? Colors.grey[400] : AppTheme.textMedium;
-
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+    final file = await ImagePickerHelper.showImageSourceDialog(
       context: context,
-      backgroundColor: cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(
-                'Escanear Plato Individual',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Toma una foto o selecciona una imagen de tu plato o flyer:',
-                style: TextStyle(color: subtextColor, fontSize: 13),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Colors.amber),
-                title: Text('Tomar foto con la cámara', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                subtitle: Text('Enfoca tu plato preparado o cartel individual', style: TextStyle(color: subtextColor, fontSize: 11)),
-                onTap: () => Navigator.pop(ctx, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.amber),
-                title: Text('Elegir foto de la galería', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                subtitle: Text('Selecciona la foto de tu plato favorito', style: TextStyle(color: subtextColor, fontSize: 11)),
-                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'Escanear Plato Individual (IA)',
+      subtitle: 'Toma una foto o elígela de tu galería o Google Fotos',
+      imageQuality: 85,
+      maxWidth: 1600,
     );
 
-    if (source == null) return;
-
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 85);
-    if (pickedFile == null) return;
+    if (file == null) return;
 
     setState(() => _isAiProcessing = true);
 
     try {
-      final ocrResult = await MenuOcrService.extractDishesFromImage(pickedFile.path);
+      final ocrResult = await MenuOcrService.extractDishesFromImage(file.path);
 
       if (!mounted) return;
       setState(() => _isAiProcessing = false);
@@ -500,7 +405,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
           builder: (_) => DishFormScreen(
             huecaId: _currentHueca!.id,
             initialDish: initialDishData,
-            initialImageFile: File(pickedFile.path),
+            initialImageFile: File(file.path),
           ),
         ),
       );

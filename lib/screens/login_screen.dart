@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
-import 'package:hue_quito/providers/auth_provider.dart';
+import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -37,6 +37,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.text,
       );
 
+      ref.invalidate(authStateProvider);
+      ref.invalidate(currentUserProvider);
+
       final userRepo = ref.read(userRepositoryProvider);
       var userModel = await userRepo.getCurrentUser();
       await _handlePostLoginNavigation(userModel);
@@ -58,6 +61,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
 
     if (userModel != null) {
+      // Migrar datos acumulados en modo invitado a la cuenta del usuario
+      try {
+        final userRepo = ref.read(userRepositoryProvider);
+        await userRepo.migrateGuestDataToUser(userModel.uid);
+        ref.invalidate(currentUserProvider);
+      } catch (_) {}
+
       bool isBusinessOrManager = false;
 
       try {
@@ -131,6 +141,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
+
+      ref.invalidate(authStateProvider);
+      ref.invalidate(currentUserProvider);
 
       final userRepo = ref.read(userRepositoryProvider);
       var userModel = await userRepo.getCurrentUser();

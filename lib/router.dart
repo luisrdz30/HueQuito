@@ -37,6 +37,16 @@ import 'package:hue_quito/screens/admin/admin_route_edit_screen.dart';
 import 'package:hue_quito/screens/admin/admin_users_screen.dart';
 import 'package:hue_quito/screens/admin/admin_reviews_screen.dart';
 import 'package:hue_quito/screens/admin/admin_notifications_screen.dart';
+import 'package:hue_quito/screens/hueca_request_screen.dart';
+import 'package:hue_quito/screens/tour_wizard_screen.dart';
+import 'package:hue_quito/screens/tour_creator_screen.dart';
+import 'package:hue_quito/screens/business/business_support_screen.dart';
+import 'package:hue_quito/screens/admin/admin_solicitudes_screen.dart';
+import 'package:hue_quito/screens/admin/admin_support_screen.dart';
+import 'package:hue_quito/screens/admin/admin_sectors_screen.dart';
+import 'package:hue_quito/screens/admin/admin_quiz_screen.dart';
+import 'package:hue_quito/screens/admin/admin_subscriptions_screen.dart';
+import 'package:hue_quito/screens/business/subscription_payment_screen.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/providers/data_provider.dart';
@@ -50,11 +60,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (user == null && (path.startsWith('/business') || path.startsWith('/admin'))) {
         return '/login';
       }
+      if (path.startsWith('/admin')) {
+        final email = user?.email?.trim().toLowerCase();
+        final appUser = ref.read(currentUserProvider).value;
+        final isSuperAdmin = email == 'admin@huequito.com' || (appUser != null && appUser.role == 'admin');
+        if (!isSuperAdmin) {
+          return '/home';
+        }
+      }
       return null;
     },
     routes: [
       GoRoute(
         path: '/',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
@@ -99,6 +121,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               final extra = state.extra as String? ?? '';
               return GalleryManagementScreen(huecaId: extra);
             },
+          ),
+          GoRoute(
+            path: '/business/support',
+            builder: (context, state) => const BusinessSupportScreen(),
           ),
         ],
       ),
@@ -199,8 +225,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       ),
       GoRoute(
+        path: '/tour_wizard',
+        builder: (context, state) => const TourWizardScreen(),
+      ),
+      GoRoute(
+        path: '/create_tour',
+        builder: (context, state) => const TourCreatorScreen(),
+      ),
+      GoRoute(
         path: '/reward',
         builder: (context, state) => const RewardScreen(),
+      ),
+      GoRoute(
+        path: '/hueca_request',
+        builder: (context, state) => const HuecaRequestScreen(),
+      ),
+      GoRoute(
+        path: '/hueca-request',
+        builder: (context, state) => const HuecaRequestScreen(),
       ),
       // ADMIN SHELL ROUTE
       ShellRoute(
@@ -219,8 +261,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AdminNotificationsScreen(),
           ),
           GoRoute(
-            path: '/admin/routes',
-            builder: (context, state) => const AdminRoutesScreen(),
+            path: '/admin/subscriptions',
+            builder: (context, state) => const AdminSubscriptionsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/solicitudes',
+            builder: (context, state) => const AdminSolicitudesScreen(),
           ),
           GoRoute(
             path: '/admin/users',
@@ -291,6 +337,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/reviews',
         builder: (context, state) => const AdminReviewsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/support',
+        builder: (context, state) => const AdminSupportScreen(),
+      ),
+      GoRoute(
+        path: '/admin/sectors',
+        builder: (context, state) => const AdminSectorsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/quiz',
+        builder: (context, state) => const AdminQuizScreen(),
+      ),
+      GoRoute(
+        path: '/business/subscription',
+        builder: (context, state) {
+          final hueca = state.extra as Hueca;
+          return SubscriptionPaymentScreen(hueca: hueca);
+        },
       ),
     ],
   );

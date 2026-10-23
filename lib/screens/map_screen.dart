@@ -25,6 +25,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   String _selectedCategory = 'Todos';
   String _selectedSector = 'Todos';
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   String _cleanStr(String str) {
     return str.toLowerCase().trim()
@@ -57,6 +64,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       return;
     }
     for (var h in huecas) {
+      if (!h.isActive) continue;
       for (var b in h.allBranches) {
         if (_matchSector(b.sector, h.sector, sector)) {
           _mapController.move(LatLng(b.location.latitude, b.location.longitude), 15.0);
@@ -70,16 +78,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (query.isEmpty) return;
     final q = _cleanStr(query);
     for (var h in huecas) {
+      if (!h.isActive) continue;
+      if (h.matchesSearch(query)) {
+        final b = h.allBranches.first;
+        _mapController.move(LatLng(b.location.latitude, b.location.longitude), 15.0);
+        return;
+      }
       for (var b in h.allBranches) {
-        final matchName = _cleanStr(h.name).contains(q) || _cleanStr(b.name).contains(q);
+        final matchName = _cleanStr(b.name).contains(q);
         final bSec = _cleanStr(b.sector.trim().isNotEmpty ? b.sector : h.sector);
         final matchSector = bSec.contains(q);
         final matchAddress = _cleanStr(b.address).contains(q);
-        final dishEs = (h.mainDish['name'] is Map
-            ? (h.mainDish['name']['es'] ?? '')
-            : h.mainDish['name']?.toString() ?? '');
-        final matchDish = _cleanStr(dishEs).contains(q);
-        if (matchName || matchSector || matchAddress || matchDish) {
+        if (matchName || matchSector || matchAddress) {
           _mapController.move(LatLng(b.location.latitude, b.location.longitude), 15.0);
           return;
         }
@@ -90,9 +100,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   List<Marker> _getMarkers(List<Hueca> huecas) {
     List<Marker> markers = [];
     for (var hueca in huecas) {
+      if (!hueca.isActive) continue;
       // Category filter
       if (_selectedCategory != 'Todos' && _selectedCategory != 'All') {
-        if (!hueca.tags.contains(_selectedCategory)) {
+        if (!hueca.tags.contains(_selectedCategory) &&
+            !hueca.searchTags.contains(_cleanStr(_selectedCategory)) &&
+            !hueca.matchesSearch(_selectedCategory)) {
           continue;
         }
       }
@@ -108,15 +121,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         // Search query filter
         if (_searchQuery.isNotEmpty) {
           final q = _cleanStr(_searchQuery);
-          final matchName = _cleanStr(hueca.name).contains(q) || _cleanStr(branch.name).contains(q);
-          final dishEs = (hueca.mainDish['name'] is Map
-              ? (hueca.mainDish['name']['es'] ?? hueca.mainDish['name']['en'] ?? '')
-              : hueca.mainDish['name']?.toString() ?? '');
-          final matchDish = _cleanStr(dishEs.toString()).contains(q);
-          final bSec = _cleanStr(branch.sector.trim().isNotEmpty ? branch.sector : hueca.sector);
-          final matchSector = bSec.contains(q);
-          final matchAddress = _cleanStr(branch.address).contains(q);
-          if (!matchName && !matchDish && !matchSector && !matchAddress) continue;
+          final matchBranch = _cleanStr(branch.name).contains(q) ||
+              _cleanStr(branch.address).contains(q) ||
+              _cleanStr(branch.sector).contains(q);
+          if (!matchBranch && !hueca.matchesSearch(_searchQuery)) continue;
         }
 
         bool isSelected = _selectedHueca != null && 
@@ -199,8 +207,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
         data: (huecas) {
+          if (_selectedHueca != null && !_selectedHueca!.isActive) {
+            _selectedHueca = null;
+            _selectedBranch = null;
+          }
           final allSectorSet = <String>{};
           for (var h in huecas) {
+            if (!h.isActive) continue;
             if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
             for (var b in h.allBranches) {
               if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());
@@ -265,6 +278,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         children: [
                           Expanded(
                             child: TextField(
+                              controller: _searchController,
                               onChanged: (val) {
                                 setState(() => _searchQuery = val);
                                 if (val.trim().length >= 3) {
@@ -272,8 +286,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 }
                               },
                               decoration: InputDecoration(
-                                hintText: lang == 'es' ? 'Buscar hueca, sucursal o barrio...' : 'Search spot, branch or sector...',
+                                hintText: lang == 'es' ? 'Buscar hueca, plato, sucursal o barrio...' : 'Search spot, dish, branch or sector...',
                                 prefixIcon: const Icon(Icons.search),
+                                suffixIcon: _searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 20),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setState(() => _searchQuery = '');
+                                        },
+                                      )
+                                    : null,
                                 filled: true,
                                 fillColor: Theme.of(context).cardColor,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),

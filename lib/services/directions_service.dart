@@ -3,11 +3,20 @@ import 'package:http/http.dart' as http;
 
 class DirectionsService {
   // Las claves se configuran en tiempo de compilación mediante --dart-define=MAPS_API_KEY=...
-  // para no exponer credenciales privadas en el código fuente.
+  // para no exponer credenciales privadas en el repositorio.
   static const String _apiKey = String.fromEnvironment('MAPS_API_KEY', defaultValue: '');
+  static String get apiKey => _apiKey;
 
-  static Future<Map<String, dynamic>?> getDirections(double startLat, double startLng, double endLat, double endLng, {String mode = 'walking', List<Map<String, double>> waypoints = const []}) async {
-    if (_apiKey.isEmpty) {
+  static Future<Map<String, dynamic>?> getDirections(
+    double startLat,
+    double startLng,
+    double endLat,
+    double endLng, {
+    String mode = 'walking',
+    List<Map<String, double>> waypoints = const [],
+  }) async {
+    final key = apiKey;
+    if (key.isEmpty) {
       return null;
     }
 
@@ -46,11 +55,11 @@ class DirectionsService {
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
-          'X-Goog-Api-Key': _apiKey,
+          'X-Goog-Api-Key': key,
           'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps'
         },
         body: json.encode(body),
-      );
+      ).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -80,14 +89,10 @@ class DirectionsService {
             'polyline': route['polyline']['encodedPolyline'],
             'steps': allSteps,
           };
-        } else {
-          print("Routes API returned empty: ${response.body}");
         }
-      } else {
-        print("Routes API HTTP Error: ${response.statusCode} - ${response.body}");
       }
-    } catch (e) {
-      print("Error fetching routes: $e");
+    } catch (_) {
+      // Si la API falla o da timeout, retornamos null para activar el fallback geodésico
     }
     return null;
   }

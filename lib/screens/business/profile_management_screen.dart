@@ -8,6 +8,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/translation_service.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -518,6 +519,23 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       }
     }
 
+    TimeOfDay parseTime(String timeStr, {required TimeOfDay defaultTime}) {
+      try {
+        final clean = timeStr.trim();
+        final parts = clean.split(':');
+        if (parts.length >= 2) {
+          final h = int.parse(parts[0].trim());
+          final m = int.parse(parts[1].trim().split(' ')[0]);
+          return TimeOfDay(hour: h, minute: m);
+        }
+      } catch (_) {}
+      return defaultTime;
+    }
+
+    String formatTime24(TimeOfDay t) {
+      return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -525,78 +543,369 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateModal) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
             return Container(
-              height: MediaQuery.of(context).size.height * 0.8,
+              height: MediaQuery.of(context).size.height * 0.88,
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    targetBranch != null
-                        ? 'Editar Horario (${targetBranch.name})'
-                        : 'Editar Horario',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey.shade200,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: days.length,
-                      itemBuilder: (context, index) {
-                        final day = days[index];
-                        final isClosed = currentSchedule[day] == 'Cerrado';
-                        final timeController = TextEditingController(
-                          text: isClosed ? '' : currentSchedule[day],
-                        );
 
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.access_time_filled, color: AppTheme.primary, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              targetBranch != null
+                                  ? 'Horario de Atención (${targetBranch.name})'
+                                  : 'Horario de Atención de la Hueca',
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Toca las horas para cambiarlas con el reloj interactivo',
+                              style: TextStyle(fontSize: 12, color: Colors.blueGrey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Barra de plantillas y atajos rápidos
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              '⚡ Atajos Rápidos:',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setStateModal(() {
+                                      final baseSchedule = currentSchedule['Lunes'] != 'Cerrado'
+                                          ? currentSchedule['Lunes']!
+                                          : '09:00 - 18:00';
+                                      for (int i = 0; i < 5; i++) {
+                                        currentSchedule[days[i]] = baseSchedule;
+                                      }
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Horario de lunes aplicado a Lun-Vie'),
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.shade100,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'Copiar a Lun-Vie',
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                InkWell(
+                                  onTap: () {
+                                    setStateModal(() {
+                                      final baseSchedule = currentSchedule['Lunes'] != 'Cerrado'
+                                          ? currentSchedule['Lunes']!
+                                          : '09:00 - 18:00';
+                                      for (var d in days) {
+                                        currentSchedule[d] = baseSchedule;
+                                      }
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Horario aplicado a toda la semana'),
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text(
+                                      'Copiar a Todos',
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
+                              _buildQuickTemplateChip('☀️ 08:00 - 17:00', '08:00 - 17:00', currentSchedule, setStateModal),
+                              const SizedBox(width: 6),
+                              _buildQuickTemplateChip('🍲 09:00 - 18:00', '09:00 - 18:00', currentSchedule, setStateModal),
+                              const SizedBox(width: 6),
+                              _buildQuickTemplateChip('🌆 10:00 - 20:00', '10:00 - 20:00', currentSchedule, setStateModal),
+                              const SizedBox(width: 6),
+                              _buildQuickTemplateChip('🌙 12:00 - 22:00', '12:00 - 22:00', currentSchedule, setStateModal),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Lista de 7 días con selectores táctiles
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: days.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final day = days[index];
+                        final rawSchedule = currentSchedule[day] ?? '08:00 - 18:00';
+                        final isClosed = rawSchedule.trim().toLowerCase() == 'cerrado';
+
+                        String startStr = '08:00';
+                        String endStr = '18:00';
+
+                        if (!isClosed) {
+                          final parts = rawSchedule.split('-');
+                          if (parts.length >= 2) {
+                            startStr = parts[0].trim();
+                            endStr = parts[1].trim();
+                          }
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isClosed
+                                  ? Colors.red.withValues(alpha: 0.25)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              // Nombre del día
                               SizedBox(
-                                width: 90,
+                                width: 85,
                                 child: Text(
                                   day,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextField(
-                                  controller: timeController,
-                                  enabled: !isClosed,
-                                  decoration: InputDecoration(
-                                    hintText: 'Ej. 09:00 - 17:00',
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isClosed ? Colors.blueGrey : null,
                                   ),
-                                  onChanged: (val) {
-                                    currentSchedule[day] = val;
-                                  },
                                 ),
                               ),
-                              SizedBox(width: 8),
+
+                              // Estado de Horas (o botón Cerrado)
+                              Expanded(
+                                child: isClosed
+                                    ? InkWell(
+                                        onTap: () {
+                                          setStateModal(() {
+                                            currentSchedule[day] = '09:00 - 18:00';
+                                          });
+                                        },
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFEF2F2),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: const Color(0xFFFECACA)),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.lock_clock, size: 14, color: Color(0xFFDC2626)),
+                                              SizedBox(width: 6),
+                                              Text(
+                                                'Cerrado (Toca para abrir)',
+                                                style: TextStyle(
+                                                  color: Color(0xFFDC2626),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Botón Hora Apertura
+                                          InkWell(
+                                            onTap: () async {
+                                              final initial = parseTime(startStr, defaultTime: const TimeOfDay(hour: 8, minute: 0));
+                                              final picked = await showTimePicker(
+                                                context: context,
+                                                initialTime: initial,
+                                                helpText: 'HORA DE APERTURA ($day)',
+                                                confirmText: 'ESTABLECER',
+                                                cancelText: 'CANCELAR',
+                                              );
+                                              if (picked != null) {
+                                                setStateModal(() {
+                                                  currentSchedule[day] = '${formatTime24(picked)} - $endStr';
+                                                });
+                                              }
+                                            },
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.4)),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(Icons.access_time, size: 13, color: AppTheme.primary),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    startStr,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+
+                                          const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 6),
+                                            child: Text('a', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                                          ),
+
+                                          // Botón Hora Cierre
+                                          InkWell(
+                                            onTap: () async {
+                                              final initial = parseTime(endStr, defaultTime: const TimeOfDay(hour: 18, minute: 0));
+                                              final picked = await showTimePicker(
+                                                context: context,
+                                                initialTime: initial,
+                                                helpText: 'HORA DE CIERRE ($day)',
+                                                confirmText: 'ESTABLECER',
+                                                cancelText: 'CANCELAR',
+                                              );
+                                              if (picked != null) {
+                                                setStateModal(() {
+                                                  currentSchedule[day] = '$startStr - ${formatTime24(picked)}';
+                                                });
+                                              }
+                                            },
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.amber.shade700),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.schedule, size: 13, color: Colors.amber.shade800),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    endStr,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+
+                              // Switch / Toggle Cerrado
                               Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Cerrado',
-                                    style: TextStyle(fontSize: 10),
+                                    isClosed ? 'Cerrado' : 'Abierto',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isClosed ? Colors.red : Colors.green.shade700,
+                                    ),
                                   ),
                                   Switch(
-                                    value: isClosed,
+                                    value: !isClosed,
+                                    activeColor: Colors.green,
+                                    inactiveThumbColor: Colors.red,
+                                    inactiveTrackColor: Colors.red.shade100,
                                     onChanged: (val) {
                                       setStateModal(() {
-                                        if (val) {
+                                        if (!val) {
                                           currentSchedule[day] = 'Cerrado';
                                         } else {
-                                          currentSchedule[day] =
-                                              '09:00 - 17:00'; // default back
+                                          currentSchedule[day] = '09:00 - 18:00';
                                         }
                                       });
                                     },
@@ -609,10 +918,20 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       },
                     ),
                   ),
+
+                  const SizedBox(height: 12),
+
+                  // Botón Guardar
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 2,
+                      ),
                       onPressed: () async {
                         Navigator.pop(dialogContext);
 
@@ -669,13 +988,13 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                             SnackBar(
                               content: Text(targetBranch != null
                                   ? 'Horario de ${targetBranch.name} guardado con éxito'
-                                  : 'Horario guardado'),
+                                  : 'Horario guardado con éxito'),
                               backgroundColor: Colors.green,
                             ),
                           );
                         }
                       },
-                      child: Text('Guardar Horario'),
+                      child: const Text('Guardar Horario', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),
                 ],
@@ -687,6 +1006,45 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     );
   }
 
+  Widget _buildQuickTemplateChip(
+    String label,
+    String timeRange,
+    Map<String, String> schedule,
+    StateSetter setStateModal,
+  ) {
+    return InkWell(
+      onTap: () {
+        setStateModal(() {
+          final days = [
+            'Lunes',
+            'Martes',
+            'Miércoles',
+            'Jueves',
+            'Viernes',
+            'Sábado',
+            'Domingo',
+          ];
+          for (int i = 0; i < 5; i++) {
+            schedule[days[i]] = timeRange;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blueGrey.shade200),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickAndUploadImage(
     BuildContext context,
     Hueca hueca,
@@ -694,15 +1052,22 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     HuecaBranch? targetBranch,
   }) async {
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
+      String pickerTitle = 'Foto de la Hueca';
+      if (fieldKey.contains('mainDish')) {
+        pickerTitle = 'Foto del Plato Estrella';
+      } else if (fieldKey.contains('secretSticker')) {
+        pickerTitle = 'Foto del Cromo Secreto';
+      }
+
+      final file = await ImagePickerHelper.showImageSourceDialog(
+        context: context,
+        title: pickerTitle,
+        subtitle: 'Elige de dónde quieres cargar la imagen',
+        imageQuality: 75,
+        maxWidth: 1280,
       );
 
-      if (pickedFile == null || !mounted) return;
-
-      File file = File(pickedFile.path);
+      if (file == null || !mounted) return;
       String fileName = '${hueca.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String folder = 'hueca_images';
       if (fieldKey.contains('mainDish')) folder = 'dish_images';

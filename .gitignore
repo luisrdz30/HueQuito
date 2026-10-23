@@ -47,8 +47,20 @@ serviceAccountKey*.json
 lib/firebase_options.dart
 android/app/google-services.json
 test_api*.dart
+.env
+.env.*
+*.pem
+*.key
+*.keystore
+*.jks
 
 # Python scripts and scratch files
 *.py
 __pycache__/
 *.txt
+
+# LaTeX artifacts
+*.aux
+*.out
+*.toc
+*.synctex.gz

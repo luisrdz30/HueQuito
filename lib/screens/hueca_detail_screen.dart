@@ -630,6 +630,36 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (!_currentHueca.isActive) ...[
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blueGrey.shade400),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.pause_circle_filled, color: Colors.blueGrey, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              lang == 'es'
+                                  ? 'Esta hueca está pausada temporalmente por administración.'
+                                  : 'This spot is temporarily paused by administration.',
+                              style: const TextStyle(
+                                color: Colors.blueGrey,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

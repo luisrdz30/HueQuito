@@ -1,0 +1,414 @@
+% =============================================================================
+% GUÍA DEL USUARIO Y MANUAL PRÁCTICO
+% Aplicación Móvil: Hue-Quito
+% Versión amigable para Comensales, Dueños de Negocios y Administradores
+% =============================================================================
+\documentclass[11pt, a4paper, oneside]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{fontawesome5}
+\usepackage{pifont}
+
+% --- Geometría ---
+\geometry{
+  a4paper,
+  left=2.5cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm,
+  headheight=24pt
+}
+
+% --- Colores amigables y sobrios ---
+\definecolor{primaryHue}{HTML}{F47B20}   % Naranjilla cálido
+\definecolor{darkHue}{HTML}{1A1C1C}      % Carbón suave
+\definecolor{accentHue}{HTML}{2D4238}    % Verde páramo
+\definecolor{cardBg}{HTML}{F8F9FA}       % Gris muy suave
+\definecolor{borderHue}{HTML}{E2E8F0}    % Borde sutil
+
+% --- Hyperlinks ---
+\hypersetup{
+  colorlinks=true,
+  linkcolor=darkHue,
+  urlcolor=primaryHue,
+  citecolor=darkHue,
+  pdftitle={Guía del Usuario - Hue-Quito},
+  pdfauthor={Luis Rodríguez - PUCE},
+}
+
+% --- Cajas de ayuda amigables ---
+\tcbuselibrary{skins, breakable}
+
+\newtcolorbox{tipbox}[1][]{
+  colback=cardBg,
+  colframe=primaryHue,
+  coltitle=darkHue,
+  fonttitle=\bfseries,
+  title={\faIcon{lightbulb}\ \ Consejo Práctico},
+  arc=3mm,
+  boxrule=1pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt,
+  breakable,
+  #1
+}
+
+\newtcolorbox{stepbox}[1][]{
+  colback=white,
+  colframe=darkHue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={\faIcon{shoe-prints}\ \ Paso a Paso},
+  arc=3mm,
+  boxrule=1pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt,
+  breakable,
+  #1
+}
+
+\newtcolorbox{notebox}[1][]{
+  colback=cardBg,
+  colframe=accentHue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={\faIcon{info-circle}\ \ Ten en Cuenta},
+  arc=3mm,
+  boxrule=1pt,
+  left=12pt, right=12pt, top=10pt, bottom=10pt,
+  breakable,
+  #1
+}
+
+% --- Encabezados y pies de página ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textbf{Hue-Quito} \textbar\ Guía Rápida y Manual de Usuario}
+\fancyhead[R]{\small\faIcon{mobile-alt}\ Aplicación Móvil}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Formato de títulos ---
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{darkHue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{darkHue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{darkHue}}{\thesubsubsection}{1em}{}
+
+\setlength{\parskip}{0.7em}
+\setlength{\parindent}{0pt}
+\onehalfspacing
+
+% =============================================================================
+\begin{document}
+
+% --- Portada Amigable ---
+\begin{titlepage}
+  \centering
+  \vspace*{1cm}
+  
+  \IfFileExists{logo-puce.png}{%
+    \includegraphics[width=0.25\textwidth]{logo-puce.png}\\[0.8cm]
+  }{%
+    \IfFileExists{docs/logo-puce.png}{%
+      \includegraphics[width=0.25\textwidth]{docs/logo-puce.png}\\[0.8cm]
+    }{%
+      \vspace{1.5cm}
+    }%
+  }
+
+  {\Large \textbf{PONTIFICIA UNIVERSIDAD CATÓLICA DEL ECUADOR}}\\[0.3cm]
+  {\normalsize Proyecto de Titulación \textbar\ Ingeniería de Software}\\[1.5cm]
+
+  {\Huge\bfseries ¡Descubre el Sabor de Quito!\par}
+  \vspace{0.4cm}
+  {\LARGE\textbf{Manual de Uso y Guía Práctica de Hue-Quito}\par}
+  \vspace{0.5cm}
+  {\large Una guía sencilla para Comensales, Dueños de Huecas y Administradores}\\[1.8cm]
+
+  \begin{tcolorbox}[colback=cardBg, colframe=borderHue, arc=4mm, width=0.88\textwidth]
+    \centering
+    \small
+    \textit{Esta guía fue diseñada pensando en ti: para que encuentres fácilmente la mejor comida típica, ganes premios con tu pasaporte gastronómico o hagas crecer tu propio local paso a paso.}
+  \end{tcolorbox}
+
+  \vfill
+  {\textbf{Autor:} Luis Rodríguez}\\[0.2cm]
+  {\textbf{Docente Director:} Javier Guaña}\\[0.5cm]
+  {\small Quito -- Ecuador \textbar\ 2026}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+% SECCIÓN 1: BIENVENIDA
+% =============================================================================
+\section{¡Bienvenido a Hue-Quito!}
+
+\subsection{¿Qué es una hueca?}
+En Quito y en todo el Ecuador, una \textbf{``hueca''} es mucho más que un simple restaurante: es ese rinconcito de confianza, puesto de mercado o negocio familiar donde se cocina con recetas tradicionales de abuelitas, donde la comida es abundante, con sabor casero inigualable y a un precio justo.
+
+Sin embargo, muchas de las mejores huecas no tienen página web, no aparecen en aplicaciones extranjeras o sus menús en pizarrones son difíciles de entender para turistas. 
+
+\textbf{Hue-Quito} nació para cambiar eso:
+\begin{itemize}
+  \item \textbf{Para el comensal:} Es un mapa interactivo y pasaporte digital para descubrir sitios increíbles y coleccionar sellos.
+  \item \textbf{Para el dueño de la hueca:} Es una herramienta súper fácil para tener su local en el mapa, poner su menú al alcance de todos y premiar a sus clientes fieles.
+  \item \textbf{Para el turista:} Es la forma más segura de entender qué comer, cómo pedirlo en inglés y cómo llegar sin perderse.
+\end{itemize}
+
+% =============================================================================
+% SECCIÓN 2: GUÍA PARA EL COMENSAL
+% =============================================================================
+\section{Guía para Comensales y Turistas}
+
+Esta sección te enseñará a sacarle el jugo a la app en tus salidas gastronómicas.
+
+\subsection{Tu primera vez y el Quiz de Personalidad}
+Al abrir la app por primera vez, verás una bienvenida rápida y se te invitará a responder un test de solo 4 preguntas: el \textbf{Quiz Gastronómico}.
+
+\begin{stepbox}
+\textbf{¿Cómo funciona el quiz?}
+\begin{enumerate}
+  \item Te preguntaremos qué buscas en una comida, qué hora prefieres para comer o qué plato te hace agua la boca.
+  \item Al terminar, la app descubrirá tu \textbf{Perfil Culinario}:
+  \begin{itemize}
+    \item \textbf{El Sopero:} Amante del locro, caldos y encebollados que reviven a cualquiera.
+    \item \textbf{El Carnívoro:} Fanático del hornado, fritadas y carnes bien puestas.
+    \item \textbf{El Callejero:} Amante de las hamburguesas, salchipapas y comida rápida nocturna.
+    \item \textbf{El Dulcero:} Quien siempre tiene un huequito extra para postres, coladas y helados de paila.
+    \item \textbf{El Picador Clásico:} Fan de las empanadas de morocho, humitas, tamales y corvinas.
+    \item \textbf{El Aventurero:} Sin miedo a nada, amante de la tripa mishqui, guatita y comida de mercado.
+  \end{itemize}
+  \item ¡Aparecerá una lluvia de confeti y a partir de ese momento la pantalla principal te recomendará huecas pensadas exclusivamente en tus gustos!
+\end{enumerate}
+\end{stepbox}
+
+\begin{tipbox}
+Si tienes prisa puedes presionar \textbf{Saltar} y hacer el quiz más tarde desde tu Perfil.
+\end{tipbox}
+
+\subsection{Cómo buscar y explorar huecas}
+En la pantalla de inicio (\textbf{Explorar}) tienes todo al alcance de tu mano:
+\begin{itemize}
+  \item \textbf{Buscador en tiempo real:} Escribe el nombre del local (ej. \textit{Don Jimmy}), un plato (\textit{corvina}, \textit{hornado}) o un barrio.
+  \item \textbf{Filtros por sector:} Despliega el menú superior para ver solo huecas del Centro Histórico, La Floresta, Conocoto, La Mariscal, el Norte o el Sur.
+  \item \textbf{Filtros por antojo:} Toca los botones rápidos para ver solo Sopas, Carnes, Dulces o Tradición.
+  \item \textbf{Plato Insignia:} Cada tarjeta te muestra el plato estrella del lugar con su foto y precio aproximado.
+  \item \textbf{Favoritos con un toque:} Toca el corazón en cualquier tarjeta para guardarla en tu lista personal.
+\end{itemize}
+
+\subsection{Cómo ver el detalle y el menú de una hueca}
+Al tocar una hueca se abrirá su pantalla completa con toda la información verificada:
+\begin{itemize}
+  \item \textbf{Galería de fotos:} Desliza hacia los lados para ver fotos del local y sus preparaciones. Si tocas cualquier foto, se abre a pantalla completa con zoom para verla en detalle.
+  \item \textbf{Pestaña Menú Digital:} Verás cada plato con su precio en dólares, su descripción y su traducción al inglés.
+  \item \textbf{Pestaña Horarios y Sucursales:} Podrás ver a qué hora abren cada día de la semana y si tienen otros locales en Quito.
+  \item \textbf{Opiniones y Calificaciones:} Lee lo que otros comensales han dicho y califica tú también con estrellas del 1 al 5.
+\end{itemize}
+
+\subsection{Cómo llegar con el mapa y GPS}
+¡Olvídate de perderte buscando esa hueca escondida en el callejón!
+\begin{stepbox}
+\textbf{Dos formas sencillas de llegar:}
+\begin{enumerate}
+  \item \textbf{Navegación dentro de Hue-Quito:} Toca el botón \textbf{Cómo llegar}. La app calculará la mejor ruta caminando o en vehículo, mostrándote la línea de camino y las indicaciones paso a paso (ej. \textit{``Gira a la derecha en 50 m''}).
+  \item \textbf{Abrir en tu app favorita:} Si prefieres usar Google Maps, Waze o Apple Maps, solo presiona el botón correspondiente y se abrirá directamente con las coordenadas exactas de la hueca.
+\end{enumerate}
+\end{stepbox}
+
+\subsection{El Pasaporte Gastronómico: Sellos y Premios}
+¿Te gusta coleccionar? Hue-Quito convierte tus almuerzos en un juego divertido:
+\begin{itemize}
+  \item \textbf{Sellos por consumo:} Cada vez que visites una hueca y consumas, el dueño te mostrará un código QR. Entra a la pestaña \textbf{Escanear}, apunta la cámara y ¡listo! Ganarás sellos en tu cartilla digital.
+  \item \textbf{Recompensa por cartilla llena:} Al juntar los sellos requeridos (por ejemplo, 5 sellos), desbloquearás el premio ofrecido por el local (como una porción gratis o un postre de cortesía).
+  \item \textbf{Puntos y Niveles:} Con cada escaneo sumas puntos y pasas de ser un \textit{Turista Novato} a un \textit{Comensal Curioso}, \textit{Conocedor de Huecas} y finalmente una \textit{Leyenda de las Huecas}.
+\end{itemize}
+
+\subsection{La Búsqueda del Tesoro: Stickers Secretos}
+Además de los sellos de consumo, muchas huecas tienen escondido un \textbf{Sticker Secreto}:
+\begin{tipbox}
+¡Busca en el local un código QR pequeño impreso en la pared, en la barra o en la carta! Al escanearlo, ganarás un \textbf{cromo coleccionable} exclusivo para tu álbum por sectores y 50 puntos bonus.
+\end{tipbox}
+
+\subsection{Circuitos y Rutas Gastronómicas}
+Si estás de paseo un fin de semana o visitas Quito por turismo, la pestaña \textbf{Rutas} es para ti:
+\begin{itemize}
+  \item Encontrarás recorridos prediseñados como la \textit{Ruta Colonial de Sabores} (Centro Histórico), el \textit{Sendero del Hornado} (Conocoto) o la ruta \textit{Bohemia y Sabor} (La Floresta).
+  \item Cada ruta te dice cuántas paradas tiene, la distancia en kilómetros y el tiempo caminando.
+  \item Al tocar \textbf{Iniciar Ruta}, el GPS te irá guiando parada por parada para que vivas una experiencia gastronómica completa.
+\end{itemize}
+
+\subsection{Accesibilidad y Opciones Personales}
+En tu pestaña de \textbf{Perfil} puedes configurar la aplicación como te sea más cómodo:
+\begin{itemize}
+  \item \textbf{Tamaño de letra:} Elige entre Normal, A- (más pequeño) o A+ (más grande para facilitar la lectura).
+  \item \textbf{Modo Oscuro:} Para no cansar la vista en la noche o ahorrar batería.
+  \item \textbf{Alto Contraste:} Para personas con dificultades visuales.
+  \item \textbf{Cambio de idioma:} Alterna instantáneamente toda la aplicación entre Español e Inglés.
+\end{itemize}
+
+% =============================================================================
+% SECCIÓN 3: GUÍA PARA DUEÑOS DE HUECAS
+% =============================================================================
+\section{Guía para Dueños de Huecas y Encargados}
+
+Si eres propietario o encargado de un local tradicional, esta sección te guiará para sacarle provecho a tu panel sin complicaciones tecnológicas.
+
+\subsection{Cómo ingresar a tu Panel de Negocio}
+\begin{stepbox}
+\textbf{Acceso fácil en 3 pasos:}
+\begin{enumerate}
+  \item Inicia sesión con el correo electrónico registrado para tu hueca.
+  \item La aplicación detectará automáticamente que eres dueño o encargado y te llevará directamente a tu \textbf{Panel de Negocio}.
+  \item Si estás navegando como cliente, puedes entrar a tu \textbf{Perfil} y presionar el botón verde \textbf{Administrar mi Hueca}.
+\end{enumerate}
+\end{stepbox}
+
+\subsection{Conociendo tu impacto en el Dashboard}
+Tu pantalla de inicio es tu centro de control en vivo:
+\begin{itemize}
+  \item \textbf{Vistas Totales:} Cuántas veces han abierto el perfil de tu hueca comensales de la ciudad o turistas.
+  \item \textbf{Favoritos:} Cuántas personas han guardado tu hueca en su lista de favoritos.
+  \item \textbf{En Rutas:} En cuántos circuitos gastronómicos oficiales está incluido tu local.
+  \item \textbf{Sellos Entregados:} El número total de sellos que has obsequiado a clientes frecuentes.
+  \item \textbf{Reseñas:} Cuántos comentarios y estrellas has acumulado.
+\end{itemize}
+
+\subsection{Cómo digitalizar tu Menú (¡Con ayuda de Inteligencia Artificial!)}
+En la pestaña \textbf{Menú} puedes tener tu carta siempre al día. Te ofrecemos 4 formas sencillas de hacerlo:
+
+\begin{stepbox}
+\textbf{Las 4 maneras de subir platos:}
+\begin{enumerate}
+  \item \textbf{Escanear Carta Completa con IA (Recomendado):} Solo tómale una foto a tu menú físico, letrero o pizarra. La inteligencia artificial de la app leerá los textos, detectará los platos con sus precios y los traducirá al inglés automáticamente. Podrás revisar todo antes de publicar.
+  \item \textbf{Escanear 1 Plato por Foto:} Toma la foto a un plato servido en tu mesa; la app detectará el nombre en el letrero y lo asociará con la fotografía.
+  \item \textbf{Subir varias fotos a la vez:} Escoge varias fotos de tus comidas desde tu galería y agrégalas por lote.
+  \item \textbf{Añadir Manualmente:} Escribe el nombre, precio, categoría e ingredientes. ¡El botón mágico \textbf{Traducir} creará la versión en inglés al instante!
+\end{enumerate}
+\end{stepbox}
+
+\begin{tipbox}
+Si un plato se te terminó a mediodía, no necesitas borrarlo: solo desactiva el interruptor \textbf{Disponible} y aparecerá como ``Agotado por hoy'' para que tus clientes lo sepan.
+\end{tipbox}
+
+\subsection{Cómo entregar sellos a tus clientes (QR Dinámico)}
+Para fidelizar a tus comensales y motivarlos a volver:
+\begin{stepbox}
+\textbf{Entregar sellos en el mostrador:}
+\begin{enumerate}
+  \item Entra a la pestaña \textbf{Mi QR}.
+  \item Selecciona cuántos sellos le vas a dar al cliente (puedes subir o bajar el número de 1 a 10 con los botones $+$ y $-$).
+  \item Muéstrale la pantalla a tu cliente para que la escanee con su cámara de Hue-Quito.
+  \item \textbf{Seguridad antifraude:} El código QR cambia automáticamente cada 30 segundos. Esto significa que nadie puede tomarle una foto al código para compartirla con amigos o reclamar sellos sin haber consumido en tu local.
+\end{enumerate}
+\end{stepbox}
+
+\subsection{El Sticker Secreto: Tu atractivo especial}
+En la sección \textbf{Perfil} encontrarás la opción \textbf{Sticker Secreto}:
+\begin{enumerate}
+  \item Elige una imagen bonita y un nombre para tu sticker (ej. \textit{La Corvina Dorada}).
+  \item Presiona \textbf{Ver QR} y luego \textbf{Compartir o Guardar}.
+  \item Imprime ese código QR en un papelito o adhesivo y pégalo en algún lugar divertido de tu local (en la caja, cerca de la barra o en la pared).
+  \item Los clientes más curiosos lo buscarán, lo escanearán y ganarán un cromo especial que los motivará a recomendarte.
+\end{enumerate}
+
+\subsection{Administrar sucursales y delegar a encargados}
+Si tu hueca tiene más de un local (por ejemplo, matriz en el Centro y sucursal en el Sur o los Valles):
+\begin{itemize}
+  \item En tu perfil entra a \textbf{Mis Locales / Sucursales}.
+  \item Toca \textbf{Nuevo Local} para registrarlo.
+  \item Usa la herramienta \textbf{Fijar en el Mapa} para mover el pin exactamente hasta la puerta de tu nuevo establecimiento.
+  \item \textbf{Asignar un encargado:} Puedes escribir el correo de tu empleado o socio. La app le enviará una invitación por correo para que él mismo elija su contraseña.
+  \item \textbf{Permisos protegidos:} El encargado solo podrá modificar el horario de su propio local y entregar sellos en su sucursal; no podrá cambiar tu menú general, tus fotos principales ni borrar el negocio.
+\end{itemize}
+
+\subsection{Enviar promociones y avisos a tus seguidores}
+¿Tienes una promoción especial para el fin de semana o estrenas un plato nuevo?
+\begin{enumerate}
+  \item Entra a la pestaña \textbf{Avisos}.
+  \item Elige el tipo de aviso: \textbf{Promoción}, \textbf{Evento Especial}, \textbf{Nuevo Plato} o \textbf{Noticia}.
+  \item Escribe lo que deseas comunicar o presiona el botón de \textbf{Sugerencias con IA} para que te ayude a redactar un texto atractivo y apetitoso.
+  \item Puedes agregar una etiqueta como \textit{2x1} o \textit{-20\%} y programar para que salga un día específico.
+  \item Al presionar \textbf{Enviar a Revisión}, el administrador de Hue-Quito la aprobará y le llegará como notificación al celular de todos los comensales suscritos a tu hueca.
+\end{enumerate}
+
+% =============================================================================
+% SECCIÓN 4: GUÍA PARA EL ADMINISTRADOR
+% =============================================================================
+\section{Guía para el Administrador de la Plataforma}
+
+El superadministrador tiene a su cargo el buen funcionamiento, la calidad del contenido y la seguridad de toda la red de Hue-Quito.
+
+\subsection{Panel de Control General}
+Al ingresar con cuenta de administrador se activa el entorno \textbf{HueQuito Admin}:
+\begin{itemize}
+  \item \textbf{Tarjetas de Control:} Resumen del total de huecas activas, usuarios registrados, avisos pendientes y circuitos en funcionamiento.
+  \item \textbf{Acceso Rápido:} Botones directos para crear una hueca, diseñar una nueva ruta o moderar opiniones.
+\end{itemize}
+
+\subsection{Aprobación de Avisos y Promociones}
+Para mantener la aplicación libre de spam o textos inapropiados:
+\begin{itemize}
+  \item Entra a la pestaña \textbf{Avisos} en el panel de administración.
+  \item Verás la lista de solicitudes con un \textbf{simulador visual} de cómo se verá la notificación en la barra de Android del usuario.
+  \item Si todo está correcto, presiona \textbf{Aprobar y Emitir}.
+  \item Si algo no cumple con los estándares, presiona \textbf{Rechazar} e ingresa el motivo para que el comerciante pueda corregirlo.
+\end{itemize}
+
+\subsection{Gestión de Huecas y Dueños}
+\begin{itemize}
+  \item \textbf{Activar o Pausar:} Puedes ocultar temporalmente una hueca de la app si está en remodelación o vacaciones con un solo switch.
+  \item \textbf{Asignar Dueño (Regla 1 a 1):} Vincula fácilmente cuentas de correo a locales. El sistema garantiza que cada cuenta de negocio maneje una sola hueca para evitar confusiones operativas.
+  \item \textbf{Eliminación segura:} Si se borra una cuenta de usuario, la hueca \textbf{jamás se pierde}; simplemente queda sin dueño a la espera de reasignación.
+\end{itemize}
+
+\subsection{Creación interactiva de Rutas Gastronómicas}
+\begin{itemize}
+  \item En la pestaña \textbf{Rutas}, presiona \textbf{Nueva Ruta}.
+  \item Define el nombre y la reseña histórica del recorrido en español e inglés.
+  \item Agrega paradas seleccionando las huecas participantes.
+  \item \textbf{Organización por arrastre:} Puedes arrastrar y soltar las paradas en la lista para ordenarlas de la primera a la última de manera lógica.
+\end{itemize}
+
+\subsection{Moderación de Opiniones}
+En la sección de \textbf{Reseñas}, puedes revisar los comentarios de comensales en toda la ciudad. Los comentarios con 1 o 2 estrellas aparecen con borde de alerta para que puedas verificar si hubo algún incidente y, en caso de contenido ofensivo o falso, retirarlo con recálculo automático de la calificación de la hueca.
+
+% =============================================================================
+% SECCIÓN 5: PREGUNTAS FRECUENTES (FAQ)
+% =============================================================================
+\section{Preguntas Frecuentes y Ayuda Rápida}
+
+\begin{description}
+  \item[\faIcon{question-circle}\ ¿Qué pasa si no tengo conexión a internet?] \hfill \\
+  Hue-Quito guarda la información en tu teléfono. Podrás consultar huecas, ver fotos y revisar mapas ya cargados incluso si te quedas sin datos en la calle.
+
+  \item[\faIcon{question-circle}\ ¿Tiene algún costo registrar una hueca?] \hfill \\
+  No. Hue-Quito es una iniciativa académica y comunitaria para rescatar la gastronomía tradicional de Quito; registrar locales y usar la app es completamente libre.
+
+  \item[\faIcon{question-circle}\ ¿Por qué el código QR del dueño cambia a cada rato?] \hfill \\
+  Es una medida de seguridad antifraude. Cambia cada 30 segundos para garantizar que solo quien esté presencialmente en el local reciba sus sellos.
+
+  \item[\faIcon{question-circle}\ ¿Cómo recupero mi contraseña?] \hfill \\
+  En la pantalla de inicio de sesión toca \textbf{``¿Olvidaste tu contraseña?''}, escribe tu correo y te enviaremos un enlace oficial en español para que crees una nueva clave de inmediato.
+\end{description}
+
+\vfill
+\begin{center}
+  \small\textcolor{gray}{\textcopyright\ 2026 Hue-Quito \textbar\ Pontificia Universidad Católica del Ecuador}
+\end{center}
+
+\end{document}

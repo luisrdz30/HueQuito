@@ -19,10 +19,20 @@ class NotificationService {
 
   bool _initialized = false;
   void Function(String huecaId)? onNotificationTapped;
+  final Set<String> _shownNotificationIds = {};
 
   Future<void> initialize({void Function(String huecaId)? onTapped}) async {
     if (_initialized) return;
     onNotificationTapped = onTapped;
+
+    // Cargar historial persistente en memoria para verificación síncrona inmediata
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final loaded = prefs.getStringList('shown_notification_ids') ?? [];
+      _shownNotificationIds.addAll(loaded);
+    } catch (e) {
+      debugPrint('Error cargando historial de notificaciones en memoria: $e');
+    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -36,41 +46,45 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(
-      settings: initSettings,
-      onDidReceiveNotificationResponse: (response) {
-        final payload = response.payload;
-        if (payload != null && payload.isNotEmpty) {
-          try {
-            final data = jsonDecode(payload);
-            final huecaId = data['huecaId']?.toString();
-            if (huecaId != null && onNotificationTapped != null) {
-              onNotificationTapped!(huecaId);
+    try {
+      await _localNotifications.initialize(
+        settings: initSettings,
+        onDidReceiveNotificationResponse: (response) {
+          final payload = response.payload;
+          if (payload != null && payload.isNotEmpty) {
+            try {
+              final data = jsonDecode(payload);
+              final huecaId = data['huecaId']?.toString();
+              if (huecaId != null && onNotificationTapped != null) {
+                onNotificationTapped!(huecaId);
+              }
+            } catch (e) {
+              debugPrint('Error parsing notification payload: $e');
             }
-          } catch (e) {
-            debugPrint('Error parsing notification payload: $e');
           }
-        }
-      },
-    );
+        },
+      );
 
-    // Create notification channel for Android
-    final androidChannel = const AndroidNotificationChannel(
-      channelId,
-      channelName,
-      description: channelDescription,
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-    );
+      // Create notification channel for Android
+      final androidChannel = const AndroidNotificationChannel(
+        channelId,
+        channelName,
+        description: channelDescription,
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidChannel);
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(androidChannel);
 
-    // Request permissions for Android 13+
-    await requestPermissions();
+      // Request permissions for Android 13+
+      await requestPermissions();
+    } catch (e) {
+      debugPrint('Plataforma nativa de notificaciones no disponible (modo headless/test): $e');
+    }
 
     _initialized = true;
   }
@@ -82,15 +96,50 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
+  bool hasBeenShown(String notificationId) {
+    return _shownNotificationIds.contains(notificationId);
+  }
+
+  Future<void> markAsSilentlyProcessed(String notificationId) async {
+    if (_shownNotificationIds.contains(notificationId)) return;
+    _shownNotificationIds.add(notificationId);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final shown = prefs.getStringList('shown_notification_ids') ?? [];
+      if (!shown.contains(notificationId)) {
+        shown.add(notificationId);
+        await prefs.setStringList('shown_notification_ids', shown);
+      }
+    } catch (e) {
+      debugPrint('Error guardando notificación procesada silenciosamente: $e');
+    }
+  }
+
   Future<void> showPromotionNotification({
     required NotificationModel notification,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final shown = prefs.getStringList('shown_notification_ids') ?? [];
-    if (shown.contains(notification.id)) {
-      return; // Already notified on this device
+    // 1. Verificación síncrona inmediata en memoria para prevenir llamadas concurrentes o duplicados
+    if (_shownNotificationIds.contains(notification.id)) {
+      return; // Ya mostrada en esta sesión o en historial persistente
     }
 
+    // 2. Registrar inmediatamente en el Set en memoria antes de cualquier await
+    _shownNotificationIds.add(notification.id);
+
+    // 3. Persistir en SharedPreferences de manera asíncrona
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final shown = prefs.getStringList('shown_notification_ids') ?? [];
+      if (!shown.contains(notification.id)) {
+        shown.add(notification.id);
+        await prefs.setStringList('shown_notification_ids', shown);
+      }
+    } catch (e) {
+      debugPrint('Error al persistir notificación mostrada: $e');
+    }
+
+    // 4. Configurar y disparar notificación local en Android/iOS
     final androidDetails = AndroidNotificationDetails(
       channelId,
       channelName,
@@ -126,21 +175,22 @@ class NotificationService {
 
     final notifId = notification.id.hashCode & 0x7FFFFFFF;
 
-    await _localNotifications.show(
-      id: notifId,
-      title: '${notification.categoryEmoji} ${notification.huecaName}: ${notification.title}',
-      body: notification.message,
-      notificationDetails: details,
-      payload: payload,
-    );
-
-    // Mark as shown so user only gets it once in their notification drawer
-    shown.add(notification.id);
-    await prefs.setStringList('shown_notification_ids', shown);
+    try {
+      await _localNotifications.show(
+        id: notifId,
+        title: '${notification.categoryEmoji} ${notification.huecaName}: ${notification.title}',
+        body: notification.message,
+        notificationDetails: details,
+        payload: payload,
+      );
+    } catch (e) {
+      debugPrint('Plataforma nativa no disponible para mostrar notificación (modo headless/test): $e');
+    }
   }
 
   // Debug helper to reset shown cache
   Future<void> clearShownHistory() async {
+    _shownNotificationIds.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('shown_notification_ids');
   }

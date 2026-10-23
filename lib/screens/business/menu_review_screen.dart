@@ -8,6 +8,8 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 
 class MenuReviewScreen extends ConsumerStatefulWidget {
   final String huecaId;
@@ -69,80 +71,19 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
     );
   }
 
-  Future<void> _pickDishImage(int index, ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final picked = await picker.pickImage(source: source, imageQuality: 75);
-      if (picked != null) {
-        setState(() {
-          _dishes[index]['_localImagePath'] = picked.path;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al seleccionar imagen: $e')),
-        );
-      }
-    }
-  }
-
-  void _showImagePickerModal(int index) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : AppTheme.textDark;
-
-    showModalBottomSheet(
+  Future<void> _showImagePickerModal(int index) async {
+    final file = await ImagePickerHelper.showImageSourceDialog(
       context: context,
-      backgroundColor: sheetBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(
-                'Foto del Plato',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppTheme.primary),
-                title: Text('Tomar foto con la cámara', style: TextStyle(color: textColor)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickDishImage(index, ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: AppTheme.primary),
-                title: Text('Elegir de la galería', style: TextStyle(color: textColor)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickDishImage(index, ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'Foto del Plato',
+      subtitle: 'Elige de dónde quieres cargar la foto para este plato',
+      imageQuality: 75,
+      maxWidth: 1200,
     );
+    if (file != null) {
+      setState(() {
+        _dishes[index]['_localImagePath'] = file.path;
+      });
+    }
   }
 
   Future<void> _translateDish(int index) async {
@@ -268,7 +209,14 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
 
       existing.addAll(finalDishesToSave);
 
-      await docRef.update({'menuItems': existing});
+      final docData = Map<String, dynamic>.from(snap.data() ?? {});
+      docData['menuItems'] = existing;
+      final newSearchTags = Hueca.extractSearchKeywords(docData);
+
+      await docRef.update({
+        'menuItems': existing,
+        'searchTags': newSearchTags,
+      });
 
       ref.invalidate(myHuecaProvider);
       ref.invalidate(huecasProvider);

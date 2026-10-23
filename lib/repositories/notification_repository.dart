@@ -84,7 +84,7 @@ class NotificationRepository {
   Future<void> approveNotification(String notificationId, String adminUid) async {
     await _notificationsCol.doc(notificationId).update({
       'status': 'approved',
-      'approvedAt': FieldValue.serverTimestamp(),
+      'approvedAt': Timestamp.now(),
       'reviewedBy': adminUid,
       'rejectionReason': null,
     });

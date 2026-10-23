@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 
 class DishFormScreen extends ConsumerStatefulWidget {
   final String huecaId;
@@ -118,92 +120,26 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final picked = await picker.pickImage(source: source, imageQuality: 75);
-      if (picked != null) {
-        setState(() {
-          _localImageFile = File(picked.path);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al seleccionar imagen: $e')),
-        );
-      }
-    }
-  }
-
-  void _showImageSourceModal() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : AppTheme.textDark;
-
-    showModalBottomSheet(
+  Future<void> _showImageSourceModal() async {
+    final file = await ImagePickerHelper.showImageSourceDialog(
       context: context,
-      backgroundColor: sheetBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(
-                'Seleccionar Foto del Plato',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppTheme.primary),
-                title: Text('Tomar foto con la cámara', style: TextStyle(color: textColor)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: AppTheme.primary),
-                title: Text('Elegir de la galería', style: TextStyle(color: textColor)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              if (_imageUrl.isNotEmpty || _localImageFile != null)
-                ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                  title: const Text('Quitar foto', style: TextStyle(color: Colors.redAccent)),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    setState(() {
-                      _imageUrl = '';
-                      _localImageFile = null;
-                    });
-                  },
-                ),
-            ],
-          ),
-        ),
-      ),
+      title: 'Foto del Plato',
+      subtitle: 'Elige de dónde prefieres cargar la foto de este plato',
+      includeRemove: _imageUrl.isNotEmpty || _localImageFile != null,
+      onRemove: () {
+        setState(() {
+          _imageUrl = '';
+          _localImageFile = null;
+        });
+      },
+      imageQuality: 75,
+      maxWidth: 1200,
     );
+    if (file != null) {
+      setState(() {
+        _localImageFile = file;
+      });
+    }
   }
 
   Future<void> _translateName() async {
@@ -359,10 +295,17 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
         existingMenu.add(dishData);
       }
 
+      final docData = Map<String, dynamic>.from(huecaDoc.data() ?? {});
+      docData['menuItems'] = existingMenu;
+      final newSearchTags = Hueca.extractSearchKeywords(docData);
+
       await FirebaseFirestore.instance
           .collection('huecas')
           .doc(widget.huecaId)
-          .update({'menuItems': existingMenu});
+          .update({
+            'menuItems': existingMenu,
+            'searchTags': newSearchTags,
+          });
 
       ref.invalidate(myHuecaProvider);
       ref.invalidate(huecasProvider);

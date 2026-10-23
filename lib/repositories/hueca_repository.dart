@@ -68,14 +68,17 @@ class Hueca {
   final Map<String, dynamic> secretSticker;
   final List<dynamic> menuItems;
   final List<String> tags;
+  final List<String> searchTags;
   final String priceLevel;
   final double rating;
   final int reviewCount;
   final List<String> images;
   final String ownerId;
   final bool isActive;
+  final bool isSectorConfirmed;
   final Map<String, dynamic> metrics;
   final List<HuecaBranch> branches;
+  final Map<String, dynamic> subscription;
 
   Hueca({
     required this.id,
@@ -91,14 +94,17 @@ class Hueca {
     required this.secretSticker,
     required this.menuItems,
     required this.tags,
+    this.searchTags = const [],
     required this.priceLevel,
     required this.rating,
     required this.reviewCount,
     required this.images,
     required this.ownerId,
     required this.isActive,
+    this.isSectorConfirmed = false,
     required this.metrics,
     this.branches = const [],
+    this.subscription = const {},
   });
 
   List<HuecaBranch> get allBranches {
@@ -115,6 +121,302 @@ class Hueca {
         secretSticker: secretSticker,
       ),
     ];
+  }
+
+  /// Limpia y normaliza cadenas para búsqueda (sin acentos, minúsculas, sin espacios extra)
+  static String normalizeSearchString(String str) {
+    return str
+        .toLowerCase()
+        .trim()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll('ü', 'u');
+  }
+
+  static const Set<String> _stopWords = {
+    'de', 'del', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas',
+    'con', 'sin', 'y', 'en', 'para', 'por', 'al', 'a', 'o', 'e', 'u',
+    'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'muy', 'mas', 'que', 'se',
+    'lo', 'les', 'nos', 'sobre', 'desde', 'hasta', 'hacia', 'entre',
+    'the', 'and', 'with', 'for', 'from', 'in', 'of', 'on', 'at', 'to'
+  };
+
+  /// Extrae automáticamente palabras clave y etiquetas de búsqueda a partir del nombre,
+  /// especialidad, platos del menú, categorías y descripciones de una hueca.
+  static List<String> extractSearchKeywords(Map<String, dynamic> data) {
+    final Set<String> keywords = <String>{};
+
+    void addWord(String? raw) {
+      if (raw == null) return;
+      final clean = normalizeSearchString(raw);
+      if (clean.isEmpty) return;
+
+      final words = clean
+          .split(RegExp(r'[^a-z0-9]+'))
+          .where((w) => w.length >= 3 && !_stopWords.contains(w));
+
+      for (final w in words) {
+        keywords.add(w);
+        if (w.endsWith('es') && w.length > 4) {
+          keywords.add(w.substring(0, w.length - 2));
+          keywords.add(w.substring(0, w.length - 1));
+        } else if (w.endsWith('s') && w.length > 3) {
+          keywords.add(w.substring(0, w.length - 1));
+        } else if (!w.endsWith('s')) {
+          keywords.add('${w}s');
+          keywords.add('${w}es');
+        }
+      }
+
+      final wordList = words.toList();
+      if (wordList.length >= 2 && wordList.length <= 3) {
+        keywords.add(wordList.join(' '));
+      }
+    }
+
+    // 1. Tags existentes
+    final rawTags = data['tags'];
+    if (rawTags is List) {
+      for (final t in rawTags) {
+        if (t != null) {
+          keywords.add(normalizeSearchString(t.toString()));
+          addWord(t.toString());
+        }
+      }
+    }
+
+    // 2. Nombre de la hueca
+    addWord(data['name']?.toString());
+
+    // 3. Sector y dirección
+    addWord(data['sector']?.toString());
+    addWord(data['address']?.toString());
+
+    // 4. Plato insignia (mainDish)
+    final mainDish = data['mainDish'];
+    if (mainDish is Map) {
+      final nameVal = mainDish['name'];
+      if (nameVal is Map) {
+        nameVal.forEach((_, v) => addWord(v?.toString()));
+      } else {
+        addWord(nameVal?.toString());
+      }
+      addWord(mainDish['nameEn']?.toString());
+
+      final descVal = mainDish['description'];
+      if (descVal is Map) {
+        descVal.forEach((_, v) => addWord(v?.toString()));
+      } else {
+        addWord(descVal?.toString());
+      }
+      addWord(mainDish['descriptionEn']?.toString());
+      addWord(mainDish['category']?.toString());
+    }
+
+    // 5. Todos los platos del menú (menuItems)
+    final menuItems = data['menuItems'];
+    if (menuItems is List) {
+      for (final item in menuItems) {
+        if (item is Map) {
+          final iName = item['name'];
+          if (iName is Map) {
+            iName.forEach((_, v) => addWord(v?.toString()));
+          } else {
+            addWord(iName?.toString());
+          }
+          addWord(item['nameEn']?.toString());
+
+          final iDesc = item['description'];
+          if (iDesc is Map) {
+            iDesc.forEach((_, v) => addWord(v?.toString()));
+          } else {
+            addWord(iDesc?.toString());
+          }
+          addWord(item['descriptionEn']?.toString());
+          addWord(item['category']?.toString());
+
+          final itemTags = item['tags'];
+          if (itemTags is List) {
+            for (final it in itemTags) {
+              addWord(it?.toString());
+            }
+          }
+        }
+      }
+    }
+
+    // 6. Sucursales
+    final branches = data['branches'];
+    if (branches is List) {
+      for (final b in branches) {
+        if (b is Map) {
+          addWord(b['name']?.toString());
+          addWord(b['sector']?.toString());
+        }
+      }
+    }
+
+    // 7. Descripción
+    final desc = data['description'];
+    if (desc is Map) {
+      desc.forEach((_, v) => addWord(v?.toString()));
+    } else {
+      addWord(desc?.toString());
+    }
+
+    return keywords.where((k) => k.trim().isNotEmpty).toList();
+  }
+
+  /// Comprueba si la hueca coincide con un término de búsqueda (revisa nombre, especialidad,
+  /// platos del menú, categorías, descripciones, sucursales y tags).
+  bool matchesSearch(String query, {String lang = 'es', bool checkVariations = true}) {
+    final cleanQuery = normalizeSearchString(query);
+    if (cleanQuery.isEmpty) return true;
+
+    // Tokens para búsqueda multi-palabra (ej. 'hamburguesa doble')
+    final queryTokens = cleanQuery
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    // 1. Coincidencia directa en nombre, sector o dirección
+    if (normalizeSearchString(name).contains(cleanQuery)) return true;
+    if (normalizeSearchString(sector).contains(cleanQuery)) return true;
+    if (normalizeSearchString(address).contains(cleanQuery)) return true;
+
+    // 2. Coincidencia en tags y searchTags
+    for (final t in tags) {
+      if (normalizeSearchString(t).contains(cleanQuery)) return true;
+    }
+    for (final st in searchTags) {
+      if (normalizeSearchString(st).contains(cleanQuery)) return true;
+    }
+
+    // 3. Coincidencia en plato insignia (mainDish)
+    if (mainDish.isNotEmpty) {
+      final nameVal = mainDish['name'];
+      if (nameVal is Map) {
+        for (final v in nameVal.values) {
+          if (v != null && normalizeSearchString(v.toString()).contains(cleanQuery)) return true;
+        }
+      } else if (nameVal != null && normalizeSearchString(nameVal.toString()).contains(cleanQuery)) {
+        return true;
+      }
+      if (mainDish['nameEn'] != null && normalizeSearchString(mainDish['nameEn'].toString()).contains(cleanQuery)) {
+        return true;
+      }
+
+      final descVal = mainDish['description'];
+      if (descVal is Map) {
+        for (final v in descVal.values) {
+          if (v != null && normalizeSearchString(v.toString()).contains(cleanQuery)) return true;
+        }
+      } else if (descVal != null && normalizeSearchString(descVal.toString()).contains(cleanQuery)) {
+        return true;
+      }
+      if (mainDish['descriptionEn'] != null && normalizeSearchString(mainDish['descriptionEn'].toString()).contains(cleanQuery)) {
+        return true;
+      }
+      if (mainDish['category'] != null && normalizeSearchString(mainDish['category'].toString()).contains(cleanQuery)) {
+        return true;
+      }
+    }
+
+    // 4. Coincidencia directa en CADA plato del menú (menuItems)
+    for (final item in menuItems) {
+      if (item is Map) {
+        final itemName = item['name'];
+        if (itemName is Map) {
+          for (final v in itemName.values) {
+            if (v != null && normalizeSearchString(v.toString()).contains(cleanQuery)) return true;
+          }
+        } else if (itemName != null && normalizeSearchString(itemName.toString()).contains(cleanQuery)) {
+          return true;
+        }
+        if (item['nameEn'] != null && normalizeSearchString(item['nameEn'].toString()).contains(cleanQuery)) {
+          return true;
+        }
+
+        final itemDesc = item['description'];
+        if (itemDesc is Map) {
+          for (final v in itemDesc.values) {
+            if (v != null && normalizeSearchString(v.toString()).contains(cleanQuery)) return true;
+          }
+        } else if (itemDesc != null && normalizeSearchString(itemDesc.toString()).contains(cleanQuery)) {
+          return true;
+        }
+        if (item['descriptionEn'] != null && normalizeSearchString(item['descriptionEn'].toString()).contains(cleanQuery)) {
+          return true;
+        }
+
+        if (item['category'] != null && normalizeSearchString(item['category'].toString()).contains(cleanQuery)) {
+          return true;
+        }
+        if (item['tags'] is List) {
+          for (final t in (item['tags'] as List)) {
+            if (t != null && normalizeSearchString(t.toString()).contains(cleanQuery)) return true;
+          }
+        }
+      }
+    }
+
+    // 5. Coincidencia en descripciones de la hueca
+    for (final v in description.values) {
+      if (v != null && normalizeSearchString(v.toString()).contains(cleanQuery)) return true;
+    }
+
+    // 6. Coincidencia en sucursales
+    for (final b in allBranches) {
+      if (normalizeSearchString(b.name).contains(cleanQuery)) return true;
+      if (normalizeSearchString(b.sector).contains(cleanQuery)) return true;
+      if (normalizeSearchString(b.address).contains(cleanQuery)) return true;
+    }
+
+    // 7. Búsqueda multi-palabra: Si todos los tokens coinciden en alguna parte de la hueca
+    if (queryTokens.length > 1) {
+      final allTokensMatched = queryTokens.every((token) => matchesSearch(token, lang: lang, checkVariations: false));
+      if (allTokensMatched) return true;
+    }
+
+    // 8. Tolerancia singular / plural (ej. usuario busca 'hamburguesas' o 'camarones')
+    if (checkVariations) {
+      if (cleanQuery.endsWith('es') && cleanQuery.length > 4) {
+        final singularEs = cleanQuery.substring(0, cleanQuery.length - 2);
+        if (matchesSearch(singularEs, lang: lang, checkVariations: false)) return true;
+        final singularS = cleanQuery.substring(0, cleanQuery.length - 1);
+        if (matchesSearch(singularS, lang: lang, checkVariations: false)) return true;
+      } else if (cleanQuery.endsWith('s') && cleanQuery.length > 3) {
+        final singular = cleanQuery.substring(0, cleanQuery.length - 1);
+        if (matchesSearch(singular, lang: lang, checkVariations: false)) return true;
+      } else if (!cleanQuery.endsWith('s')) {
+        final pluralS = '${cleanQuery}s';
+        if (matchesSearch(pluralS, lang: lang, checkVariations: false)) return true;
+        final pluralEs = '${cleanQuery}es';
+        if (matchesSearch(pluralEs, lang: lang, checkVariations: false)) return true;
+      }
+    }
+
+    return false;
+  }
+
+  static bool _parseBool(dynamic val, {bool defaultValue = true}) {
+    if (val == null) return defaultValue;
+    if (val is bool) return val;
+    if (val is num) return val != 0;
+    if (val is String) {
+      final s = val.toLowerCase().trim();
+      if (s == 'false' || s == '0' || s == 'no' || s == 'inactive' || s == 'inactiva' || s == 'pausada' || s == 'paused') {
+        return false;
+      }
+      if (s == 'true' || s == '1' || s == 'yes' || s == 'active' || s == 'activa') {
+        return true;
+      }
+    }
+    return defaultValue;
   }
 
   factory Hueca.fromFirestore(DocumentSnapshot doc) {
@@ -140,8 +442,12 @@ class Hueca {
       ];
     }
 
+    final docId = doc.id.trim();
+    final dataId = (data['id']?.toString() ?? '').trim();
+    final resolvedId = docId.isNotEmpty ? docId : dataId;
+
     return Hueca(
-      id: data['id'] ?? '',
+      id: resolvedId,
       name: data['name'] ?? '',
       description: data['description'] ?? {},
       address: data['address'] ?? '',
@@ -154,12 +460,14 @@ class Hueca {
       secretSticker: data['secretSticker'] ?? {},
       menuItems: data['menuItems'] ?? [],
       tags: List<String>.from(data['tags'] ?? []),
+      searchTags: List<String>.from(data['searchTags'] ?? []),
       priceLevel: data['priceLevel'] ?? '',
       rating: (data['rating'] ?? 0.0).toDouble(),
       reviewCount: data['reviewCount'] ?? 0,
       images: List<String>.from(data['images'] ?? []),
       ownerId: data['ownerId'] ?? '',
-      isActive: data['isActive'] ?? true,
+      isActive: _parseBool(data['isActive']),
+      isSectorConfirmed: data['isSectorConfirmed'] ?? false,
       branches: parsedBranches,
       metrics: data['metrics'] ?? {
         'viewCount': 0,
@@ -167,6 +475,9 @@ class Hueca {
         'routeAdditions': 0,
         'stampsGiven': 0,
       },
+      subscription: data['subscription'] is Map
+          ? Map<String, dynamic>.from(data['subscription'])
+          : {},
     );
   }
 
@@ -185,14 +496,17 @@ class Hueca {
       'secretSticker': secretSticker,
       'menuItems': menuItems,
       'tags': tags,
+      'searchTags': searchTags,
       'priceLevel': priceLevel,
       'rating': rating,
       'reviewCount': reviewCount,
       'images': images,
       'ownerId': ownerId,
       'isActive': isActive,
+      'isSectorConfirmed': isSectorConfirmed,
       'metrics': metrics,
       'branches': branches.map((b) => b.toMap()).toList(),
+      'subscription': subscription,
     };
   }
 }
@@ -215,6 +529,7 @@ class HuecaRepository {
 
   Future<void> addHueca(Map<String, dynamic> huecaData) async {
     final id = huecaData['id'];
+    huecaData['searchTags'] = Hueca.extractSearchKeywords(huecaData);
     await _db.collection('huecas').doc(id).set(huecaData);
   }
 
@@ -512,9 +827,53 @@ class HuecaRepository {
     });
   }
 
-  /// ADMIN: Activar o desactivar hueca (visibilidad en la app)
-  Future<void> toggleHuecaActive(String huecaId, bool isActive) async {
-    await _db.collection('huecas').doc(huecaId).update({'isActive': isActive});
+  /// ADMIN: Activar o desactivar hueca (visibilidad en la app) con soporte para documentId, dataId y nombre
+  Future<void> toggleHuecaActive(String huecaId, bool isActive, {String? huecaName}) async {
+    final cleanId = huecaId.trim();
+    bool updated = false;
+
+    // 1. Intentar actualizar directamente por Document ID
+    if (cleanId.isNotEmpty) {
+      try {
+        final docRef = _db.collection('huecas').doc(cleanId);
+        final docSnap = await docRef.get();
+        if (docSnap.exists) {
+          await docRef.update({'isActive': isActive});
+          updated = true;
+        }
+      } catch (e) {
+        print('Error actualizando por doc ID direct: $e');
+      }
+    }
+
+    // 2. Si no se actualizó, buscar por campo data['id']
+    if (!updated && cleanId.isNotEmpty) {
+      try {
+        final query = await _db.collection('huecas').where('id', isEqualTo: cleanId).get();
+        for (final doc in query.docs) {
+          await doc.reference.update({'isActive': isActive});
+          updated = true;
+        }
+      } catch (e) {
+        print('Error actualizando por data id: $e');
+      }
+    }
+
+    // 3. Si no se actualizó, buscar por nombre
+    if (!updated) {
+      final nameToSearch = (huecaName != null && huecaName.trim().isNotEmpty) ? huecaName.trim() : cleanId;
+      if (nameToSearch.isNotEmpty) {
+        try {
+          final queryName = await _db.collection('huecas').where('name', isEqualTo: nameToSearch).get();
+          for (final doc in queryName.docs) {
+            await doc.reference.update({'isActive': isActive});
+            updated = true;
+          }
+        } catch (e) {
+          print('Error actualizando por name: $e');
+        }
+      }
+    }
   }
 
   /// ADMIN: Asignar o transferir dueño a una hueca con garantía estricta 1-a-1
@@ -564,13 +923,60 @@ class HuecaRepository {
     }
   }
 
-  /// ADMIN: Crear o actualizar hueca completa
+  /// ADMIN: Crear o actualizar hueca completa (auto-genera tags de búsqueda de menú y platos)
   Future<void> saveHueca(Map<String, dynamic> huecaData) async {
     final String id = (huecaData['id'] != null && huecaData['id'].toString().isNotEmpty)
         ? huecaData['id'].toString()
         : _db.collection('huecas').doc().id;
     huecaData['id'] = id;
+    huecaData['searchTags'] = Hueca.extractSearchKeywords(huecaData);
     await _db.collection('huecas').doc(id).set(huecaData, SetOptions(merge: true));
+  }
+
+  /// Recalcula y actualiza los searchTags de una hueca en Firestore basándose en sus platos y menú
+  Future<void> syncHuecaSearchKeywords(String huecaId) async {
+    try {
+      final docRef = _db.collection('huecas').doc(huecaId);
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) return;
+      final data = docSnap.data();
+      if (data == null) return;
+      final searchTags = Hueca.extractSearchKeywords(data);
+      await docRef.update({'searchTags': searchTags});
+    } catch (e) {
+      print('Error in syncHuecaSearchKeywords: $e');
+    }
+  }
+
+  /// ADMIN: Actualiza el sector de una hueca y opcionalmente marca si está confirmado por el admin
+  Future<void> updateHuecaSector(String huecaId, String sector, {bool isConfirmed = true}) async {
+    final cleanSector = sector.trim();
+    await _db.collection('huecas').doc(huecaId).update({
+      'sector': cleanSector,
+      'isSectorConfirmed': isConfirmed,
+    });
+    // Sincronizar palabras clave de búsqueda ya que el sector es un término de búsqueda primario
+    await syncHuecaSearchKeywords(huecaId);
+  }
+
+  /// ADMIN: Confirmar masivamente sectores de huecas
+  Future<void> batchConfirmHuecaSectors(Map<String, String> huecaSectors) async {
+    final batch = _db.batch();
+    for (final entry in huecaSectors.entries) {
+      final docRef = _db.collection('huecas').doc(entry.key);
+      batch.update(docRef, {
+        'sector': entry.value.trim(),
+        'isSectorConfirmed': true,
+      });
+    }
+    await batch.commit();
+  }
+
+  /// ADMIN / BUSINESS: Configurar o actualizar el cromo / sticker secreto de una hueca
+  Future<void> updateHuecaSecretSticker(String huecaId, Map<String, dynamic> secretSticker) async {
+    await _db.collection('huecas').doc(huecaId).update({
+      'secretSticker': secretSticker,
+    });
   }
 
   /// ADMIN: Eliminar reseña y recalcular métricas de la hueca

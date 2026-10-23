@@ -30,6 +30,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
   // Fecha y hora programada
   bool _isScheduled = false;
   DateTime? _scheduledDateTime;
+  String _historyTimeFilter = 'recent'; // 'recent', 'month', 'older', 'all'
 
   final List<Map<String, String>> _categories = [
     {'id': 'promocion', 'label': 'Promoción', 'emoji': '🏷️', 'desc': 'Descuentos, 2x1 y combos'},
@@ -954,16 +955,160 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: notifications.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = notifications[index];
-            return _buildHistoryCard(item, isDark);
-          },
+        final now = DateTime.now();
+        final sevenDaysAgo = now.subtract(const Duration(days: 7));
+        final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+
+        final recentCount = notifications.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return !d.isBefore(sevenDaysAgo);
+        }).length;
+
+        final monthCount = notifications.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return !d.isBefore(thirtyDaysAgo);
+        }).length;
+
+        final olderCount = notifications.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return d.isBefore(thirtyDaysAgo);
+        }).length;
+
+        final filteredItems = notifications.where((item) {
+          final d = item.approvedAt ?? item.createdAt;
+          if (_historyTimeFilter == 'recent') {
+            return !d.isBefore(sevenDaysAgo);
+          } else if (_historyTimeFilter == 'month') {
+            return !d.isBefore(thirtyDaysAgo);
+          } else if (_historyTimeFilter == 'older') {
+            return d.isBefore(thirtyDaysAgo);
+          }
+          return true; // 'all'
+        }).toList();
+
+        return Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildHistoryFilterChip(
+                      label: '⚡ Esta Semana ($recentCount)',
+                      isSelected: _historyTimeFilter == 'recent',
+                      onTap: () => setState(() => _historyTimeFilter = 'recent'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildHistoryFilterChip(
+                      label: '📅 Este Mes ($monthCount)',
+                      isSelected: _historyTimeFilter == 'month',
+                      onTap: () => setState(() => _historyTimeFilter = 'month'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildHistoryFilterChip(
+                      label: '📜 Anteriores ($olderCount)',
+                      isSelected: _historyTimeFilter == 'older',
+                      onTap: () => setState(() => _historyTimeFilter = 'older'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildHistoryFilterChip(
+                      label: '🌐 Todas (${notifications.length})',
+                      isSelected: _historyTimeFilter == 'all',
+                      onTap: () => setState(() => _historyTimeFilter = 'all'),
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 1, color: isDark ? const Color(0xFF333333) : const Color(0xFFE5E7EB)),
+            Expanded(
+              child: filteredItems.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No hay notificaciones en este período',
+                            style: TextStyle(
+                              color: isDark ? Colors.grey[300] : Colors.grey[700],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextButton(
+                            onPressed: () => setState(() => _historyTimeFilter = 'all'),
+                            child: Text('Ver todas las notificaciones (${notifications.length})'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return _buildHistoryCard(item, isDark);
+                      },
+                    ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildHistoryFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primary
+              : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF3F4F6)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.primary
+                : (isDark ? Colors.grey.shade700 : const Color(0xFFE5E7EB)),
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
+      ),
     );
   }
 

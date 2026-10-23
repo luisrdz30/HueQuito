@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hue_quito/repositories/user_repository.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -89,6 +90,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'preferences': {},
         'sectorAlbums': [],
       });
+
+      // Migrar sellos y cromos acumulados en modo invitado
+      try {
+        await UserRepository().migrateGuestDataToUser(uid);
+      } catch (_) {}
 
       if (mounted) {
         if (isBranchManager) {

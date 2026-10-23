@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:hue_quito/theme/theme.dart';
+import 'package:hue_quito/providers/settings_provider.dart';
 
-class MainLayout extends StatelessWidget {
+class MainLayout extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainLayout({
@@ -63,7 +65,10 @@ class MainLayout extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(settingsProvider).language;
+    final isEn = lang == 'en';
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
@@ -83,11 +88,11 @@ class MainLayout extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _buildNavItem(context, 0, LucideIcons.compass, 'Explorar'),
-            _buildNavItem(context, 1, LucideIcons.map, 'Rutas'),
-            _buildNavItem(context, 2, Icons.qr_code_scanner, 'Escanear'),
-            _buildNavItem(context, 3, Icons.menu_book_rounded, 'Mi Álbum'),
-            _buildNavItem(context, 4, LucideIcons.user, 'Perfil'),
+            _buildNavItem(context, 0, LucideIcons.compass, isEn ? 'Explore' : 'Explorar'),
+            _buildNavItem(context, 1, LucideIcons.map, isEn ? 'Routes' : 'Rutas'),
+            _buildNavItem(context, 2, Icons.qr_code_scanner, isEn ? 'Scan' : 'Escanear'),
+            _buildNavItem(context, 3, Icons.menu_book_rounded, isEn ? 'My Album' : 'Mi Álbum'),
+            _buildNavItem(context, 4, LucideIcons.user, isEn ? 'Profile' : 'Perfil'),
           ],
         ),
       ),

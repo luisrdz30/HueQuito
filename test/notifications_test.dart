@@ -10,6 +10,8 @@ import 'package:hue_quito/screens/admin/admin_notifications_screen.dart';
 import 'package:hue_quito/screens/hueca_detail_screen.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/services/ai_generation_service.dart';
+import 'package:hue_quito/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('Notification System - Model & Serialization Tests', () {
@@ -77,6 +79,22 @@ void main() {
       expect(user.subscribedHuecas.length, 2);
       expect(user.subscribedHuecas.contains('hueca_1'), isTrue);
       expect(user.subscribedHuecas.contains('hueca_3'), isFalse);
+    });
+
+    test('NotificationService tracks shown notifications and prevents duplicates', () async {
+      SharedPreferences.setMockInitialValues({'shown_notification_ids': ['notif_existing']});
+      final service = NotificationService();
+      await service.initialize();
+
+      expect(service.hasBeenShown('notif_existing'), isTrue);
+      expect(service.hasBeenShown('notif_new'), isFalse);
+
+      await service.markAsSilentlyProcessed('notif_new');
+      expect(service.hasBeenShown('notif_new'), isTrue);
+
+      // Calling again remains marked and idempotent
+      await service.markAsSilentlyProcessed('notif_new');
+      expect(service.hasBeenShown('notif_new'), isTrue);
     });
   });
 
@@ -153,6 +171,8 @@ void main() {
           overrides: [
             pendingNotificationsProvider.overrideWith((ref) => Stream.value([])),
             allNotificationsProvider.overrideWith((ref) => Stream.value([])),
+            pendingHuecaRequestsProvider.overrideWith((ref) => Stream.value([])),
+            newSupportMessagesProvider.overrideWith((ref) => Stream.value([])),
           ],
           child: const MaterialApp(
             home: AdminNotificationsScreen(),
@@ -165,6 +185,8 @@ void main() {
       expect(find.text('Moderación de Notificaciones'), findsOneWidget);
       expect(find.text('Pendientes'), findsOneWidget);
       expect(find.text('Historial Completo'), findsOneWidget);
+      expect(find.text('Solicitudes'), findsOneWidget);
+      expect(find.text('Soporte'), findsOneWidget);
       expect(find.text('¡Al día! No hay notificaciones pendientes.'), findsOneWidget);
     });
 

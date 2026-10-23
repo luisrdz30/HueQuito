@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/models/notification_model.dart';
@@ -16,6 +17,7 @@ class AdminNotificationsScreen extends ConsumerStatefulWidget {
 class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String _historyTimeFilter = 'recent'; // 'recent', 'month', 'older', 'all'
 
   @override
   void initState() {
@@ -170,9 +172,13 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
   Widget build(BuildContext context) {
     final pendingAsync = ref.watch(pendingNotificationsProvider);
     final allAsync = ref.watch(allNotificationsProvider);
+    final pendingRequestsAsync = ref.watch(pendingHuecaRequestsProvider);
+    final newSupportAsync = ref.watch(newSupportMessagesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final pendingCount = pendingAsync.value?.length ?? 0;
+    final pendingRequestsCount = pendingRequestsAsync.value?.length ?? 0;
+    final newSupportCount = newSupportAsync.value?.length ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -184,15 +190,19 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
         centerTitle: true,
         actions: [
           IconButton(
-            tooltip: 'Probar / Resetear historial de notificaciones locales',
+            tooltip: 'Actualizar lista',
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () async {
-              await NotificationService().clearShownHistory();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Historial local reseteado. Las notificaciones aprobadas volverán a sonar.')),
-                );
-              }
+            onPressed: () {
+              ref.invalidate(pendingNotificationsProvider);
+              ref.invalidate(allNotificationsProvider);
+              ref.invalidate(pendingHuecaRequestsProvider);
+              ref.invalidate(newSupportMessagesProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Lista de notificaciones actualizada'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
             },
           ),
         ],
@@ -229,12 +239,174 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildPendingTab(pendingAsync, isDark),
-          _buildAllTab(allAsync, isDark),
+          _buildQuickAccessBar(context, pendingRequestsCount, newSupportCount),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPendingTab(pendingAsync, isDark),
+                _buildAllTab(allAsync, isDark),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessBar(BuildContext context, int pendingRequestsCount, int newSupportCount) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.dashboard_customize_outlined, size: 14, color: Colors.grey.shade400),
+              const SizedBox(width: 6),
+              Text(
+                'OTRAS BANDEJAS DE GESTIÓN',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                  color: Colors.grey.shade400,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildQuickNavCard(
+                  context: context,
+                  icon: Icons.add_business_rounded,
+                  iconColor: Colors.amber,
+                  title: 'Solicitudes',
+                  subtitle: 'Huecas nuevas',
+                  badgeCount: pendingRequestsCount,
+                  badgeColor: Colors.amber.shade800,
+                  onTap: () => context.push('/admin/solicitudes'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickNavCard(
+                  context: context,
+                  icon: Icons.support_agent_rounded,
+                  iconColor: Colors.blueAccent,
+                  title: 'Soporte',
+                  subtitle: 'De negocios',
+                  badgeCount: newSupportCount,
+                  badgeColor: Colors.redAccent,
+                  onTap: () => context.push('/admin/support'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickNavCard({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required int badgeCount,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: badgeCount > 0 ? iconColor.withOpacity(0.4) : Colors.white.withOpacity(0.06),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (badgeCount > 0) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: badgeColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '$badgeCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 10.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 16),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -437,10 +609,12 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.close, color: Colors.red, size: 18),
-                    label: const Text('Rechazar', style: TextStyle(color: Colors.red)),
+                    icon: const Icon(Icons.close, color: Color(0xFFDC2626), size: 18),
+                    label: const Text('Rechazar', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.red),
+                      backgroundColor: const Color(0xFFFEF2F2),
+                      side: const BorderSide(color: Color(0xFFFECACA)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () => _rejectNotification(item),
@@ -449,11 +623,13 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Aprobar y Emitir'),
+                    icon: const Icon(Icons.check, size: 18, color: Colors.white),
+                    label: const Text('Aprobar y Emitir', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: const Color(0xFF16A34A),
                       foregroundColor: Colors.white,
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () => _approveNotification(item),
@@ -476,16 +652,162 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
           return const Center(child: Text('No hay registros en el historial.'));
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return _buildHistoryItem(item, isDark);
-          },
+        final now = DateTime.now();
+        final sevenDaysAgo = now.subtract(const Duration(days: 7));
+        final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+
+        final recentCount = items.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return !d.isBefore(sevenDaysAgo);
+        }).length;
+
+        final monthCount = items.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return !d.isBefore(thirtyDaysAgo);
+        }).length;
+
+        final olderCount = items.where((i) {
+          final d = i.approvedAt ?? i.createdAt;
+          return d.isBefore(thirtyDaysAgo);
+        }).length;
+
+        final filteredItems = items.where((item) {
+          final d = item.approvedAt ?? item.createdAt;
+          if (_historyTimeFilter == 'recent') {
+            return !d.isBefore(sevenDaysAgo);
+          } else if (_historyTimeFilter == 'month') {
+            return !d.isBefore(thirtyDaysAgo);
+          } else if (_historyTimeFilter == 'older') {
+            return d.isBefore(thirtyDaysAgo);
+          }
+          return true; // 'all'
+        }).toList();
+
+        return Column(
+          children: [
+            // Barra de filtros por período de tiempo
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip(
+                      label: '⚡ Esta Semana ($recentCount)',
+                      isSelected: _historyTimeFilter == 'recent',
+                      onTap: () => setState(() => _historyTimeFilter = 'recent'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(
+                      label: '📅 Este Mes ($monthCount)',
+                      isSelected: _historyTimeFilter == 'month',
+                      onTap: () => setState(() => _historyTimeFilter = 'month'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(
+                      label: '📜 Anteriores ($olderCount)',
+                      isSelected: _historyTimeFilter == 'older',
+                      onTap: () => setState(() => _historyTimeFilter = 'older'),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(
+                      label: '🌐 Todas (${items.length})',
+                      isSelected: _historyTimeFilter == 'all',
+                      onTap: () => setState(() => _historyTimeFilter = 'all'),
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            // Lista filtrada de notificaciones
+            Expanded(
+              child: filteredItems.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy, size: 48, color: Colors.blueGrey.shade300),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No hay notificaciones en este período',
+                            style: TextStyle(
+                              color: Colors.blueGrey.shade600,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextButton(
+                            onPressed: () => setState(() => _historyTimeFilter = 'all'),
+                            child: Text('Ver todas las notificaciones (${items.length})'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return _buildHistoryItem(item, isDark);
+                      },
+                    ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF0F172A)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? Colors.amber
+                : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.amber : (isDark ? Colors.white70 : const Color(0xFF334155)),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
+      ),
     );
   }
 
@@ -504,6 +826,9 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
       badgeText = 'Pendiente';
     }
 
+    final pubDate = item.approvedAt ?? item.createdAt;
+    final dateStr = '${pubDate.day.toString().padLeft(2, '0')}/${pubDate.month.toString().padLeft(2, '0')}/${pubDate.year}';
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
@@ -513,9 +838,15 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
           children: [
             Row(
               children: [
-                Text('${item.categoryEmoji} ${item.huecaName}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const Spacer(),
+                Expanded(
+                  child: Text('${item.categoryEmoji} ${item.huecaName}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+                Text(
+                  dateStr,
+                  style: TextStyle(fontSize: 11, color: isDark ? Colors.blueGrey.shade300 : Colors.blueGrey.shade600, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(

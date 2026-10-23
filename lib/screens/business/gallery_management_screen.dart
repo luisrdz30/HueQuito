@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -34,13 +35,15 @@ class _GalleryManagementScreenState extends ConsumerState<GalleryManagementScree
       return;
     }
 
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
+    final file = await ImagePickerHelper.showImageSourceDialog(
+      context: context,
+      title: 'Añadir Foto a la Galería',
+      subtitle: 'Elige de dónde quieres cargar la foto para tu local',
+      imageQuality: 75,
+      maxWidth: 1280,
     );
 
-    if (pickedFile == null || !mounted) return;
+    if (file == null || !mounted) return;
 
     final targetId = _effectiveHuecaId;
     if (targetId.isEmpty) {
@@ -56,7 +59,6 @@ class _GalleryManagementScreenState extends ConsumerState<GalleryManagementScree
     });
 
     try {
-      File file = File(pickedFile.path);
       String fileName = '${targetId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference storageRef = FirebaseStorage.instance.ref().child('hueca_images/$fileName');
 

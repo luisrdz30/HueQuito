@@ -9,6 +9,7 @@ import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/directions_service.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
+import 'package:hue_quito/utils/tour_distance_helper.dart';
 
 class RouteNavigationScreen extends ConsumerStatefulWidget {
   final RouteModel route;
@@ -35,17 +36,44 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   }
 
   Future<void> _initNavigation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    Position? position;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission != LocationPermission.denied && permission != LocationPermission.deniedForever) {
+          try {
+            position = await Geolocator.getCurrentPosition(
+              timeLimit: const Duration(seconds: 4),
+            );
+          } catch (_) {
+            try {
+              position = await Geolocator.getLastKnownPosition();
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+    // Fallback: si el GPS tarda o no está disponible, usamos la primera parada como origen
+    if (position == null && widget.routeStops.isNotEmpty) {
+      final firstStop = widget.routeStops.first;
+      position = Position(
+        latitude: firstStop.location.latitude,
+        longitude: firstStop.location.longitude,
+        timestamp: DateTime.now(),
+        accuracy: 10.0,
+        altitude: 2800.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
     }
-    if (permission == LocationPermission.deniedForever) return; 
-
-    Position position = await Geolocator.getCurrentPosition();
 
     if (mounted) {
       setState(() => _currentPosition = position);
@@ -54,12 +82,29 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   }
 
   Future<void> _fetchRoute() async {
-    if (_currentPosition == null || widget.routeStops.isEmpty) {
+    if (widget.routeStops.isEmpty) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }
     
     setState(() => _isLoading = true);
+
+    // Asegurar posición actual o usar la primera parada
+    if (_currentPosition == null && widget.routeStops.isNotEmpty) {
+      final firstStop = widget.routeStops.first;
+      _currentPosition = Position(
+        latitude: firstStop.location.latitude,
+        longitude: firstStop.location.longitude,
+        timestamp: DateTime.now(),
+        accuracy: 10.0,
+        altitude: 2800.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
+    }
 
     final dest = widget.routeStops.last;
     List<Map<String, double>> waypoints = [];
@@ -72,40 +117,85 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       }
     }
 
-    final dir = await DirectionsService.getDirections(
-      _currentPosition!.latitude, 
-      _currentPosition!.longitude, 
-      dest.location.latitude, 
-      dest.location.longitude,
-      waypoints: waypoints,
-      mode: _travelMode
-    );
+    Map<String, dynamic>? dir;
+    try {
+      dir = await DirectionsService.getDirections(
+        _currentPosition!.latitude, 
+        _currentPosition!.longitude, 
+        dest.location.latitude, 
+        dest.location.longitude,
+        waypoints: waypoints,
+        mode: _travelMode,
+      );
+    } catch (_) {}
 
-    if (dir != null && dir['polyline'] != null && mounted) {
-      List<LatLng> polylineCoordinates = _decodePolyline(dir['polyline']);
-      setState(() {
-        _polylines[PolylineId('route')] = Polyline(
-          polylineId: PolylineId('route'),
-          color: AppTheme.primary,
-          points: polylineCoordinates,
-          width: 5,
-        );
-        _steps = dir['steps'] ?? [];
-        _isLoading = false;
-      });
+    if (!mounted) return;
 
-      if (polylineCoordinates.isNotEmpty && _mapController != null) {
-        try {
-          LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
-          _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-        } catch (_) {
-          try {
-            _mapController!.animateCamera(CameraUpdate.newLatLngZoom(polylineCoordinates.first, 14));
-          } catch (_) {}
-        }
+    List<LatLng> polylineCoordinates = [];
+    List<dynamic> steps = [];
+
+    if (dir != null && dir['polyline'] != null) {
+      polylineCoordinates = _decodePolyline(dir['polyline']);
+      steps = dir['steps'] ?? [];
+    }
+
+    // FALLBACK ROBUSTO: Si la API de Google falla o devuelve nulo, trazamos la ruta geodésica entre paradas
+    if (polylineCoordinates.isEmpty) {
+      if (_currentPosition != null) {
+        polylineCoordinates.add(LatLng(_currentPosition!.latitude, _currentPosition!.longitude));
       }
-    } else {
-      if (mounted) setState(() => _isLoading = false);
+      for (var s in widget.routeStops) {
+        polylineCoordinates.add(LatLng(s.location.latitude, s.location.longitude));
+      }
+
+      final isWalking = _travelMode == 'walking';
+      for (int i = 0; i < widget.routeStops.length; i++) {
+        final stop = widget.routeStops[i];
+        final prevLat = (i == 0)
+            ? (_currentPosition?.latitude ?? stop.location.latitude)
+            : widget.routeStops[i - 1].location.latitude;
+        final prevLng = (i == 0)
+            ? (_currentPosition?.longitude ?? stop.location.longitude)
+            : widget.routeStops[i - 1].location.longitude;
+
+        final distKm = TourDistanceHelper.calculateDistanceKm(
+          prevLat,
+          prevLng,
+          stop.location.latitude,
+          stop.location.longitude,
+        );
+        final mins = isWalking
+            ? ((distKm / 4.5) * 60).round().clamp(2, 999)
+            : TourDistanceHelper.estimateDrivingMinutes(distKm);
+
+        final modeLabel = isWalking ? 'a pie' : 'en auto';
+        steps.add({
+          'html_instructions': 'Parada #${i + 1}: Dirígete a ${stop.name} (${stop.sector})',
+          'distance': {'text': '${TourDistanceHelper.formatDistance(distKm)} (~$mins min $modeLabel)'},
+        });
+      }
+    }
+
+    setState(() {
+      _polylines[const PolylineId('route')] = Polyline(
+        polylineId: const PolylineId('route'),
+        color: AppTheme.primary,
+        points: polylineCoordinates,
+        width: 5,
+      );
+      _steps = steps;
+      _isLoading = false;
+    });
+
+    if (polylineCoordinates.isNotEmpty && _mapController != null) {
+      try {
+        LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
+        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      } catch (_) {
+        try {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(polylineCoordinates.first, 14));
+        } catch (_) {}
+      }
     }
   }
 
@@ -159,7 +249,6 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
     if (widget.routeStops.isEmpty) return;
     
     final dest = widget.routeStops.last;
-    final mapMode = _travelMode == 'walking' ? 'w' : 'd';
     
     // For multiple stops in Maps URL:
     String waypointsStr = '';
@@ -184,6 +273,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(settingsProvider).language;
     final name = widget.route.name[lang] ?? widget.route.name['es'] ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Set<Marker> markers = {};
     for (int i = 0; i < widget.routeStops.length; i++) {
@@ -201,7 +291,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: MarkerId('user'),
+          markerId: const MarkerId('user'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         )
@@ -210,13 +300,13 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name, style: TextStyle(fontSize: 16)),
-        backgroundColor: Colors.white,
+        title: Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.map, color: AppTheme.primary),
+            icon: const Icon(Icons.map, color: AppTheme.primary),
             onPressed: _openGoogleMaps,
             tooltip: 'Abrir en Google Maps',
           )
@@ -226,7 +316,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
         children: [
           Container(
             color: Theme.of(context).cardColor,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -238,17 +328,17 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
+                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (isDark ? Colors.grey[700]! : Colors.grey[300]!)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(lang == 'es' ? 'A pie' : 'Walking', style: TextStyle(
                             color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -258,7 +348,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -268,17 +358,17 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
+                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (isDark ? Colors.grey[700]! : Colors.grey[300]!)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(lang == 'es' ? 'En carro' : 'Driving', style: TextStyle(
                             color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -295,9 +385,10 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
             flex: 4,
             child: Stack(
               children: [
-                GoogleMap(style: Theme.of(context).brightness == Brightness.dark ? darkMapStyle : null, 
+                GoogleMap(
+                  style: isDark ? darkMapStyle : null, 
                   onMapCreated: (c) => _mapController = c,
-                  initialCameraPosition: CameraPosition(
+                  initialCameraPosition: const CameraPosition(
                     target: LatLng(-0.22985, -78.52495), 
                     zoom: 12.0
                   ),
@@ -307,7 +398,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                   myLocationButtonEnabled: true,
                 ),
                 if (_isLoading)
-                  Center(child: CircularProgressIndicator()),
+                  const Center(child: CircularProgressIndicator()),
               ]
             ),
           ),
@@ -319,26 +410,60 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(lang == 'es' ? 'Indicaciones' : 'Directions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          lang == 'es' ? 'Indicaciones de ruta' : 'Route Directions', 
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        Text(
+                          '${_steps.length} ${lang == 'es' ? 'tramos' : 'legs'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white70 : AppTheme.textMedium,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Expanded(
-                    child: _steps.isEmpty 
-                      ? Center(child: Text(lang == 'es' ? 'Calculando ruta...' : 'Calculating route...'))
-                      : ListView.builder(
-                          itemCount: _steps.length,
-                          itemBuilder: (context, index) {
-                            final step = _steps[index];
-                            return ListTile(
-                              leading: Icon(
-                                _travelMode == 'walking' ? Icons.directions_walk : Icons.directions_car, 
-                                color: AppTheme.primary
-                              ),
-                              title: Text(_stripHtml(step['html_instructions'] ?? '')),
-                              subtitle: Text(step['distance']?['text'] ?? ''),
-                            );
-                          },
-                        ),
+                    child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _steps.isEmpty 
+                        ? Center(
+                            child: Text(
+                              lang == 'es' ? 'Ruta trazada en el mapa' : 'Route displayed on map',
+                              style: TextStyle(color: isDark ? Colors.white70 : AppTheme.textMedium),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _steps.length,
+                            itemBuilder: (context, index) {
+                              final step = _steps[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: AppTheme.primary.withValues(alpha: 0.15),
+                                  child: Icon(
+                                    _travelMode == 'walking' ? Icons.directions_walk : Icons.directions_car, 
+                                    color: AppTheme.primary,
+                                    size: 16,
+                                  ),
+                                ),
+                                title: Text(
+                                  _stripHtml(step['html_instructions'] ?? ''),
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                ),
+                                subtitle: Text(
+                                  step['distance']?['text'] ?? '',
+                                  style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : AppTheme.textMedium),
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -349,8 +474,11 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openGoogleMaps,
         backgroundColor: AppTheme.primary,
-        icon: Icon(Icons.directions),
-        label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.directions, color: Colors.white),
+        label: Text(
+          lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', 
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

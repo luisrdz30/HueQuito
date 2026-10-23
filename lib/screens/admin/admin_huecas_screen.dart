@@ -19,7 +19,13 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
 
   Future<void> _toggleHuecaStatus(Hueca hueca, bool newValue) async {
     try {
-      await ref.read(huecaRepositoryProvider).toggleHuecaActive(hueca.id, newValue);
+      await ref.read(huecaRepositoryProvider).toggleHuecaActive(
+        hueca.id,
+        newValue,
+        huecaName: hueca.name,
+      );
+      ref.invalidate(allHuecasStreamProvider);
+      ref.invalidate(huecasProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -284,7 +290,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                 TextField(
                   style: const TextStyle(color: Color(0xFF0F172A)),
                   decoration: InputDecoration(
-                    hintText: 'Buscar por nombre, sector o plato...',
+                    hintText: 'Buscar por nombre, plato, menú o sector...',
                     hintStyle: TextStyle(color: Colors.blueGrey.shade400, fontSize: 14),
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF0F172A)),
                     suffixIcon: _searchQuery.isNotEmpty
@@ -312,6 +318,14 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                       _buildFilterChip('Pausadas', 'inactive'),
                       const SizedBox(width: 8),
                       _buildFilterChip('Sin Dueño', 'unassigned'),
+                      const SizedBox(width: 12),
+                      ActionChip(
+                        avatar: const Icon(Icons.collections_bookmark, size: 15, color: Color(0xFF0F172A)),
+                        label: const Text('Sectores y Cromos', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                        backgroundColor: Colors.amber.shade100,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.amber.shade300)),
+                        onPressed: () => context.push('/admin/sectors'),
+                      ),
                     ],
                   ),
                 ),
@@ -327,10 +341,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                 final filtered = huecasList.where((h) {
                   // Filtro por texto
                   if (_searchQuery.isNotEmpty) {
-                    final matchName = h.name.toLowerCase().contains(_searchQuery);
-                    final matchSector = h.sector.toLowerCase().contains(_searchQuery);
-                    final matchDish = (h.mainDish['name']?.toString() ?? '').toLowerCase().contains(_searchQuery);
-                    if (!matchName && !matchSector && !matchDish) return false;
+                    if (!h.matchesSearch(_searchQuery)) return false;
                   }
 
                   // Filtro por estado
@@ -391,20 +402,28 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
 
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _filterStatus == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => setState(() => _filterStatus = value),
-      selectedColor: const Color(0xFF0F172A),
-      backgroundColor: const Color(0xFFF1F5F9),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : const Color(0xFF475569),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontSize: 12,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isSelected ? const Color(0xFF0F172A) : Colors.transparent),
+    return InkWell(
+      onTap: () => setState(() => _filterStatus = value),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.amber : const Color(0xFFCBD5E1),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -549,7 +568,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.store_outlined, size: 15, color: Color(0xFF0F766E)),
-                    label: Text('Locales ($branchesCount)', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    label: Text('Locales ($branchesCount)', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     onPressed: () => context.push('/admin/huecas/branches', extra: hueca),
                   ),
                   const SizedBox(width: 8),
@@ -563,21 +582,21 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.person_add_alt_1, size: 15, color: Color(0xFF1D4ED8)),
-                    label: const Text('Dueño', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    label: const Text('Dueño', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     onPressed: () => _showAssignOwnerDialog(hueca),
                   ),
                   const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      foregroundColor: const Color(0xFF0F172A),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F172A),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      elevation: 1,
                       visualDensity: VisualDensity.compact,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    icon: const Icon(Icons.edit, size: 15, color: Color(0xFF0F172A)),
-                    label: const Text('Editar', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    icon: const Icon(Icons.edit, size: 14, color: Colors.amber),
+                    label: const Text('Editar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     onPressed: () => context.push('/admin/huecas/edit', extra: hueca),
                   ),
                   const SizedBox(width: 8),
@@ -591,7 +610,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.delete_outline, size: 15, color: Color(0xFFDC2626)),
-                    label: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    label: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     onPressed: () => _handleDelete(hueca),
                   ),
                 ],

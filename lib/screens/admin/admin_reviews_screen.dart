@@ -77,12 +77,13 @@ class _AdminReviewsScreenState extends ConsumerState<AdminReviewsScreen> {
         backgroundColor: const Color(0xFF0F172A),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           tooltip: 'Volver',
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Moderación de Reseñas', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Moderación de Reseñas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 17)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -192,20 +193,28 @@ class _AdminReviewsScreenState extends ConsumerState<AdminReviewsScreen> {
 
   Widget _buildStarFilterChip(String label, int? rating) {
     final isSelected = _ratingFilter == rating;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => setState(() => _ratingFilter = rating),
-      selectedColor: const Color(0xFF0F172A),
-      backgroundColor: const Color(0xFFF1F5F9),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : const Color(0xFF0F172A),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontSize: 12,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isSelected ? const Color(0xFF0F172A) : Colors.transparent),
+    return InkWell(
+      onTap: () => setState(() => _ratingFilter = rating),
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.amber : const Color(0xFFCBD5E1),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -286,9 +295,17 @@ class _AdminReviewsScreenState extends ConsumerState<AdminReviewsScreen> {
                     : 'Reciente',
                 style: TextStyle(color: Colors.blueGrey.shade400, fontSize: 11),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                tooltip: 'Eliminar Reseña',
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  foregroundColor: const Color(0xFFDC2626),
+                  side: const BorderSide(color: Color(0xFFFECACA)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  visualDensity: VisualDensity.compact,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.delete_outline, size: 14, color: Color(0xFFDC2626)),
+                label: const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                 onPressed: () => _deleteReview(review),
               ),
             ],

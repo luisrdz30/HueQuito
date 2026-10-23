@@ -7,9 +7,10 @@ import 'package:hue_quito/utils/auth_utils.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
-import 'package:map_launcher/map_launcher.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/utils/map_navigation_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hue_quito/widgets/client_onboarding_dialog.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -21,97 +22,255 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedLocation = 'Todo Quito';
-  String _selectedFilter = '🍲 Todos';
+  String _selectedFilter = '🍽️ Todos';
   final String _selectedSort = 'Más cerca (km)';
+  bool _checkedTutorial = false;
+  bool _hasAppliedUserPreferences = false;
+  bool _userManuallyChangedLocation = false;
+  bool _userManuallyChangedFilter = false;
+  String? _guestPersona;
+  String? _guestSector;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstTimeClientTutorial();
+      _initUserPreferences();
+    });
+  }
+
+  Future<void> _initUserPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _guestPersona = prefs.getString('guest_persona') ?? prefs.getString('last_selected_persona');
+      _guestSector = prefs.getString('guest_sector') ?? prefs.getString('last_selected_sector');
+
+      final user = ref.read(currentUserProvider).value;
+      final savedSector = (user?.preferences['sector']?.toString().isNotEmpty == true)
+          ? user!.preferences['sector'].toString()
+          : _guestSector;
+      final savedPersona = (user?.preferences['persona']?.toString().isNotEmpty == true)
+          ? user!.preferences['persona'].toString()
+          : _guestPersona;
+
+      if (mounted) {
+        setState(() {
+          if (!_userManuallyChangedLocation && savedSector != null && savedSector.isNotEmpty && savedSector != 'Todo Quito') {
+            _selectedLocation = savedSector;
+          }
+          if (!_userManuallyChangedFilter && savedPersona != null && savedPersona.isNotEmpty) {
+            _applyPersonaToFilter(savedPersona);
+          }
+          _hasAppliedUserPreferences = true;
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _applyPersonaToFilter(String persona) {
+    switch (persona.toLowerCase()) {
+      case 'sopero':
+        _selectedFilter = '🍲 Sopas';
+        break;
+      case 'carnivoro':
+        _selectedFilter = '🍛 Platos Fuertes';
+        break;
+      case 'dulcero':
+        _selectedFilter = '🍰 Dulces';
+        break;
+      case 'callejero':
+        _selectedFilter = '🍔 Callejero';
+        break;
+      case 'picador':
+        _selectedFilter = '🥟 Empanadas';
+        break;
+      case 'aventurero':
+      default:
+        _selectedFilter = '🍽️ Todos';
+        break;
+    }
+  }
+
+  bool _matchesLocation(Hueca h, String loc) {
+    if (loc == 'Todo Quito' || loc == 'All Quito') return true;
+    final locLower = loc.toLowerCase().trim();
+    final hSector = h.sector.toLowerCase().trim();
+    final hAddr = h.address.toLowerCase().trim();
+
+    if (hSector.contains(locLower) || locLower.contains(hSector) || hAddr.contains(locLower)) {
+      return true;
+    }
+
+    if (locLower.contains('centro')) {
+      return hSector.contains('centro') || hSector.contains('san roque') || hSector.contains('la ronda') ||
+             hSector.contains('san blas') || hSector.contains('san juan') || hSector.contains('la tola') ||
+             hSector.contains('el tejar') || hSector.contains('san marcos') || hSector.contains('panecillo') ||
+             hAddr.contains('centro') || hAddr.contains('san roque') || hAddr.contains('la ronda') || hAddr.contains('san juan');
+    }
+    if (locLower.contains('floresta') || locLower.contains('mariscal')) {
+      return hSector.contains('floresta') || hSector.contains('mariscal') || hSector.contains('guapulo') ||
+             hSector.contains('guápulo') || hSector.contains('gonzalez') || hSector.contains('gonzález') ||
+             hSector.contains('vicentina') || hSector.contains('pradera') || hSector.contains('foch') ||
+             hAddr.contains('floresta') || hAddr.contains('mariscal') || hAddr.contains('guapulo') || hAddr.contains('guápulo');
+    }
+    if (locLower.contains('carolina') || locLower.contains('iñaquito') || locLower.contains('inaquito')) {
+      return hSector.contains('carolina') || hSector.contains('iñaquito') || hSector.contains('inaquito') ||
+             hSector.contains('bellavista') || hSector.contains('batán') || hSector.contains('batan') ||
+             hSector.contains('granda centeno') || hSector.contains('salvador') ||
+             hAddr.contains('carolina') || hAddr.contains('iñaquito') || hAddr.contains('inaquito') || hAddr.contains('bellavista');
+    }
+    if (locLower.contains('norte')) {
+      return hSector.contains('norte') || hSector.contains('carcelen') || hSector.contains('carcelén') ||
+             hSector.contains('cotocollao') || hSector.contains('calderon') || hSector.contains('calderón') ||
+             hSector.contains('ponceano') || hSector.contains('san carlos') || hSector.contains('inca') ||
+             hSector.contains('monteserr') || hSector.contains('kennedy') || hSector.contains('pomasqui') ||
+             hSector.contains('comité') || hSector.contains('comite') ||
+             hAddr.contains('norte') || hAddr.contains('carcelen') || hAddr.contains('cotocollao') || hAddr.contains('calderon');
+    }
+    if (locLower.contains('sur')) {
+      return hSector.contains('sur') || hSector.contains('solanda') || hSector.contains('villaflora') ||
+             hSector.contains('chillogallo') || hSector.contains('magdalena') || hSector.contains('chimbacalle') ||
+             hSector.contains('pintado') || hSector.contains('recreo') || hSector.contains('guamani') ||
+             hSector.contains('guamaní') || hSector.contains('quitumbe') || hSector.contains('san bartolo') ||
+             hSector.contains('la mena') || hSector.contains('santa rita') || hSector.contains('ferroviaria') ||
+             hAddr.contains('sur') || hAddr.contains('solanda') || hAddr.contains('villaflora') || hAddr.contains('chillogallo');
+    }
+    if (locLower.contains('valle') || locLower.contains('cumbay') || locLower.contains('tumbaco') || locLower.contains('chillos')) {
+      return hSector.contains('valle') || hSector.contains('cumbay') || hSector.contains('tumbaco') ||
+             hSector.contains('chillos') || hSector.contains('conocoto') || hSector.contains('sangolqu') ||
+             hSector.contains('san rafael') || hSector.contains('puembo') || hSector.contains('pifo') ||
+             hAddr.contains('valle') || hAddr.contains('cumbay') || hAddr.contains('tumbaco') || hAddr.contains('chillos') || hAddr.contains('conocoto');
+    }
+
+    return false;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkFirstTimeClientTutorial() async {
+    if (_checkedTutorial) return;
+    _checkedTutorial = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeen = prefs.getBool('has_seen_client_tutorial') ?? false;
+      if (!hasSeen && mounted) {
+        final currentLang = ref.read(settingsProvider).language;
+        await showClientOnboardingDialog(context, markAsSeen: true, lang: currentLang);
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Escuchar cambios de preferencias del usuario si inicia sesión o actualiza perfil
+    ref.listen<AsyncValue<UserModel?>>(currentUserProvider, (previous, next) {
+      final u = next.value;
+      if (u != null) {
+        final savedSector = u.preferences['sector']?.toString();
+        final savedPersona = u.preferences['persona']?.toString();
+        if (mounted) {
+          setState(() {
+            if (!_userManuallyChangedLocation && savedSector != null && savedSector.isNotEmpty && savedSector != 'Todo Quito') {
+              _selectedLocation = savedSector;
+            }
+            if (!_userManuallyChangedFilter && savedPersona != null && savedPersona.isNotEmpty) {
+              _applyPersonaToFilter(savedPersona);
+            }
+          });
+        }
+      }
+    });
+
     final user = ref.watch(currentUserProvider).value;
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     List<String> locations = lang == 'es' ? ['Todo Quito'] : ['All Quito'];
-    List<String> filters = lang == 'es' ? ['🍽️ Todos'] : ['🍽️ All'];
+
+    final isEn = lang == 'en';
+    final allChip = isEn ? '🍽️ All' : '🍽️ Todos';
+    final carnesChip = isEn ? '🍛 Main Dishes' : '🍛 Platos Fuertes';
+    final sopasChip = isEn ? '🍲 Soups' : '🍲 Sopas';
+    final callejeroChip = isEn ? '🍔 Street Food' : '🍔 Callejero';
+    final empanadasChip = isEn ? '🥟 Empanadas' : '🥟 Empanadas';
+    final dulcesChip = isEn ? '🍰 Sweets' : '🍰 Dulces';
+    final tradicionChip = isEn ? '⭐ Tradition' : '⭐ Tradición';
+
+    List<String> filters = [
+      allChip,
+      carnesChip,
+      sopasChip,
+      callejeroChip,
+      empanadasChip,
+      dulcesChip,
+      tradicionChip,
+    ];
 
     if (huecasAsync.value != null && huecasAsync.value!.isNotEmpty) {
       final huecas = huecasAsync.value!;
-      final baseLoc = huecas
-          .map((h) => h.sector)
+      final dbSectors = huecas
+          .where((h) => h.isActive && h.isSectorConfirmed)
+          .map((h) => h.sector.trim())
+          .where((s) => s.isNotEmpty && s.toLowerCase() != 'todo quito' && s.toLowerCase() != 'all quito')
           .toSet()
-          .where((s) => s.isNotEmpty)
-          .toList();
-      locations.addAll(baseLoc);
+          .toList()
+        ..sort();
+
+      for (final s in dbSectors) {
+        if (!locations.contains(s)) locations.add(s);
+      }
 
       Map<String, int> tagCounts = {};
       for (var h in huecas) {
+        if (!h.isActive) continue;
         for (var t in h.tags) {
           tagCounts[t] = (tagCounts[t] ?? 0) + 1;
         }
       }
       var sortedTags = tagCounts.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      var topTags = sortedTags.take(6).map((e) => e.key).toList();
+      var topTags = sortedTags.take(8).map((e) => e.key).toList();
 
       for (var tag in topTags) {
-        String emoji = '🏷️';
         String tLower = tag.toLowerCase();
-        if (tLower.contains('sopa') || tLower.contains('caldo')) {
-          emoji = '🍲';
-        } else if (tLower.contains('plato') ||
-            tLower.contains('carne') ||
-            tLower.contains('cerdo') ||
-            tLower.contains('marisco') ||
-            tLower.contains('pescado'))
-          emoji = '🍛';
-        else if (tLower.contains('tradici') || tLower.contains('mercado'))
-          emoji = '⭐';
-        else if (tLower.contains('dulce') || tLower.contains('postre'))
-          emoji = '🍰';
-        else if (tLower.contains('snack') ||
-            tLower.contains('frito') ||
-            tLower.contains('empanada'))
-          emoji = '🥟';
-
-        String translatedTag = tag;
-        if (lang == 'en') {
-          if (tLower == 'platos fuertes') {
-            translatedTag = 'Main Dishes';
-          } else if (tLower == 'sopas')
-            translatedTag = 'Soups';
-          else if (tLower == 'tradición' || tLower == 'tradicional')
-            translatedTag = 'Tradition';
-          else if (tLower == 'dulces')
-            translatedTag = 'Sweets';
+        if (tLower.contains('sopa') || tLower.contains('plato fuerte') || tLower.contains('dulce') || tLower.contains('empanada')) {
+          continue;
         }
-        filters.add('$emoji $translatedTag');
+        String emoji = '🏷️';
+        if (tLower.contains('marisco') || tLower.contains('pescado') || tLower.contains('ceviche')) {
+          emoji = '🐟';
+        } else if (tLower.contains('carne') || tLower.contains('cerdo') || tLower.contains('hornado') || tLower.contains('fritada')) {
+          emoji = '🍖';
+        } else if (tLower.contains('tradici') || tLower.contains('mercado')) {
+          emoji = '⭐';
+        } else if (tLower.contains('snack') || tLower.contains('comida rapida') || tLower.contains('hamburguesa')) {
+          emoji = '🍔';
+        }
+
+        final tagChip = '$emoji $tag';
+        if (!filters.contains(tagChip)) {
+          filters.add(tagChip);
+        }
       }
-    } else {
-      locations = lang == 'es'
-          ? ['Todo Quito', 'Centro Histórico', 'La Floresta', 'Conocoto']
-          : ['All Quito', 'Historic Center', 'La Floresta', 'Conocoto'];
-      filters = lang == 'es'
-          ? [
-              '🍽️ Todos',
-              '🍲 Sopas',
-              '🍛 Platos Fuertes',
-              '⭐ Tradición',
-              '🍰 Dulces',
-            ]
-          : [
-              '🍽️ All',
-              '🍲 Soups',
-              '🍛 Main Dishes',
-              '⭐ Tradition',
-              '🍰 Sweets',
-            ];
     }
 
     if (!locations.contains(_selectedLocation)) {
-      _selectedLocation = locations.first;
+      locations.add(_selectedLocation);
     }
+
+    // Asegurar que el filtro activo SIEMPRE esté presente en la barra de chips
     if (!filters.contains(_selectedFilter)) {
-      _selectedFilter = filters.first;
+      filters.insert(1, _selectedFilter);
     }
+
+    final activePersona = (user != null && (user.preferences['persona']?.toString().isNotEmpty == true))
+        ? user.preferences['persona']?.toString()
+        : _guestPersona;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -166,6 +325,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   if (newValue != null) {
                     setState(() {
                       _selectedLocation = newValue;
+                      _userManuallyChangedLocation = true;
                     });
                   }
                 },
@@ -187,8 +347,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SizedBox(width: 16),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        color: AppTheme.primary,
+        onRefresh: () async {
+          ref.invalidate(allHuecasStreamProvider);
+          ref.invalidate(huecasProvider);
+          await ref.read(huecaRepositoryProvider).getHuecas();
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(16.0),
@@ -217,6 +385,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Icons.search,
                           color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
                         ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 15,
@@ -227,7 +407,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(height: 24),
 
                   // Recomendaciones
-                  if (user != null && user.preferences.containsKey('persona'))
+                  if (activePersona != null && activePersona.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -243,7 +423,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         SizedBox(height: 12),
                         Builder(
                           builder: (context) {
-                            String persona = user.preferences['persona'] ?? '';
+                            String persona = activePersona;
                             List<String> targetTags = [];
                             if (persona == 'aventurero')
                               targetTags = [
@@ -294,19 +474,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             var recs =
                                 huecasAsync.value
                                     ?.where(
-                                      (h) => h.tags.any(
-                                        (t) => targetTags.any(
-                                          (tt) => t.toLowerCase().contains(tt),
-                                        ),
+                                      (h) => h.isActive && targetTags.any(
+                                        (tt) => h.matchesSearch(tt, lang: lang),
                                       ),
                                     )
                                     .toList() ??
                                 [];
 
                             if (recs.isEmpty) {
-                              recs = huecasAsync.value?.take(3).toList() ?? [];
+                              recs = huecasAsync.value?.where((h) => h.isActive).take(3).toList() ?? [];
                             } else {
-                              recs.shuffle();
+                              if (_selectedLocation != 'Todo Quito' && _selectedLocation != 'All Quito') {
+                                final inSector = recs.where((h) => _matchesLocation(h, _selectedLocation)).toList();
+                                if (inSector.isNotEmpty) {
+                                  recs = [...inSector, ...recs.where((h) => !inSector.contains(h))];
+                                }
+                              }
                             }
 
                             return SingleChildScrollView(
@@ -353,71 +536,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           huecasAsync.when(
             data: (huecas) {
-              var filtered = List<Hueca>.from(huecas);
+              var filtered = huecas.where((h) => h.isActive).toList();
               if (_selectedLocation != 'Todo Quito' &&
                   _selectedLocation != 'All Quito') {
                 filtered = filtered
-                    .where(
-                      (h) =>
-                          h.sector.toLowerCase().contains(
-                            _selectedLocation.toLowerCase(),
-                          ) ||
-                          h.address.toLowerCase().contains(
-                            _selectedLocation.toLowerCase(),
-                          ),
-                    )
+                    .where((h) => _matchesLocation(h, _selectedLocation))
                     .toList();
               }
               if (_searchQuery.isNotEmpty) {
                 filtered = filtered
-                    .where(
-                      (h) =>
-                          h.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
-                          ) ||
-                          (h.description[lang] ?? '')
-                              .toString()
-                              .toLowerCase()
-                              .contains(_searchQuery.toLowerCase()) ||
-                          h.tags.any(
-                            (t) => t.toLowerCase().contains(
-                              _searchQuery.toLowerCase(),
-                            ),
-                          ),
-                    )
+                    .where((h) => h.matchesSearch(_searchQuery, lang: lang))
                     .toList();
               }
 
               if (!_selectedFilter.contains('Todos') &&
                   !_selectedFilter.contains('All')) {
-                String uiTag = _selectedFilter
-                    .split(' ')
-                    .skip(1)
-                    .join(' ')
-                    .toLowerCase();
-                String targetTag = uiTag;
-                if (lang == 'en') {
-                  if (uiTag == 'main dishes') {
-                    targetTag = 'plato';
-                  } else if (uiTag == 'soups')
-                    targetTag = 'sopa';
-                  else if (uiTag == 'tradition')
-                    targetTag = 'tradici';
-                  else if (uiTag == 'sweets')
-                    targetTag = 'dulce';
-                  else if (uiTag == 'seafood')
-                    targetTag = 'marisco';
+                final filterLower = _selectedFilter.toLowerCase();
+                List<String> targetKeywords = [];
+
+                if (filterLower.contains('sopa') || filterLower.contains('soup')) {
+                  targetKeywords = ['sopa', 'caldo', 'locro', 'encebollado', 'yahuarlocro', 'sancocho'];
+                } else if (filterLower.contains('plato') || filterLower.contains('carne') || filterLower.contains('main dish')) {
+                  targetKeywords = ['plato', 'carne', 'hornado', 'fritada', 'asado', 'parrillada', 'cerdo', 'churrasco', 'menestra', 'seco', 'costilla', 'res'];
+                } else if (filterLower.contains('callejero') || filterLower.contains('street') || filterLower.contains('snack')) {
+                  targetKeywords = ['snack', 'comida rapida', 'comida rápida', 'hamburguesa', 'salchipapa', 'alitas', 'pizza', 'pollo frito', 'papas', 'frito', 'agachadito'];
+                } else if (filterLower.contains('dulce') || filterLower.contains('sweet') || filterLower.contains('postre')) {
+                  targetKeywords = ['dulce', 'postre', 'helado', 'caf', 'quesadilla', 'chocolate', 'pristiño', 'higos', 'espumilla'];
+                } else if (filterLower.contains('empanada') || filterLower.contains('picad')) {
+                  targetKeywords = ['empanada', 'humita', 'corvina', 'tamal', 'mote', 'antojito', 'quimbolito', 'picad'];
+                } else if (filterLower.contains('tradici') || filterLower.contains('aventurero')) {
+                  targetKeywords = ['tradici', 'mercado', 'tripa', 'mishqui', 'guatita', 'ceviche', 'cuy', 'menudencia'];
                 } else {
-                  if (targetTag == 'platos fuertes') targetTag = 'plato';
-                  if (targetTag == 'tradición') targetTag = 'tradici';
-                  if (targetTag == 'dulces') targetTag = 'dulce';
-                  if (targetTag == 'sopas') targetTag = 'sopa';
-                  if (targetTag == 'mariscos') targetTag = 'marisco';
+                  final rawTag = _selectedFilter.split(' ').skip(1).join(' ').toLowerCase().trim();
+                  targetKeywords = [rawTag.isNotEmpty ? rawTag : filterLower];
                 }
+
                 filtered = filtered
                     .where(
-                      (h) => h.tags.any(
-                        (t) => t.toLowerCase().contains(targetTag),
+                      (h) => targetKeywords.any(
+                        (kw) =>
+                            h.tags.any((t) => t.toLowerCase().contains(kw)) ||
+                            h.searchTags.any((st) => st.toLowerCase().contains(kw)) ||
+                            h.matchesSearch(kw, lang: lang),
                       ),
                     )
                     .toList();
@@ -426,11 +586,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               if (filtered.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
-                    child: Text(
-                      lang == 'es'
-                          ? 'No hay huecas con estos filtros.'
-                          : 'No huecas match these filters.',
-                      style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, size: 54, color: AppTheme.primary.withValues(alpha: 0.6)),
+                          const SizedBox(height: 12),
+                          Text(
+                            lang == 'es'
+                                ? 'No encontramos huecas con estos filtros en $_selectedLocation.'
+                                : 'No spots found with these filters in $_selectedLocation.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : AppTheme.textMedium,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedLocation = 'Todo Quito';
+                                _selectedFilter = lang == 'es' ? '🍽️ Todos' : '🍽️ All';
+                                _userManuallyChangedLocation = true;
+                                _userManuallyChangedFilter = true;
+                              });
+                            },
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: Text(lang == 'es' ? 'Ver todas las huecas' : 'View all spots'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -454,12 +647,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
   Widget _buildFilterChip(String text, bool isSelected) {
     return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = text),
+      onTap: () => setState(() {
+        _selectedFilter = text;
+        _userManuallyChangedFilter = true;
+      }),
       child: Container(
         margin: EdgeInsets.only(right: 8),
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

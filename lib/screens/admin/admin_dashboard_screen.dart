@@ -11,8 +11,9 @@ class AdminDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final huecasAsync = ref.watch(allHuecasStreamProvider);
     final usersAsync = ref.watch(allUsersStreamProvider);
-    final routesAsync = ref.watch(allRoutesStreamProvider);
     final pendingNotifsAsync = ref.watch(pendingNotificationsProvider);
+    final pendingRequestsAsync = ref.watch(pendingHuecaRequestsProvider);
+    final newSupportAsync = ref.watch(newSupportMessagesProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -21,8 +22,9 @@ class AdminDashboardScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(allHuecasStreamProvider);
           ref.invalidate(allUsersStreamProvider);
-          ref.invalidate(allRoutesStreamProvider);
           ref.invalidate(pendingNotificationsProvider);
+          ref.invalidate(pendingHuecaRequestsProvider);
+          ref.invalidate(newSupportMessagesProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -162,16 +164,94 @@ class AdminDashboardScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildKpiCard(
-                      title: 'Rutas Activas',
-                      icon: Icons.alt_route,
+                      title: 'Sectores y Cromos',
+                      icon: Icons.collections_bookmark,
                       iconColor: Colors.teal.shade700,
-                      value: routesAsync.when(
-                        data: (r) => '${r.length}',
+                      value: '22',
+                      subtitle: 'Álbum y mapa',
+                      onTap: () => context.push('/admin/sectors'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKpiCard(
+                      title: 'Solicitudes Huecas',
+                      icon: Icons.how_to_reg,
+                      iconColor: Colors.deepPurple,
+                      value: pendingRequestsAsync.when(
+                        data: (p) => '${p.length}',
                         loading: () => '...',
                         error: (_, __) => '0',
                       ),
-                      subtitle: 'Circuitos guiados',
-                      onTap: () => context.go('/admin/routes'),
+                      subtitle: pendingRequestsAsync.when(
+                        data: (p) => p.isEmpty ? 'Sin solicitudes' : '${p.length} por revisar',
+                        loading: () => 'Cargando...',
+                        error: (_, __) => 'Error',
+                      ),
+                      onTap: () => context.go('/admin/solicitudes'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildKpiCard(
+                      title: 'Bandeja Soporte',
+                      icon: Icons.support_agent,
+                      iconColor: Colors.indigo.shade600,
+                      value: newSupportAsync.when(
+                        data: (s) => '${s.length}',
+                        loading: () => '...',
+                        error: (_, __) => '0',
+                      ),
+                      subtitle: newSupportAsync.when(
+                        data: (s) => s.isEmpty ? 'Todo respondido' : '${s.length} nuevos',
+                        loading: () => 'Cargando...',
+                        error: (_, __) => 'Error',
+                      ),
+                      onTap: () => context.push('/admin/support'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKpiCard(
+                      title: 'Suscripciones',
+                      icon: Icons.payments,
+                      iconColor: Colors.green.shade700,
+                      value: huecasAsync.when(
+                        data: (h) {
+                          final underReview = h.where((x) => x.subscription['status'] == 'under_review').length;
+                          return '$underReview';
+                        },
+                        loading: () => '...',
+                        error: (_, __) => '0',
+                      ),
+                      subtitle: huecasAsync.when(
+                        data: (h) {
+                          final underReview = h.where((x) => x.subscription['status'] == 'under_review').length;
+                          return underReview == 0 ? 'Sin comprobantes' : '$underReview por validar';
+                        },
+                        loading: () => 'Cargando...',
+                        error: (_, __) => 'Error',
+                      ),
+                      onTap: () => context.go('/admin/subscriptions'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildKpiCard(
+                      title: 'Quiz y ADN',
+                      icon: Icons.quiz,
+                      iconColor: Colors.pink.shade700,
+                      value: '4',
+                      subtitle: 'Preguntas activas',
+                      onTap: () => context.push('/admin/quiz'),
                     ),
                   ),
                 ],
@@ -199,10 +279,41 @@ class AdminDashboardScreen extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _buildQuickActionButton(
-                      label: 'Nueva Ruta',
-                      icon: Icons.add_road,
+                      label: 'Sectores y Cromos',
+                      icon: Icons.collections_bookmark,
                       color: Colors.tealAccent.shade400,
-                      onTap: () => context.push('/admin/routes/new'),
+                      onTap: () => context.push('/admin/sectors'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      label: 'Quiz Gastronómico',
+                      icon: Icons.quiz,
+                      color: Colors.orangeAccent.shade400,
+                      onTap: () => context.push('/admin/quiz'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      label: 'Solicitudes Huecas',
+                      icon: Icons.assignment_turned_in,
+                      color: Colors.lightGreenAccent.shade400,
+                      onTap: () => context.go('/admin/solicitudes'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      label: 'Bandeja Soporte',
+                      icon: Icons.headset_mic,
+                      color: Colors.cyanAccent.shade400,
+                      onTap: () => context.push('/admin/support'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -374,10 +485,11 @@ class AdminDashboardScreen extends ConsumerWidget {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0F172A), // Botón oscuro
+        backgroundColor: const Color(0xFF0F172A),
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         elevation: 2,
+        side: const BorderSide(color: Color(0xFF1E293B)),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
@@ -385,11 +497,18 @@ class AdminDashboardScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 24),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
             textAlign: TextAlign.center,
           ),
         ],
@@ -442,15 +561,17 @@ class AdminDashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () => context.go('/admin/notifications'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0F172A), // Botón oscuro
+              backgroundColor: const Color(0xFF0F172A),
               foregroundColor: Colors.amber,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 1,
             ),
-            child: const Text('Revisar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            icon: const Icon(Icons.arrow_forward, size: 14, color: Colors.amber),
+            label: const Text('Revisar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ],
       ),

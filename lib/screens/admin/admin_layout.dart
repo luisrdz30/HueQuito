@@ -13,7 +13,7 @@ class AdminLayout extends ConsumerWidget {
     if (location.startsWith('/admin/dashboard')) return 0;
     if (location.startsWith('/admin/huecas')) return 1;
     if (location.startsWith('/admin/notifications')) return 2;
-    if (location.startsWith('/admin/routes')) return 3;
+    if (location.startsWith('/admin/subscriptions')) return 3;
     if (location.startsWith('/admin/users')) return 4;
     return 0;
   }
@@ -30,7 +30,7 @@ class AdminLayout extends ConsumerWidget {
         context.go('/admin/notifications');
         break;
       case 3:
-        context.go('/admin/routes');
+        context.go('/admin/subscriptions');
         break;
       case 4:
         context.go('/admin/users');
@@ -41,6 +41,7 @@ class AdminLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingCount = ref.watch(pendingNotificationsProvider).value?.length ?? 0;
+    final pendingPaymentsCount = ref.watch(huecasProvider).value?.where((h) => h.subscription['status'] == 'under_review').length ?? 0;
     final selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
@@ -65,20 +66,20 @@ class AdminLayout extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.amber.shade600,
+                color: const Color(0xFFFBBF24),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.shield, size: 14, color: Colors.black87),
+                  Icon(Icons.shield, size: 14, color: Color(0xFF0F172A)),
                   SizedBox(width: 4),
                   Text(
                     'SUPERADMIN',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Colors.black87,
+                      color: Color(0xFF0F172A),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -126,11 +127,12 @@ class AdminLayout extends ConsumerWidget {
           backgroundColor: const Color(0xFF0F172A),
           currentIndex: selectedIndex,
           onTap: (index) => _onItemTapped(index, context),
-          selectedItemColor: Colors.amber.shade400,
-          unselectedItemColor: Colors.blueGrey.shade300,
+          selectedItemColor: const Color(0xFFFBBF24),
+          unselectedItemColor: const Color(0xFF94A3B8),
           selectedFontSize: 12,
           unselectedFontSize: 11,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFBBF24)),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11, color: Color(0xFF94A3B8)),
           items: [
             const BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
@@ -197,10 +199,60 @@ class AdminLayout extends ConsumerWidget {
               ),
               label: 'Avisos',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.alt_route_outlined),
-              activeIcon: Icon(Icons.alt_route),
-              label: 'Rutas',
+            BottomNavigationBarItem(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.payments_outlined),
+                  if (pendingPaymentsCount > 0)
+                    Positioned(
+                      right: -6,
+                      top: -6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$pendingPaymentsCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              activeIcon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.payments),
+                  if (pendingPaymentsCount > 0)
+                    Positioned(
+                      right: -6,
+                      top: -6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$pendingPaymentsCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              label: 'Pagos',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.people_outline),

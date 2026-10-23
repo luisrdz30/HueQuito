@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:hue_quito/theme/map_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/theme/theme.dart';
-import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/directions_service.dart';
+import 'package:hue_quito/providers/settings_provider.dart';
+import 'package:hue_quito/utils/tour_distance_helper.dart';
 
 class NavigationScreen extends ConsumerStatefulWidget {
   final Hueca targetHueca;
+
   const NavigationScreen({super.key, required this.targetHueca});
 
   @override
@@ -31,17 +34,41 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   Future<void> _initNavigation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    Position? position;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission != LocationPermission.denied && permission != LocationPermission.deniedForever) {
+          try {
+            position = await Geolocator.getCurrentPosition(
+              timeLimit: const Duration(seconds: 4),
+            );
+          } catch (_) {
+            try {
+              position = await Geolocator.getLastKnownPosition();
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
-    }
-    if (permission == LocationPermission.deniedForever) return; 
-
-    Position position = await Geolocator.getCurrentPosition();
+    // Fallback si no hay GPS disponible
+    position ??= Position(
+      latitude: widget.targetHueca.location.latitude - 0.005,
+      longitude: widget.targetHueca.location.longitude - 0.005,
+      timestamp: DateTime.now(),
+      accuracy: 10.0,
+      altitude: 2800.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 0.0,
+      headingAccuracy: 0.0,
+    );
 
     if (mounted) {
       setState(() => _currentPosition = position);
@@ -50,44 +77,80 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   }
 
   Future<void> _fetchRoute() async {
-    if (_currentPosition == null) return;
+    if (_currentPosition == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
     
     setState(() => _isLoading = true);
 
-    final dir = await DirectionsService.getDirections(
-      _currentPosition!.latitude, 
-      _currentPosition!.longitude, 
-      widget.targetHueca.location.latitude, 
-      widget.targetHueca.location.longitude,
-      mode: _travelMode
-    );
+    Map<String, dynamic>? dir;
+    try {
+      dir = await DirectionsService.getDirections(
+        _currentPosition!.latitude, 
+        _currentPosition!.longitude, 
+        widget.targetHueca.location.latitude, 
+        widget.targetHueca.location.longitude,
+        mode: _travelMode
+      );
+    } catch (_) {}
 
-    if (dir != null && dir['polyline'] != null && mounted) {
-      List<LatLng> polylineCoordinates = _decodePolyline(dir['polyline']);
-      setState(() {
-        _polylines[PolylineId('route')] = Polyline(
-          polylineId: PolylineId('route'),
-          color: AppTheme.primary,
-          points: polylineCoordinates,
-          width: 5,
-        );
-        _steps = dir['steps'] ?? [];
-        _isLoading = false;
-      });
+    if (!mounted) return;
 
-      // Fit bounds
-      if (polylineCoordinates.isNotEmpty && _mapController != null) {
-        try {
-          LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
-          _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-        } catch (_) {
-          try {
-            _mapController!.animateCamera(CameraUpdate.newLatLngZoom(polylineCoordinates.first, 14));
-          } catch (_) {}
+    List<LatLng> polylineCoordinates = [];
+    List<dynamic> steps = [];
+
+    if (dir != null && dir['polyline'] != null) {
+      polylineCoordinates = _decodePolyline(dir['polyline']);
+      steps = dir['steps'] ?? [];
+    }
+
+    // Fallback: trazado directo y paso de navegación
+    if (polylineCoordinates.isEmpty) {
+      polylineCoordinates = [
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        LatLng(widget.targetHueca.location.latitude, widget.targetHueca.location.longitude),
+      ];
+
+      final distKm = TourDistanceHelper.calculateDistanceKm(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        widget.targetHueca.location.latitude,
+        widget.targetHueca.location.longitude,
+      );
+      final isWalking = _travelMode == 'walking';
+      final mins = isWalking
+          ? ((distKm / 4.5) * 60).round().clamp(2, 999)
+          : TourDistanceHelper.estimateDrivingMinutes(distKm);
+
+      steps = [
+        {
+          'html_instructions': 'Dirígete hacia ${widget.targetHueca.name} en ${widget.targetHueca.address}',
+          'distance': {'text': '${TourDistanceHelper.formatDistance(distKm)} (~$mins min ${isWalking ? "a pie" : "en auto"})'},
         }
+      ];
+    }
+
+    setState(() {
+      _polylines[const PolylineId('route')] = Polyline(
+        polylineId: const PolylineId('route'),
+        color: AppTheme.primary,
+        points: polylineCoordinates,
+        width: 5,
+      );
+      _steps = steps;
+      _isLoading = false;
+    });
+
+    if (polylineCoordinates.isNotEmpty && _mapController != null) {
+      try {
+        LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
+        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      } catch (_) {
+        try {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(polylineCoordinates.first, 14));
+        } catch (_) {}
       }
-    } else {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -141,14 +204,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
     final lat = widget.targetHueca.location.latitude;
     final lng = widget.targetHueca.location.longitude;
     final mapMode = _travelMode == 'walking' ? 'w' : 'd';
-    final url = Uri.parse('google.navigation:q=$lat,$lng&mode=$mapMode'); 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      final webUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=$_travelMode');
-      if (await canLaunchUrl(webUrl)) {
-        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
-      }
+    final geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng(${Uri.encodeComponent(widget.targetHueca.name)})');
+    final webUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=$_travelMode');
+
+    if (await canLaunchUrl(geoUrl)) {
+      await launchUrl(geoUrl);
+    } else if (await canLaunchUrl(webUrl)) {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -159,6 +221,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(settingsProvider).language;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Set<Marker> markers = {
       Marker(
         markerId: MarkerId(widget.targetHueca.id),
@@ -167,10 +231,11 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
       )
     };
+
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: MarkerId('user'),
+          markerId: const MarkerId('user'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         )
@@ -179,13 +244,13 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'es' ? 'A ${widget.targetHueca.name}' : 'To ${widget.targetHueca.name}', style: TextStyle(fontSize: 16)),
-        backgroundColor: Colors.white,
+        title: Text(widget.targetHueca.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.map, color: AppTheme.primary),
+            icon: const Icon(Icons.map, color: AppTheme.primary),
             onPressed: _openGoogleMaps,
             tooltip: 'Abrir en Google Maps',
           )
@@ -193,10 +258,9 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       ),
       body: Column(
         children: [
-          // Travel Mode Toggle
           Container(
             color: Theme.of(context).cardColor,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -208,17 +272,17 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'walking' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
+                        border: Border.all(color: _travelMode == 'walking' ? AppTheme.primary : (isDark ? Colors.grey[700]! : Colors.grey[300]!))
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_walk, color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(lang == 'es' ? 'A pie' : 'Walking', style: TextStyle(
                             color: _travelMode == 'walking' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -228,7 +292,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -238,17 +302,17 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                       }
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _travelMode == 'driving' ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!)
+                        border: Border.all(color: _travelMode == 'driving' ? AppTheme.primary : (isDark ? Colors.grey[700]! : Colors.grey[300]!))
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.directions_car, color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(lang == 'es' ? 'En carro' : 'Driving', style: TextStyle(
                             color: _travelMode == 'driving' ? AppTheme.primary : Colors.grey,
                             fontWeight: FontWeight.bold
@@ -261,12 +325,12 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
               ],
             ),
           ),
-          
           Expanded(
             flex: 4,
             child: Stack(
               children: [
                 GoogleMap(
+                  style: isDark ? darkMapStyle : null, 
                   onMapCreated: (c) => _mapController = c,
                   initialCameraPosition: CameraPosition(
                     target: LatLng(widget.targetHueca.location.latitude, widget.targetHueca.location.longitude), 
@@ -278,7 +342,7 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                   myLocationButtonEnabled: true,
                 ),
                 if (_isLoading)
-                  Center(child: CircularProgressIndicator()),
+                  const Center(child: CircularProgressIndicator()),
               ]
             ),
           ),
@@ -290,26 +354,28 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(lang == 'es' ? 'Indicaciones' : 'Directions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(lang == 'es' ? 'Indicaciones' : 'Directions', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
                   Expanded(
-                    child: _steps.isEmpty 
-                      ? Center(child: Text(lang == 'es' ? 'Calculando ruta...' : 'Calculating route...'))
-                      : ListView.builder(
-                          itemCount: _steps.length,
-                          itemBuilder: (context, index) {
-                            final step = _steps[index];
-                            return ListTile(
-                              leading: Icon(
-                                _travelMode == 'walking' ? Icons.directions_walk : Icons.directions_car, 
-                                color: AppTheme.primary
-                              ),
-                              title: Text(_stripHtml(step['html_instructions'] ?? '')),
-                              subtitle: Text(step['distance']?['text'] ?? ''),
-                            );
-                          },
-                        ),
+                    child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _steps.isEmpty 
+                        ? Center(child: Text(lang == 'es' ? 'Ruta trazada en el mapa' : 'Route displayed on map', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.textMedium)))
+                        : ListView.builder(
+                            itemCount: _steps.length,
+                            itemBuilder: (context, index) {
+                              final step = _steps[index];
+                              return ListTile(
+                                leading: Icon(
+                                  _travelMode == 'walking' ? Icons.directions_walk : Icons.directions_car, 
+                                  color: AppTheme.primary
+                                ),
+                                title: Text(_stripHtml(step['html_instructions'] ?? '')),
+                                subtitle: Text(step['distance']?['text'] ?? ''),
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -320,8 +386,8 @@ class _NavigationScreenState extends ConsumerState<NavigationScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openGoogleMaps,
         backgroundColor: AppTheme.primary,
-        icon: Icon(Icons.directions),
-        label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.directions, color: Colors.white),
+        label: Text(lang == 'es' ? 'Ir con Google Maps' : 'Open in Google Maps', style: const TextStyle(color: Colors.white)),
       ),
     );
   }
