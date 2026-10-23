@@ -1,0 +1,10 @@
+# Archivo de ejemplo para la firma en producción de Google Play Store.
+# 1. Genera tu keystore con el comando:
+#    keytool -genkey -v -keystore android/app/upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+# 2. Copia este archivo como 'android/key.properties' y completa tus valores reales.
+# 3. ¡NUNCA subas 'key.properties' ni 'upload-keystore.jks' a GitHub!
+
+storePassword=TU_PASSWORD_AQUI
+keyPassword=TU_PASSWORD_AQUI
+keyAlias=upload
+storeFile=upload-keystore.jks

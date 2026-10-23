@@ -2,6 +2,9 @@ import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +55,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'terms': 'Términos y Privacidad Patrimonial',
       'invite': 'Invitar a otros comensales',
       'logout': 'Cerrar Sesión',
+      'delete_account': 'Eliminar Cuenta',
+      'delete_account_confirm': '¿Estás seguro de que deseas eliminar tu cuenta de forma permanente? Se perderán todos tus sellos, logros y preferencias.',
+      'cancel': 'Cancelar',
+      'confirm_delete': 'Eliminar definitivamente',
     },
     'en': {
       'profile_title': 'My Profile',
@@ -82,11 +89,80 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'terms': 'Terms & Privacy',
       'invite': 'Invite other diners',
       'logout': 'Log Out',
+      'delete_account': 'Delete Account',
+      'delete_account_confirm': 'Are you sure you want to permanently delete your account? All your stamps, achievements, and preferences will be erased.',
+      'cancel': 'Cancel',
+      'confirm_delete': 'Permanently Delete',
     }
   };
 
   void _showInviteDialog(BuildContext context) {
     Share.share('¡Ven a conocer conmigo la gastronomía de Quito y sus huecas! Únete a Hue-Quito: https://huequito.app/invite');
+  }
+
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final settings = ref.read(settingsProvider);
+    final lang = t[settings.language] ?? t['es']!;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(lang['delete_account']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: Text(
+          lang['delete_account_confirm']!,
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(lang['cancel']!),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(lang['confirm_delete']!),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final uid = user.uid;
+        await FirebaseFirestore.instance.collection('users').doc(uid).delete().catchError((_) {});
+        await user.delete();
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      ref.invalidate(currentUserProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cuenta eliminada con éxito.')),
+        );
+        context.go('/welcome');
+      }
+    } catch (e) {
+      if (e.toString().contains('requires-recent-login')) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Por seguridad, vuelve a iniciar sesión antes de solicitar la eliminación.')),
+          );
+        }
+      } else {
+        await ref.read(authRepositoryProvider).signOut();
+        ref.invalidate(currentUserProvider);
+        if (mounted) context.go('/welcome');
+      }
+    }
   }
 
   Future<void> _applySettingWithRestart(VoidCallback updateSetting) async {
@@ -606,6 +682,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }, style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.withValues(alpha:0.2) : Colors.red[50], foregroundColor: Colors.red, elevation: 0), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.logout), SizedBox(width: 8), Text(lang['logout']!)]))),
                     
                     SizedBox(height: 16),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () => _showDeleteAccountDialog(context),
+                        icon: const Icon(Icons.delete_forever_outlined, size: 16, color: Colors.grey),
+                        label: Text(
+                          lang['delete_account']!,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey, decoration: TextDecoration.underline),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Center(child: Text('Hue-Quito v1.2.0', style: TextStyle(fontSize: 10, color: Colors.grey))),
                   ],
                 ),
