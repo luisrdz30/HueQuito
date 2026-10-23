@@ -207,12 +207,12 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                   ? Map<String, dynamic>.from(docData['metrics'])
                   : hueca.metrics;
 
-              final viewCount = metrics['viewCount'] ?? 0;
-              final favoriteCount = metrics['favoriteCount'] ?? 0;
-              final routeAdditions = metrics['routeAdditions'] ?? 0;
-              final stampsGiven = metrics['stampsGiven'] ?? 0;
+              final viewCount = (metrics['viewCount'] as num?)?.toInt() ?? 0;
+              final favoriteCount = (metrics['favoriteCount'] as num?)?.toInt() ?? 0;
+              final routeAdditions = (metrics['routeAdditions'] as num?)?.toInt() ?? 0;
+              final stampsGiven = (metrics['stampsGiven'] as num?)?.toInt() ?? 0;
               final reviewCount = (docData != null && docData.containsKey('reviewCount'))
-                  ? (docData['reviewCount'] ?? 0)
+                  ? ((docData['reviewCount'] as num?)?.toInt() ?? 0)
                   : hueca.reviewCount;
 
               return RefreshIndicator(

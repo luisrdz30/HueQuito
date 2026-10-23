@@ -189,6 +189,18 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
       );
     }
     _startAutoPlay();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recordProfileView();
+    });
+  }
+
+  void _recordProfileView() {
+    if (!mounted) return;
+    final huecaId = _currentHueca.id.trim();
+    if (huecaId.isEmpty || huecaId == 'error') return;
+    try {
+      ref.read(huecaRepositoryProvider).incrementHuecaViews(huecaId);
+    } catch (_) {}
   }
 
   @override

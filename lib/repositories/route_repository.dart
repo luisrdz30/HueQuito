@@ -254,12 +254,18 @@ class RouteRepository {
         final hId = (stop['huecaId'] ?? stop['id'])?.toString();
         if (hId != null && hId.isNotEmpty) {
           try {
-            await _db.collection('huecas').doc(hId).set({
-              'metrics': {
-                'routeAdditions': FieldValue.increment(1),
-              }
-            }, SetOptions(merge: true));
-          } catch (_) {}
+            await _db.collection('huecas').doc(hId).update({
+              'metrics.routeAdditions': FieldValue.increment(1),
+            });
+          } catch (_) {
+            try {
+              await _db.collection('huecas').doc(hId).set({
+                'metrics': {
+                  'routeAdditions': FieldValue.increment(1),
+                }
+              }, SetOptions(merge: true));
+            } catch (_) {}
+          }
         }
       }
     }

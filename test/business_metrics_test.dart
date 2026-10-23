@@ -7,6 +7,7 @@ import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/screens/business/dashboard_screen.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
+import 'package:hue_quito/screens/hueca_detail_screen.dart';
 
 class _FakeHttpOverrides extends HttpOverrides {
   @override
@@ -215,5 +216,62 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Eliminar Hueca'), findsNothing);
     });
+
+    testWidgets('HuecaDetailScreen triggers incrementHuecaViews on load', (tester) async {
+      String? viewedHuecaId;
+
+      final testHueca = Hueca(
+        id: 'test_view_hueca_123',
+        name: 'Hueca Con Vistas',
+        description: {'es': 'Prueba'},
+        address: 'Calle 10',
+        sector: 'Norte',
+        location: const GeoPoint(-0.18, -78.48),
+        phone: '0999999999',
+        schedule: {},
+        mainDish: {},
+        loyaltyCard: {},
+        secretSticker: {},
+        menuItems: [],
+        tags: [],
+        priceLevel: '\$',
+        rating: 4.5,
+        reviewCount: 3,
+        images: ['https://example.com/image.jpg'],
+        ownerId: 'owner_1',
+        isActive: true,
+        metrics: {'viewCount': 10},
+      );
+
+      final fakeRepo = _FakeHuecaRepoForViews((id) {
+        viewedHuecaId = id;
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            huecaRepositoryProvider.overrideWithValue(fakeRepo),
+            currentUserProvider.overrideWith((ref) => Future.value(null)),
+          ],
+          child: MaterialApp(
+            home: HuecaDetailScreen(hueca: testHueca),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(viewedHuecaId, 'test_view_hueca_123');
+    });
   });
+}
+
+class _FakeHuecaRepoForViews extends HuecaRepository {
+  final void Function(String id) onView;
+  _FakeHuecaRepoForViews(this.onView);
+
+  @override
+  Future<void> incrementHuecaViews(String huecaId) async {
+    onView(huecaId);
+  }
 }

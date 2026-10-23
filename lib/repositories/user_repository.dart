@@ -178,18 +178,22 @@ class UserRepository {
             .collection('users')
             .where('favoriteHuecas', arrayContains: huecaId)
             .get();
-        await _db.collection('huecas').doc(huecaId).set({
-          'metrics': {
-            'favoriteCount': countSnap.docs.length,
-          }
-        }, SetOptions(merge: true));
-      } catch (e) {
         try {
+          await _db.collection('huecas').doc(huecaId).update({
+            'metrics.favoriteCount': countSnap.docs.length,
+          });
+        } catch (_) {
           await _db.collection('huecas').doc(huecaId).set({
             'metrics': {
-              'favoriteCount': FieldValue.increment(wasFavorite ? -1 : 1),
+              'favoriteCount': countSnap.docs.length,
             }
           }, SetOptions(merge: true));
+        }
+      } catch (e) {
+        try {
+          await _db.collection('huecas').doc(huecaId).update({
+            'metrics.favoriteCount': FieldValue.increment(wasFavorite ? -1 : 1),
+          });
         } catch (_) {}
       }
     }

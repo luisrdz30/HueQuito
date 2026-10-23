@@ -226,12 +226,12 @@ class SubscriptionRepository {
             rejectionReason: rejectionReason,
           );
         } else {
-          final diff = graceEnd.difference(now).inDays + 1;
+          final diff = (graceEnd.difference(now).inSeconds / 86400).ceil().clamp(0, settings.gracePeriodDays);
           return HuecaSubscriptionInfo(
             state: HuecaSubscriptionState.gracePeriod,
             stampsGiven: stampsGiven,
             maxFreeStamps: maxFreeStamps,
-            daysRemainingInGrace: diff > 0 ? diff : 0,
+            daysRemainingInGrace: diff,
             gracePeriodEnd: graceEnd,
             price: settings.monthlyPrice,
             rejectionReason: rejectionReason,
@@ -280,12 +280,12 @@ class SubscriptionRepository {
       );
     }
 
-    final diff = graceEnd.difference(now).inDays + 1;
+    final diff = (graceEnd.difference(now).inSeconds / 86400).ceil().clamp(0, settings.gracePeriodDays);
     return HuecaSubscriptionInfo(
       state: HuecaSubscriptionState.gracePeriod,
       stampsGiven: stampsGiven,
       maxFreeStamps: maxFreeStamps,
-      daysRemainingInGrace: diff > 0 ? diff : 0,
+      daysRemainingInGrace: diff,
       gracePeriodEnd: graceEnd,
       price: settings.monthlyPrice,
       rejectionReason: rejectionReason,

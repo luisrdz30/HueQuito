@@ -512,7 +512,10 @@ class Hueca {
 }
 
 class HuecaRepository {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore? _firestore;
+  FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
+
+  HuecaRepository({FirebaseFirestore? firestore}) : _firestore = firestore;
 
   Future<List<Hueca>> getHuecas() async {
     final snapshot = await _db.collection('huecas').get();
@@ -820,15 +823,35 @@ class HuecaRepository {
         realRating = (data['rating'] as num?)?.toDouble() ?? 0.0;
       }
 
-      // 4. Actualizar el documento en Firestore para corregir cualquier valor quemado
-      await docRef.set({
-        'metrics': {
-          'favoriteCount': realFavs,
-          'routeAdditions': realRoutes,
-        },
-        'reviewCount': realReviews,
-        'rating': realRating,
-      }, SetOptions(merge: true));
+      // 4. Actualizar el documento en Firestore para corregir cualquier valor quemado sin borrar viewCount ni sellos
+      try {
+        await docRef.update({
+          'metrics.favoriteCount': realFavs,
+          'metrics.routeAdditions': realRoutes,
+          'reviewCount': realReviews,
+          'rating': realRating,
+        });
+      } catch (_) {
+        final currentMetrics = (data['metrics'] is Map)
+            ? Map<String, dynamic>.from(data['metrics'])
+            : <String, dynamic>{};
+        final currentViews = (currentMetrics['viewCount'] as num?)?.toInt() ?? 0;
+        final currentStamps = (currentMetrics['stampsGiven'] as num?)?.toInt() ?? 0;
+        final currentRewards = (currentMetrics['rewardsRedeemed'] as num?)?.toInt() ?? 0;
+
+        await docRef.set({
+          'metrics': {
+            ...currentMetrics,
+            'viewCount': currentViews,
+            'favoriteCount': realFavs,
+            'routeAdditions': realRoutes,
+            'stampsGiven': currentStamps,
+            'rewardsRedeemed': currentRewards,
+          },
+          'reviewCount': realReviews,
+          'rating': realRating,
+        }, SetOptions(merge: true));
+      }
 
       return {
         'favoriteCount': realFavs,
@@ -844,6 +867,25 @@ class HuecaRepository {
         'reviewCount': 0,
         'rating': 0.0,
       };
+    }
+  }
+
+  /// Incrementa en tiempo real las vistas totales del perfil de la hueca
+  Future<void> incrementHuecaViews(String huecaId) async {
+    final cleanId = huecaId.trim();
+    if (cleanId.isEmpty || cleanId == 'error') return;
+    try {
+      await _db.collection('huecas').doc(cleanId).update({
+        'metrics.viewCount': FieldValue.increment(1),
+      });
+    } catch (_) {
+      try {
+        await _db.collection('huecas').doc(cleanId).set({
+          'metrics': {
+            'viewCount': FieldValue.increment(1),
+          }
+        }, SetOptions(merge: true));
+      } catch (_) {}
     }
   }
 
