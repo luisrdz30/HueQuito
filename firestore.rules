@@ -2,7 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // =====================================================================
+    // FUNCIONES AUXILIARES
+    // =====================================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -11,121 +14,283 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // El rol 'admin' es seguro porque un usuario ya NO puede modificar su propio campo 'role'
     function isAdmin() {
       return isAuthenticated() && (
-        request.auth.token.email == 'admin@huequito.com' ||
+        myEmail() == 'admin@huequito.com' ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+         userDoc().data.get('role', 'user') == 'admin')
       );
     }
 
-    function isBusinessOwner(huecaId) {
-      return isAuthenticated() && (
-        (resource != null && resource.data.ownerId == request.auth.uid) ||
-        (exists(/databases/$(database)/documents/huecas/$(huecaId)) &&
-         get(/databases/$(database)/documents/huecas/$(huecaId)).data.ownerId == request.auth.uid)
-      );
+    function myEmail() {
+      return request.auth.token.get('email', '') is string ? request.auth.token.get('email', '').lower() : '';
     }
 
-    // 1. Huecas (Locales y Restaurantes)
+    // Dueño general (ownerId) de una hueca
+    function isHuecaOwner(huecaId) {
+      return isAuthenticated() && huecaId is string && huecaId != '' &&
+        exists(/databases/$(database)/documents/huecas/$(huecaId)) &&
+        get(/databases/$(database)/documents/huecas/$(huecaId)).data.get('ownerId', '') == request.auth.uid;
+    }
+
+    // Encargado de sucursal: su invitación (ID = correo) debe seguir vigente para esa hueca.
+    // Al revocar la invitación, el acceso se pierde de inmediato.
+    function isHuecaManager(huecaId) {
+      return isAuthenticated() && huecaId is string && huecaId != '' && myEmail() != '' &&
+        exists(/databases/$(database)/documents/branch_invitations/$(myEmail())) &&
+        get(/databases/$(database)/documents/branch_invitations/$(myEmail())).data.get('huecaId', '') == huecaId;
+    }
+
+    function isHuecaStaff(huecaId) {
+      return isHuecaOwner(huecaId) || isHuecaManager(huecaId);
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function oldMetric(name) {
+      return resource.data.get('metrics', {}).get(name, 0);
+    }
+
+    function newMetric(name) {
+      return request.resource.data.get('metrics', {}).get(name, 0);
+    }
+
+    // Los contadores de sellos y canjes solo pueden subir (máx. 10 sellos por escaneo).
+    // Evita que alguien los reinicie a 0 para no llegar a la fase de pago.
+    function countersAreValid() {
+      return newMetric('stampsGiven') >= oldMetric('stampsGiven') &&
+             newMetric('stampsGiven') <= oldMetric('stampsGiven') + 10 &&
+             newMetric('rewardsRedeemed') >= oldMetric('rewardsRedeemed') &&
+             newMetric('rewardsRedeemed') <= oldMetric('rewardsRedeemed') + 1;
+    }
+
+    function ratingInRange() {
+      return request.resource.data.get('rating', 0) >= 0 &&
+             request.resource.data.get('rating', 0) <= 5;
+    }
+
+    // Calificación dentro de rango y número de reseñas que cambia de a 1 (al opinar un comensal)
+    function ratingIsValid() {
+      return ratingInRange() &&
+             request.resource.data.get('reviewCount', 0) >= resource.data.get('reviewCount', 0) - 1 &&
+             request.resource.data.get('reviewCount', 0) <= resource.data.get('reviewCount', 0) + 1;
+    }
+
+    // El dueño solo puede tocar la suscripción para subir un comprobante (estado 'under_review')
+    function isValidReceiptSubmission() {
+      return request.resource.data.subscription.get('status', '') == 'under_review' &&
+             request.resource.data.subscription.diff(resource.data.get('subscription', {}))
+               .affectedKeys().hasOnly(['status', 'monthlyPrice', 'lastReceipt']);
+    }
+
+    // =====================================================================
+    // 1. HUECAS
+    // =====================================================================
     match /huecas/{huecaId} {
-      // Cualquier persona (incluidos invitados) puede explorar las huecas
       allow read: if true;
-
-      // Crear o eliminar huecas: Administradores
       allow create, delete: if isAdmin();
 
-      // Actualizar: Administrador, dueño del local o comensales que registran métricas
-      allow update: if isAdmin() 
-        || isBusinessOwner(huecaId)
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['metrics', 'updatedAt']);
+      allow update: if isAdmin()
+        // Dueño o encargado: todo excepto campos administrativos
+        || (isHuecaStaff(huecaId)
+            && !changedKeys().hasAny(['isActive', 'isSectorConfirmed'])
+            && (!changedKeys().hasAny(['ownerId']) || (isHuecaOwner(huecaId) && request.resource.data.ownerId == ''))
+            && (!changedKeys().hasAny(['subscription']) || isValidReceiptSubmission())
+            && countersAreValid()
+            && (!changedKeys().hasAny(['rating', 'reviewCount']) || ratingInRange()))
+        // Comensales autenticados: métricas y recálculo de calificación al opinar
+        || (isAuthenticated()
+            && changedKeys().hasOnly(['metrics', 'rating', 'reviewCount', 'updatedAt'])
+            && countersAreValid()
+            && ratingIsValid())
+        // Invitados: solo métricas (vistas, sellos y canjes en modo invitado)
+        || (changedKeys().hasOnly(['metrics', 'updatedAt']) && countersAreValid());
 
-      // Subcolección de reseñas
+      // Reseñas: una por usuario (el ID del documento es el UID del autor)
       match /reviews/{reviewId} {
         allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+        allow create, update: if isOwner(reviewId) && request.resource.data.userId == request.auth.uid
+                              && request.resource.data.rating is int
+                              && request.resource.data.rating >= 1 && request.resource.data.rating <= 5;
+        allow delete: if isAdmin() || isOwner(reviewId) || (isAuthenticated() && resource.data.get('userId', '') == request.auth.uid);
       }
 
-      // Subcolección de historial de sellos
       match /stamp_history/{historyId} {
-        allow create: if true; // Permite registrar sello a clientes o invitados
-        allow read: if isAdmin() || isBusinessOwner(huecaId);
+        allow create: if true; // Clientes o invitados registran su sello
+        allow read: if isAdmin() || isHuecaStaff(huecaId);
+        allow delete: if isAdmin();
       }
 
-      // Subcolección de historial de cromos secretos
       match /sticker_history/{historyId} {
-        allow create: if true; // Permite registrar cromo secreto
-        allow read: if isAdmin() || isBusinessOwner(huecaId);
+        allow create: if true;
+        allow read: if isAdmin() || isHuecaStaff(huecaId);
+        allow delete: if isAdmin();
       }
 
-      // Otras subcolecciones de huecas (canjes, historial de pagos, etc.)
-      match /{allChildren=**} {
-        allow read, write: if true;
+      match /redemptions/{redemptionId} {
+        allow create: if true; // Canje de premio (también en modo invitado)
+        allow read: if isAdmin() || isHuecaStaff(huecaId);
+        allow delete: if isAdmin();
+      }
+
+      match /payment_history/{paymentId} {
+        allow create: if isHuecaStaff(huecaId);
+        allow read: if isAdmin() || isHuecaStaff(huecaId);
+        allow update, delete: if isAdmin();
       }
     }
 
-    // 2. Usuarios y Perfiles
+    // Consulta global de reseñas del panel de administración (collectionGroup)
+    match /{path=**}/reviews/{reviewId} {
+      allow read: if true;
+    }
+
+    // =====================================================================
+    // 2. USUARIOS
+    // =====================================================================
     match /users/{userId} {
-      // Permitir lectura y escritura completa para evitar bloqueos en inicio de sesión o creación de perfil
-      allow read, write: if true;
+      allow read: if isOwner(userId) || isAdmin();
 
-      // Subcolecciones de usuario (sector_albums, etc.)
+      // Al crear su perfil, un usuario siempre empieza como 'user' y sin hueca asignada
+      allow create: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.get('role', 'user') == 'user' &&
+        !request.resource.data.keys().hasAny(['managedHuecaId', 'managedBranchId'])
+      );
+
+      allow update: if isAdmin() || (isOwner(userId) && (
+        // Cambios normales de perfil, favoritos, sellos, preferencias...
+        !changedKeys().hasAny(['role', 'managedHuecaId', 'managedBranchId']) ||
+        // Renunciar al rol de negocio (vuelve a comensal)
+        (request.resource.data.get('role', 'user') == 'user' &&
+         !request.resource.data.keys().hasAny(['managedHuecaId', 'managedBranchId'])) ||
+        // Volverse 'business' solo si es dueño real de la hueca...
+        (request.resource.data.get('role', '') == 'business' &&
+         request.resource.data.get('managedHuecaId', '') is string &&
+         request.resource.data.get('managedHuecaId', '') != '' &&
+         exists(/databases/$(database)/documents/huecas/$(request.resource.data.managedHuecaId)) &&
+         get(/databases/$(database)/documents/huecas/$(request.resource.data.managedHuecaId)).data.get('ownerId', '') == request.auth.uid) ||
+        // ...o si tiene una invitación de encargado de sucursal para esa hueca
+        (request.resource.data.get('role', '') == 'business' &&
+         isHuecaManager(request.resource.data.get('managedHuecaId', '')))
+      ));
+
+      allow delete: if isOwner(userId) || isAdmin();
+
+      // Subcolecciones privadas (sector_albums, custom_tours)
       match /{allChildren=**} {
-        allow read, write: if true;
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
-    // 3. Rutas Gastronómicas
+    // =====================================================================
+    // 3. RUTAS OFICIALES (heredado; los tours ahora viven en users/{uid}/custom_tours)
+    // =====================================================================
     match /routes/{routeId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // 4. Solicitudes de Huecas
+    // =====================================================================
+    // 4. SOLICITUDES DE HUECAS
+    // =====================================================================
     match /hueca_requests/{requestId} {
       allow create: if true;
       allow read: if isAdmin() || (isAuthenticated() && resource.data.requestedBy == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
-    // 5. Mensajes de Soporte
+    // =====================================================================
+    // 5. MENSAJES DE SOPORTE
+    // =====================================================================
     match /support_messages/{messageId} {
-      allow create: if true;
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.senderUid == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.senderUid == request.auth.uid;
+      allow read: if isAdmin()
+        || (isAuthenticated() && resource.data.senderUid == request.auth.uid)
+        || isHuecaStaff(resource.data.huecaId);
       allow update, delete: if isAdmin();
     }
 
-    // 6. Notificaciones
+    // =====================================================================
+    // 6. AVISOS / NOTIFICACIONES DE HUECAS
+    // =====================================================================
     match /notifications/{notificationId} {
       allow read: if true;
-      allow write: if true;
+
+      // El negocio crea avisos 'pending'; el menú del día se publica directo
+      allow create: if isAdmin() || (
+        isHuecaStaff(request.resource.data.huecaId) &&
+        request.resource.data.createdBy == request.auth.uid &&
+        (request.resource.data.status == 'pending' ||
+         (request.resource.data.status == 'approved' && request.resource.data.category == 'menu_del_dia'))
+      );
+
+      allow update: if isAdmin();
+
+      // Borrado: admin, el propio negocio, o limpieza automática de avisos vencidos (> 5 horas)
+      allow delete: if isAdmin()
+        || isHuecaStaff(resource.data.huecaId)
+        || (resource.data.get('status', '') == 'approved' &&
+            resource.data.get('approvedAt', null) is timestamp &&
+            resource.data.approvedAt < request.time - duration.value(5, 'h') &&
+            (resource.data.get('scheduledFor', null) == null ||
+             resource.data.scheduledFor < request.time - duration.value(5, 'h')));
     }
 
-    // 7. Invitaciones de sucursales
-    match /branch_invitations/{invitationId} {
-      allow read, write: if true;
+    // =====================================================================
+    // 7. INVITACIONES DE ENCARGADOS DE SUCURSAL (ID = correo en minúsculas)
+    // =====================================================================
+    match /branch_invitations/{email} {
+      allow read: if isAdmin()
+        || (isAuthenticated() && myEmail() == email)
+        || isHuecaOwner(resource.data.huecaId);
+      // Solo el admin o el dueño general invitan encargados (un encargado no puede invitar a otros)
+      allow create: if isAdmin() || isHuecaOwner(request.resource.data.huecaId);
+      allow update: if isAdmin()
+        || (isHuecaOwner(resource.data.huecaId) && request.resource.data.huecaId == resource.data.huecaId)
+        // El encargado invitado solo puede marcar su invitación como 'active'
+        || (isAuthenticated() && myEmail() == email &&
+            changedKeys().hasOnly(['status']) && request.resource.data.status == 'active');
+      allow delete: if isAdmin()
+        || isHuecaOwner(resource.data.huecaId)
+        || (isAuthenticated() && myEmail() == email);
     }
 
-    // 8. Configuración global y suscripciones
+    // =====================================================================
+    // 8. CONFIGURACIÓN GLOBAL (precio, cuenta bancaria de cobro)
+    // =====================================================================
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
-    // 9. Notificaciones para Administradores
+    // =====================================================================
+    // 9. NOTIFICACIONES PARA ADMINISTRADORES (comprobantes de pago)
+    // =====================================================================
     match /admin_notifications/{notifId} {
-      allow read, write: if true;
+      allow create: if isAdmin() || isHuecaStaff(request.resource.data.huecaId);
+      allow read, update, delete: if isAdmin();
     }
 
-    // 10. Tokens de Códigos QR de un solo uso
+    // =====================================================================
+    // 10. TOKENS DE QR DE UN SOLO USO
+    // =====================================================================
     match /redeemed_qr_tokens/{token} {
       allow read: if true;
-      allow create: if true;
+      allow create: if true; // 'create' falla si el token ya existe: no se puede reutilizar
       allow update, delete: if isAdmin();
     }
 
-    // 11. Preguntas de Quiz
+    // =====================================================================
+    // 11. PREGUNTAS DEL QUIZ
+    // =====================================================================
     match /quiz_questions/{questionId} {
       allow read: if true;
       allow write: if isAdmin();
