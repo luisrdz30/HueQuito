@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HuecaBranch {
@@ -536,17 +537,30 @@ class HuecaRepository {
     await _db.collection('huecas').doc(id).set(huecaData);
   }
 
-  Future<void> addReview(String huecaId, int rating, String comment, String userName, String userPic) async {
-    final reviewRef = _db.collection('huecas').doc(huecaId).collection('reviews').doc();
+  /// Registra (o actualiza) la reseña del usuario. Cada usuario tiene UNA reseña por hueca:
+  /// el ID del documento es su UID, así una segunda opinión reemplaza a la anterior.
+  Future<void> addReview(
+    String huecaId,
+    int rating,
+    String comment,
+    String userName,
+    String userPic, {
+    required String userId,
+  }) async {
+    final reviewRef = _db.collection('huecas').doc(huecaId).collection('reviews').doc(userId);
     await reviewRef.set({
+      'userId': userId,
       'rating': rating,
       'comment': comment,
       'userName': userName,
       'userPic': userPic,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    await _recalculateRating(huecaId);
+  }
 
-    // Recalcular y sincronizar reviewCount y rating en el documento de la hueca
+  /// Recalcula reviewCount y rating de la hueca a partir de su subcolección de reseñas
+  Future<void> _recalculateRating(String huecaId) async {
     try {
       final revSnap = await _db.collection('huecas').doc(huecaId).collection('reviews').get();
       final count = revSnap.docs.length;
@@ -560,7 +574,7 @@ class HuecaRepository {
         'rating': avg,
       });
     } catch (e) {
-      print('Error syncing review count on addReview: $e');
+      debugPrint('Error recalculando calificación de $huecaId: $e');
     }
   }
 
@@ -785,76 +799,12 @@ class HuecaRepository {
       }
       final data = docSnap.data() as Map<String, dynamic>? ?? {};
 
-      // 1. Conteo real de favoritos desde la colección users
-      int realFavs = 0;
-      final branchesList = (data['branches'] as List<dynamic>?) ?? [];
-      final branchIds = <String>{huecaId};
-      for (var b in branchesList) {
-        if (b is Map && b['id'] != null && b['id'].toString().isNotEmpty) {
-          branchIds.add(b['id'].toString());
-        }
-      }
-
-      try {
-        if (branchIds.length > 1) {
-          final favSnap = await _db
-              .collection('users')
-              .where('favoriteHuecas', arrayContainsAny: branchIds.take(10).toList())
-              .get();
-          realFavs = favSnap.docs.length;
-        } else {
-          final favSnap = await _db
-              .collection('users')
-              .where('favoriteHuecas', arrayContains: huecaId)
-              .get();
-          realFavs = favSnap.docs.length;
-        }
-      } catch (e) {
-        try {
-          final favSnap = await _db
-              .collection('users')
-              .where('favoriteHuecas', arrayContains: huecaId)
-              .get();
-          realFavs = favSnap.docs.length;
-        } catch (_) {
-          realFavs = (data['metrics']?['favoriteCount'] as int?) ?? 0;
-        }
-      }
-
-      // 2. Conteo de veces que los comensales han incluido la hueca en sus tours personalizados
-      int realRoutes = (data['metrics']?['routeAdditions'] as int?) ?? 0;
-      try {
-        final customToursSnap = await _db.collectionGroup('custom_tours').get();
-        final huecaName = (data['name']?.toString() ?? '').toLowerCase().trim();
-        int customCount = 0;
-
-        for (var rDoc in customToursSnap.docs) {
-          final rData = rDoc.data();
-          final stops = rData['stops'] as List<dynamic>?;
-          if (stops != null) {
-            final hasHueca = stops.any((s) {
-              if (s is Map) {
-                final sHuecaId = s['huecaId']?.toString() ?? s['id']?.toString();
-                if (sHuecaId != null && branchIds.contains(sHuecaId)) return true;
-                final sName = (s['name']?.toString() ?? s['huecaName']?.toString())?.toLowerCase().trim();
-                if (sName != null && sName.isNotEmpty && huecaName.isNotEmpty && (sName == huecaName || huecaName.contains(sName))) {
-                  return true;
-                }
-              } else if (s is String) {
-                if (branchIds.contains(s)) return true;
-              }
-              return false;
-            });
-            if (hasHueca) customCount++;
-          }
-        }
-        if (customCount > 0 || customToursSnap.docs.isNotEmpty) {
-          realRoutes = customCount;
-        }
-      } catch (e) {
-        // Fallback robusto al contador acumulado en metrics['routeAdditions']
-        realRoutes = (data['metrics']?['routeAdditions'] as int?) ?? 0;
-      }
+      // 1 y 2. Favoritos e inclusiones en tours: se usan los contadores que se mantienen
+      // con incrementos atómicos (toggleFavorite / saveUserTour). Por seguridad, un negocio
+      // ya no puede leer los perfiles ni los tours privados de otros usuarios.
+      final metricsMap = data['metrics'] is Map ? Map<String, dynamic>.from(data['metrics']) : <String, dynamic>{};
+      final int realFavs = ((metricsMap['favoriteCount'] as num?)?.toInt() ?? 0);
+      final int realRoutes = ((metricsMap['routeAdditions'] as num?)?.toInt() ?? 0);
 
       // 3. Conteo real de reseñas y calificación desde subcolección reviews
       int realReviews = 0;
@@ -1102,21 +1052,7 @@ class HuecaRepository {
   /// ADMIN: Eliminar reseña y recalcular métricas de la hueca
   Future<void> deleteReview(String huecaId, String reviewId) async {
     await _db.collection('huecas').doc(huecaId).collection('reviews').doc(reviewId).delete();
-    try {
-      final revSnap = await _db.collection('huecas').doc(huecaId).collection('reviews').get();
-      final count = revSnap.docs.length;
-      double avg = 0.0;
-      if (count > 0) {
-        final sum = revSnap.docs.fold<num>(0, (prev, d) => prev + (d.data()['rating'] as num? ?? 0));
-        avg = double.parse((sum / count).toStringAsFixed(1));
-      }
-      await _db.collection('huecas').doc(huecaId).update({
-        'reviewCount': count,
-        'rating': avg,
-      });
-    } catch (e) {
-      print('Error recalculating reviews after deletion: $e');
-    }
+    await _recalculateRating(huecaId);
   }
 
   /// ADMIN: Obtener reseñas globales de todas las huecas

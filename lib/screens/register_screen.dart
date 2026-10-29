@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hue_quito/repositories/user_repository.dart';
+import 'package:hue_quito/providers/data_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -58,29 +58,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       
       final uid = userCred.user!.uid;
 
-      bool isBranchManager = false;
-      try {
-        final huecasSnap = await FirebaseFirestore.instance.collection('huecas').get();
-        for (var doc in huecasSnap.docs) {
-          final branchesList = doc.data()['branches'] as List<dynamic>?;
-          if (branchesList != null) {
-            for (var b in branchesList) {
-              if (b is Map && (b['managerEmail']?.toString().trim().toLowerCase() == email.toLowerCase())) {
-                isBranchManager = true;
-                break;
-              }
-            }
-          }
-          if (isBranchManager) break;
-        }
-      } catch (_) {}
-      
+      final cleanEmail = email.toLowerCase();
+
+      // El perfil siempre se crea como comensal ('user'). Si el correo tiene una
+      // invitación de encargado, syncBusinessRole lo asciende de forma permitida por las reglas.
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
-        'email': email,
+        'email': cleanEmail,
         'name': name,
-        'profilePicUrl': 'https://ui-avatars.com/api/?name=$name&background=random',
-        'role': isBranchManager ? 'business' : 'user',
+        'profilePicUrl': 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=random',
+        'role': 'user',
         'gamification': {
           'level': 1,
           'points': 0,
@@ -89,12 +76,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           'huecaStamps': {},
         },
         'preferences': {},
-        'sectorAlbums': [],
+        'favoriteHuecas': [],
+        'subscribedHuecas': [],
+        'createdAt': FieldValue.serverTimestamp(),
       });
+
+      final userRepo = ref.read(userRepositoryProvider);
 
       // Migrar sellos y cromos acumulados en modo invitado
       try {
-        await UserRepository().migrateGuestDataToUser(uid);
+        await userRepo.migrateGuestDataToUser(uid);
+      } catch (_) {}
+
+      // Releer el perfil recién creado (evita que se quede mostrando "Usuario")
+      ref.invalidate(currentUserProvider);
+      bool isBranchManager = false;
+      try {
+        final userModel = await ref.read(currentUserProvider.future);
+        if (userModel != null) {
+          isBranchManager = await userRepo.syncBusinessRole(userModel);
+          if (isBranchManager) {
+            ref.invalidate(currentUserProvider);
+            await ref.read(currentUserProvider.future);
+          }
+        }
       } catch (_) {}
 
       if (mounted) {

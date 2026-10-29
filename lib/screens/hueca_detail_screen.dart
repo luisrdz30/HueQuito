@@ -109,6 +109,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                                       comment,
                                       user.name,
                                       user.profilePicUrl,
+                                      userId: user.uid,
                                     );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

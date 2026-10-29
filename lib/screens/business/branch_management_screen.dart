@@ -80,17 +80,10 @@ class _BranchManagementScreenState extends ConsumerState<BranchManagementScreen>
           'location': currentBranches.first.location,
         });
 
-        // Revocar acceso de administrador al encargado si existía
+        // Anular la invitación del encargado; su rol vuelve a 'user' en su próximo inicio de sesión
         if (hasManager) {
           final emailToRevoke = branch.managerEmail!.trim().toLowerCase();
           try {
-            final usersSnap = await FirebaseFirestore.instance
-                .collection('users')
-                .where('email', isEqualTo: emailToRevoke)
-                .get();
-            for (var uDoc in usersSnap.docs) {
-              await uDoc.reference.update({'role': 'user'});
-            }
             await FirebaseFirestore.instance.collection('branch_invitations').doc(emailToRevoke).delete();
           } catch (_) {}
         }

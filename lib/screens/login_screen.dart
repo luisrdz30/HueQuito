@@ -7,7 +7,6 @@ import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 
@@ -274,50 +273,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ref.invalidate(currentUserProvider);
       } catch (_) {}
 
-      bool isBusinessOrManager = false;
+      final userRepo = ref.read(userRepositoryProvider);
+      final isBusinessOrManager = await userRepo.syncBusinessRole(userModel);
 
+      // Esperar el perfil actualizado antes de navegar, para que el guardia del
+      // router vea el rol correcto (evita que un encargado termine en /home)
+      ref.invalidate(currentUserProvider);
       try {
-        final userEmail = userModel.email.trim().toLowerCase();
-        final userUid = userModel.uid;
-        final huecasSnap = await FirebaseFirestore.instance.collection('huecas').get();
-
-        for (var doc in huecasSnap.docs) {
-          final data = doc.data();
-          if (data['ownerId'] == userUid) {
-            isBusinessOrManager = true;
-            break;
-          }
-          final branchesList = data['branches'] as List<dynamic>?;
-          if (branchesList != null) {
-            for (var b in branchesList) {
-              if (b is Map && (b['managerEmail']?.toString().trim().toLowerCase() == userEmail)) {
-                isBusinessOrManager = true;
-                break;
-              }
-            }
-          }
-          if (isBusinessOrManager) break;
-        }
-
-        if (isBusinessOrManager) {
-          if (userModel.role != 'business') {
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userModel.uid)
-                .update({'role': 'business'});
-          }
-          await FirebaseFirestore.instance
-              .collection('branch_invitations')
-              .doc(userEmail)
-              .update({'status': 'active'}).catchError((_) {});
-        } else if (userModel.role == 'business') {
-          // Ya no administra ninguna sucursal ni es dueño: revocar rol
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userModel.uid)
-              .update({'role': 'user'});
-        }
+        await ref.read(currentUserProvider.future);
       } catch (_) {}
+      if (!mounted) return;
 
       if (isBusinessOrManager) {
         context.go('/business/dashboard');

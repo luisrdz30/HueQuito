@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -161,41 +162,23 @@ class UserRepository {
     if (user == null) return;
     final docRef = _db.collection('users').doc(user.uid);
     final doc = await docRef.get();
-    if (doc.exists) {
-      final data = doc.data() as Map<String, dynamic>;
-      final currentFavs = List<String>.from(data['favoriteHuecas'] ?? []);
-      final bool wasFavorite = currentFavs.contains(huecaId);
-      if (wasFavorite) {
-        currentFavs.remove(huecaId);
-      } else {
-        currentFavs.add(huecaId);
-      }
-      await docRef.update({'favoriteHuecas': currentFavs});
+    if (!doc.exists) return;
+    final data = doc.data() as Map<String, dynamic>;
+    final currentFavs = List<String>.from(data['favoriteHuecas'] ?? []);
+    final bool wasFavorite = currentFavs.contains(huecaId);
 
-      // Synchronize favoriteCount in the hueca document
-      try {
-        final countSnap = await _db
-            .collection('users')
-            .where('favoriteHuecas', arrayContains: huecaId)
-            .get();
-        try {
-          await _db.collection('huecas').doc(huecaId).update({
-            'metrics.favoriteCount': countSnap.docs.length,
-          });
-        } catch (_) {
-          await _db.collection('huecas').doc(huecaId).set({
-            'metrics': {
-              'favoriteCount': countSnap.docs.length,
-            }
-          }, SetOptions(merge: true));
-        }
-      } catch (e) {
-        try {
-          await _db.collection('huecas').doc(huecaId).update({
-            'metrics.favoriteCount': FieldValue.increment(wasFavorite ? -1 : 1),
-          });
-        } catch (_) {}
-      }
+    // Cambios atómicos: no se sobrescribe la lista completa ni se leen perfiles ajenos
+    await docRef.update({
+      'favoriteHuecas': wasFavorite
+          ? FieldValue.arrayRemove([huecaId])
+          : FieldValue.arrayUnion([huecaId]),
+    });
+    try {
+      await _db.collection('huecas').doc(huecaId).update({
+        'metrics.favoriteCount': FieldValue.increment(wasFavorite ? -1 : 1),
+      });
+    } catch (e) {
+      debugPrint('No se pudo actualizar favoriteCount de $huecaId: $e');
     }
   }
 
@@ -216,12 +199,87 @@ class UserRepository {
     }
   }
 
-  Future<void> updateRole(String newRole) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-    await _db.collection('users').doc(user.uid).update({
-      'role': newRole,
-    });
+  /// Sincroniza el rol de negocio del usuario al iniciar sesión o registrarse.
+  /// - Dueño real de una hueca (ownerId == uid) -> 'business' + managedHuecaId.
+  /// - Encargado con invitación en branch_invitations/{correo} -> 'business' + sucursal.
+  /// - Si ya no administra nada, vuelve a 'user'.
+  /// Devuelve true si el usuario debe entrar al panel de negocio.
+  /// Las reglas de Firestore solo permiten estas transiciones, por eso se centraliza aquí.
+  Future<bool> syncBusinessRole(UserModel user) async {
+    if (user.role == 'admin') return false;
+    final uid = user.uid;
+    final email = user.email.trim().toLowerCase();
+    final userRef = _db.collection('users').doc(uid);
+
+    try {
+      // 1. ¿Es dueño general de alguna hueca?
+      final owned = await _db.collection('huecas').where('ownerId', isEqualTo: uid).limit(1).get();
+      if (owned.docs.isNotEmpty) {
+        final huecaId = owned.docs.first.id;
+        if (user.role != 'business' || user.managedHuecaId != huecaId || user.managedBranchId != null) {
+          await userRef.update({
+            'role': 'business',
+            'managedHuecaId': huecaId,
+            'managedBranchId': FieldValue.delete(),
+          });
+        }
+        return true;
+      }
+
+      // 2. ¿Tiene una invitación vigente como encargado de sucursal?
+      if (email.isNotEmpty) {
+        final invRef = _db.collection('branch_invitations').doc(email);
+        final inv = await invRef.get();
+        final huecaId = inv.data()?['huecaId']?.toString() ?? '';
+        if (inv.exists && huecaId.isNotEmpty) {
+          final huecaDoc = await _db.collection('huecas').doc(huecaId).get();
+          final branches = (huecaDoc.data()?['branches'] as List<dynamic>?) ?? [];
+          String? branchId;
+          for (final b in branches) {
+            if (b is Map && b['managerEmail']?.toString().trim().toLowerCase() == email) {
+              branchId = b['id']?.toString();
+              break;
+            }
+          }
+          if (huecaDoc.exists && branchId != null) {
+            if (user.role != 'business' || user.managedHuecaId != huecaId || user.managedBranchId != branchId) {
+              await userRef.update({
+                'role': 'business',
+                'managedHuecaId': huecaId,
+                'managedBranchId': branchId,
+              });
+            }
+            if (inv.data()?['status'] != 'active') {
+              await invRef.update({'status': 'active'}).catchError((_) {});
+            }
+            return true;
+          }
+        }
+      }
+
+      // 3. Asignación hecha por el admin (managedHuecaId) que sigue siendo válida
+      if (user.role == 'business' && (user.managedHuecaId ?? '').isNotEmpty) {
+        final huecaDoc = await _db.collection('huecas').doc(user.managedHuecaId).get();
+        final branches = (huecaDoc.data()?['branches'] as List<dynamic>?) ?? [];
+        final stillManager = branches.any((b) =>
+            b is Map && b['managerEmail']?.toString().trim().toLowerCase() == email);
+        if (huecaDoc.exists && stillManager) return true;
+      }
+
+      // 4. Ya no administra nada: vuelve a comensal
+      if (user.role == 'business' || user.managedHuecaId != null || user.managedBranchId != null) {
+        await userRef.update({
+          'role': 'user',
+          'managedHuecaId': FieldValue.delete(),
+          'managedBranchId': FieldValue.delete(),
+        });
+      }
+    } catch (e) {
+      debugPrint('Error sincronizando rol de negocio: $e');
+      // Si falla la red, se respeta el rol actual para no bloquear al negocio
+      return user.role == 'business';
+    }
+    return false;
   }
 
   Future<void> updatePreferences(Map<String, dynamic> newPrefs) async {
@@ -359,6 +417,10 @@ class UserRepository {
           }
         }
       } catch (_) {}
+      // Ya no es encargado de sucursal: anular su invitación
+      try {
+        await _db.collection('branch_invitations').doc(userEmail).delete();
+      } catch (_) {}
     }
 
     if (cleanHuecaId != null) {
@@ -447,7 +509,28 @@ class UserRepository {
       print('Error assigning branch to user: $e');
     }
 
-    // 3. Actualizar documento del usuario
+    // 3. Registrar la invitación vigente: las reglas de seguridad la usan para dar
+    //    permisos de encargado sobre la hueca (se revoca borrándola)
+    try {
+      final huecaDoc = await _db.collection('huecas').doc(huecaId).get();
+      String branchName = '';
+      for (final b in (huecaDoc.data()?['branches'] as List<dynamic>?) ?? []) {
+        if (b is Map && b['id']?.toString() == branchId) branchName = b['name']?.toString() ?? '';
+      }
+      await _db.collection('branch_invitations').doc(cleanEmail).set({
+        'email': cleanEmail,
+        'huecaId': huecaId,
+        'huecaName': huecaDoc.data()?['name']?.toString() ?? '',
+        'branchId': branchId,
+        'branchName': branchName,
+        'status': 'active',
+        'invitedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error registrando invitación de encargado: $e');
+    }
+
+    // 4. Actualizar documento del usuario
     await _db.collection('users').doc(uid).set({
       'role': 'business',
       'managedHuecaId': huecaId,
@@ -492,7 +575,14 @@ class UserRepository {
       }
     } catch (_) {}
 
-    // 3. Limpiar documento de usuario
+    // 3. Anular invitación de encargado
+    if (cleanEmail.isNotEmpty) {
+      try {
+        await _db.collection('branch_invitations').doc(cleanEmail).delete();
+      } catch (_) {}
+    }
+
+    // 4. Limpiar documento de usuario
     await _db.collection('users').doc(uid).update({
       'managedHuecaId': FieldValue.delete(),
       'managedBranchId': FieldValue.delete(),

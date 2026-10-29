@@ -215,6 +215,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
 
     try {
       List<HuecaBranch> currentBranches = List.from(widget.hueca.allBranches);
+      String savedBranchId = widget.existingBranch?.id ?? '';
 
       if (_isEditing) {
         final index = currentBranches.indexWhere((b) => b.id == widget.existingBranch!.id);
@@ -228,10 +229,13 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
             phone: phone,
             schedule: widget.existingBranch!.schedule,
             managerEmail: email.isEmpty ? null : email,
+            // Conservar el cromo secreto de la sucursal al editarla
+            secretSticker: widget.existingBranch!.secretSticker,
           );
         }
       } else {
         final newId = 'branch_${DateTime.now().millisecondsSinceEpoch}';
+        savedBranchId = newId;
         currentBranches.add(
           HuecaBranch(
             id: newId,
@@ -259,16 +263,11 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
           'location': currentBranches.first.location,
         });
 
-        // 1. Si el correo cambió o fue eliminado, revocar rol de negocio al encargado anterior
+        // 1. Si el correo cambió o fue eliminado, anular la invitación del encargado anterior.
+        // Su rol vuelve a 'user' automáticamente en su próximo inicio de sesión
+        // (las reglas de seguridad no permiten que un negocio edite perfiles ajenos).
         if (oldEmail.isNotEmpty && oldEmail != email) {
           try {
-            final oldUsers = await FirebaseFirestore.instance
-                .collection('users')
-                .where('email', isEqualTo: oldEmail)
-                .get();
-            for (var doc in oldUsers.docs) {
-              await doc.reference.update({'role': 'user'});
-            }
             await FirebaseFirestore.instance.collection('branch_invitations').doc(oldEmail).delete();
           } catch (_) {}
         }
@@ -309,25 +308,16 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
           }
 
           try {
+            // El encargado obtiene el rol 'business' al iniciar sesión, validado con esta invitación
             await FirebaseFirestore.instance.collection('branch_invitations').doc(email).set({
               'email': email,
               'huecaId': widget.hueca.id,
               'huecaName': widget.hueca.name,
+              'branchId': savedBranchId,
               'branchName': name,
               'status': 'invited',
               'invitedAt': FieldValue.serverTimestamp(),
             });
-
-            // Si ya existía usuario creado con ese email, ascender a rol business
-            final userSnap = await FirebaseFirestore.instance
-                .collection('users')
-                .where('email', isEqualTo: email)
-                .get();
-            if (userSnap.docs.isNotEmpty) {
-              for (var doc in userSnap.docs) {
-                await doc.reference.update({'role': 'business'});
-              }
-            }
           } catch (e) {
             debugPrint('Error actualizando Firestore de invitación: $e');
           }
