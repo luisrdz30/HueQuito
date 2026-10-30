@@ -70,7 +70,25 @@ Detalle original:
 7. `HuecaBranch.fromMap` genera un id con `DateTime.now()` si falta → id inestable entre lecturas.
 8. `register_screen`: mensaje de error crudo (sin traducir) y contraseña con `trim()` (el login no lo hace).
 
-## Fase 3 — Funcionalidad (pendiente)
+## Estado de las fases 3 a 6 (30-oct-2026)
+
+Ramas encadenadas: `fase2-datos` → `fase3-funcionalidad` → `fase4-estabilidad` → `fase5-validacion` → `fase6-limpieza` (cada una parte de la anterior). `flutter analyze`: 0 errores, 0 warnings, 22 infos. `flutter test`: 139 pasan (se borraron 2 tests de pantallas eliminadas y se agregaron 4).
+
+- **Fase 3 ✅** Historial de sellos de hoy en Mi QR. Eliminados rutas del admin (pantallas, providers, seed, `/admin/routes/*`, limpieza en `deleteHueca`, regla `routes`) y el código muerto listado.
+- **Fase 4 ✅** 39 `use_build_context_synchronously` corregidos, `uuid` y `path_provider` declarados (`path` era un import sin uso), imports/variables/código sin uso eliminados.
+- **Fase 5 ⚠️ parcial, sin plan Blaze** (alternativas solo-cliente):
+  - QR de sellos: el negocio registra cada código en `issued_qr_tokens`; el comensal y las reglas solo aceptan QR emitidos por esa hueca, con los sellos que eligió el negocio y con menos de 10 min.
+  - Cromo secreto: solo vale el secreto de esa hueca o sucursal (ya no el ID público ni textos con "sticker"/"cromo").
+  - Gemini ya pasa por Firebase AI Logic (sin API key en el APK). **Pendiente Luis:** revocar la API key vieja en Google AI Studio.
+  - Suspensión: se calcula al leer y las reglas bloquean sellos (no hace falta tarea programada).
+  - **Sigue requiriendo Cloud Functions (limitación para la tesis):** el usuario puede editar su propio `gamification` (sellos, puntos, cromos); los secretos de cromos son legibles en Firestore; el admin no puede borrar cuentas de Auth.
+- **Fase 6 ✅** `withOpacity`→`withValues`, `print`→`debugPrint`, `__`→`_`, borrados `fix.dart`/`fix_lang.dart`. Quedan 22 infos: `Share`→`SharePlus`, `desiredAccuracy`/`timeLimit` de geolocator, `WillPopScope` en `tour_wizard_screen` y llaves en `home_screen` (cambian comportamiento, se dejaron para no romper).
+
+Pendiente general: desplegar reglas (`firebase deploy --only firestore`) **después** de instalar la app nueva en los teléfonos de negocio (las reglas de QR rechazan códigos de la versión anterior) y prueba manual con `docs/GUIA_PRUEBAS.md`.
+
+Detalle original de las fases:
+
+## Fase 3 — Funcionalidad
 
 1. Botón **Historial** de `qr_generator_screen.dart` muestra "Próximamente": implementar con `stamp_history`.
 2. Eliminar código de rutas del admin (decisión de Luis): `admin_routes_screen.dart`, `admin_route_edit_screen.dart`, `utils/seed_routes.dart`, `routesProvider`, `allRoutesStreamProvider`, rutas `/admin/routes/*` y regla `routes` (verificar antes que nada más lo use; `deleteHueca` limpia `routes`).
