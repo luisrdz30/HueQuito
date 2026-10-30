@@ -201,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             final authRepo = ref.read(authRepositoryProvider);
                             await authRepo.sendPasswordResetEmail(email);
 
-                            if (mounted) {
+                            if (dialogCtx.mounted && context.mounted) {
                               Navigator.pop(dialogCtx);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

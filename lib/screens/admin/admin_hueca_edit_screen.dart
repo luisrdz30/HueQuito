@@ -87,13 +87,8 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
     String descEs = '';
     String descEn = '';
     if (h != null) {
-      if (h.description is Map) {
-        descEs = h.description['es']?.toString() ?? '';
-        descEn = h.description['en']?.toString() ?? '';
-      } else if (h.description is String) {
-        descEs = h.description.toString();
-        descEn = descEs;
-      }
+      descEs = h.description['es']?.toString() ?? '';
+      descEn = h.description['en']?.toString() ?? '';
     }
     _descEsController = TextEditingController(text: descEs);
     _descEnController = TextEditingController(text: descEn);

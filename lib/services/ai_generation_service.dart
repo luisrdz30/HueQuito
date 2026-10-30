@@ -38,15 +38,6 @@ class AiGenerationService {
         lowerTitle.contains('plato') ||
         lowerTitle.contains('combo');
 
-    final mentionsTime = lowerTitle.contains('hoy') ||
-        lowerTitle.contains('viernes') ||
-        lowerTitle.contains('sabado') ||
-        lowerTitle.contains('sábado') ||
-        lowerTitle.contains('domingo') ||
-        lowerTitle.contains('fin de semana') ||
-        lowerTitle.contains('almuerzo') ||
-        lowerTitle.contains('noche');
-
     switch (category) {
       case 'promocion':
         return [

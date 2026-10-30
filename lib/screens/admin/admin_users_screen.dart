@@ -481,7 +481,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                       ref.invalidate(allHuecasStreamProvider);
                       ref.invalidate(huecasProvider);
 
-                      if (mounted) {
+                      if (ctx.mounted && mounted) {
                         Navigator.pop(ctx);
                         showDialog(
                           context: context,

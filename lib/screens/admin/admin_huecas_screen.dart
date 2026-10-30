@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
-import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
 
 class AdminHuecasScreen extends ConsumerStatefulWidget {

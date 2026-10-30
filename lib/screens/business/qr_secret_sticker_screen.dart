@@ -60,6 +60,7 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
 
       await Share.shareXFiles([XFile(file.path)], text: shareText);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al compartir QR: $e')));
     }
   }

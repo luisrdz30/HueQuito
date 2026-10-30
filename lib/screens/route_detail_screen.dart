@@ -115,9 +115,7 @@ class RouteDetailScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          route.name is Map
-                              ? (route.name[lang] ?? route.name['es'] ?? route.name['en'] ?? route.name.values.firstOrNull ?? '').toString()
-                              : route.name.toString(),
+                          (route.name[lang] ?? route.name['es'] ?? route.name['en'] ?? route.name.values.firstOrNull ?? '').toString(),
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -238,9 +236,7 @@ class RouteDetailScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          route.narrative is Map
-                              ? (route.narrative[lang] ?? route.narrative['es'] ?? route.narrative['en'] ?? route.narrative.values.firstOrNull ?? '').toString()
-                              : route.narrative.toString(),
+                          (route.narrative[lang] ?? route.narrative['es'] ?? route.narrative['en'] ?? route.narrative.values.firstOrNull ?? '').toString(),
                           style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.textMedium), height: 1.5),
                         ),
                       ],

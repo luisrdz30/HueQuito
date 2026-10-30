@@ -829,6 +829,7 @@ class _QuestionFormModalState extends State<_QuestionFormModal> {
       }).toList(),
     );
 
+    if (!mounted) return;
     Navigator.pop(context);
     await widget.onSave(questionToSave);
   }

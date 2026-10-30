@@ -776,7 +776,7 @@ class HuecaRepository {
           'rating': 0.0,
         };
       }
-      final data = docSnap.data() as Map<String, dynamic>? ?? {};
+      final data = docSnap.data() ?? {};
 
       // 1 y 2. Favoritos e inclusiones en tours: se usan los contadores que se mantienen
       // con incrementos atómicos (toggleFavorite / saveUserTour). Por seguridad, un negocio

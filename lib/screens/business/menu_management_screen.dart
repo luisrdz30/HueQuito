@@ -4,11 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/theme/theme.dart';
-import 'package:hue_quito/providers/auth_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
-import 'package:hue_quito/services/gemini_menu_service.dart';
 import 'package:hue_quito/screens/business/dish_form_screen.dart';
 import 'package:hue_quito/screens/business/menu_review_screen.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
@@ -368,6 +366,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
       final picker = ImagePicker();
       final photos = await picker.pickMultiImage(imageQuality: 90, maxWidth: 2048);
       if (photos.isEmpty) return;
+      if (!mounted) return;
       if (photos.length > 10) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Se procesarán las primeras 10 fotos seleccionadas')),

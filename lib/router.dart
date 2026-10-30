@@ -44,7 +44,6 @@ import 'package:hue_quito/screens/admin/admin_quiz_screen.dart';
 import 'package:hue_quito/screens/admin/admin_subscriptions_screen.dart';
 import 'package:hue_quito/screens/business/subscription_payment_screen.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
-import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {

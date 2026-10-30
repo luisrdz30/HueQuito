@@ -822,7 +822,7 @@ class UserRepository {
       }
     }
 
-    final newUid = cred!.user!.uid;
+    final newUid = cred.user!.uid;
 
     final userData = <String, dynamic>{
       'uid': newUid,

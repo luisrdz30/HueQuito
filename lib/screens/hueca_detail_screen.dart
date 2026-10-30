@@ -9,7 +9,6 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/utils/auth_utils.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:map_launcher/map_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:hue_quito/utils/map_navigation_helper.dart';
@@ -111,6 +110,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                                       user.profilePicUrl,
                                       userId: user.uid,
                                     );
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -124,6 +124,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                                   () {},
                                 ); // refresh the UI to fetch reviews
                               } catch (e) {
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -1329,13 +1330,12 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
 
                         // Primero sacamos los horarios de la sucursal activa
                         Map<String, String> schedule = {};
-                        if (activeBranch.schedule is Map && activeBranch.schedule.isNotEmpty) {
+                        if (activeBranch.schedule.isNotEmpty) {
                           schedule = Map<String, String>.from(activeBranch.schedule);
-                        } else if (_currentHueca.schedule is Map) {
-                          schedule = Map<String, String>.from(
-                            _currentHueca.schedule as Map,
-                          );
+                        } else {
+                          schedule = Map<String, String>.from(_currentHueca.schedule);
                         }
+                      
 
                         // Vemos qué días mostrar
                         List<Widget> scheduleWidgets = [];

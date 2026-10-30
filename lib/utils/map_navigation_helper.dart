@@ -297,6 +297,7 @@ class MapNavigationHelper {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

@@ -19,7 +19,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
   final List<Hueca> _selectedStops = [];
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
-  String _selectedSector = 'Todos';
+  final String _selectedSector = 'Todos';
   bool _isSaving = false;
 
   @override

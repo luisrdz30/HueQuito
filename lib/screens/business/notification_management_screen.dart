@@ -336,6 +336,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                   ? TimeOfDay.fromDateTime(scheduledDateTime!)
                   : TimeOfDay(hour: (now.hour + 1) % 24, minute: 0);
 
+              if (!modalCtx.mounted) return;
               final pickedTime = await showTimePicker(
                 context: modalCtx,
                 initialTime: initialTime,
@@ -355,7 +356,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               );
 
               if (combined.isBefore(DateTime.now())) {
-                if (modalCtx.mounted) {
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('⚠️ La fecha y hora programada debe ser en el futuro.'),
@@ -1037,7 +1038,8 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         autoApprove: true, // Menú del día se aprueba y se publica de inmediato o en su fecha programada con vigencia de 4 horas
       );
 
-      if (mounted) {
+      if (!mounted) return;
+      if (modalCtx.mounted) {
         setState(() {
           _selectedCategory = 'menu_del_dia';
           _titleController.text = title;

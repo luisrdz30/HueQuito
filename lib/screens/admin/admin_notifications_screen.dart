@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/models/notification_model.dart';
-import 'package:hue_quito/services/notification_service.dart';
 
 class AdminNotificationsScreen extends ConsumerStatefulWidget {
   const AdminNotificationsScreen({super.key});

@@ -495,7 +495,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     bool isEn,
     List<QuizQuestion> questions,
   ) {
-    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
     final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
 
     final totalSteps = 1 + questions.length;
@@ -876,7 +875,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     int totalQuestions,
   ) {
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
     final cardBg = isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.white.withValues(alpha: 0.88);

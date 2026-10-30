@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_request_repository.dart';
-import 'package:hue_quito/repositories/hueca_repository.dart';
 
 class AdminSolicitudesScreen extends ConsumerStatefulWidget {
   const AdminSolicitudesScreen({super.key});
@@ -288,7 +286,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                           ref.invalidate(allUsersStreamProvider);
                           ref.invalidate(huecasProvider);
 
-                          if (mounted) {
+                          if (dialogCtx.mounted && context.mounted) {
                             Navigator.pop(dialogCtx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -299,7 +297,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                           }
                         } catch (e) {
                           setDialogState(() => isProcessing = false);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error al aprobar: $e'),
@@ -414,7 +412,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                           ref.invalidate(allHuecaRequestsProvider);
                           ref.invalidate(pendingHuecaRequestsProvider);
 
-                          if (mounted) {
+                          if (dialogCtx.mounted && context.mounted) {
                             Navigator.pop(dialogCtx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -425,7 +423,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                           }
                         } catch (e) {
                           setDialogState(() => isProcessing = false);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
                             );

@@ -2,7 +2,6 @@ import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -131,11 +130,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
 
-    if (confirm != true || !mounted) return;
+    if (confirm != true || !context.mounted) return;
 
     // Reautentica, borra los datos y por último la cuenta de Auth
     final error = await deleteCurrentAccount(context, ref, isEn: settings.language == 'en');
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (error == null) {
       ref.invalidate(currentUserProvider);
       ScaffoldMessenger.of(context).showSnackBar(

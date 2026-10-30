@@ -9,17 +9,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:path/path.dart' as p;
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:hue_quito/screens/business/qr_secret_sticker_screen.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hue_quito/screens/business/location_picker_screen.dart';
 import 'package:hue_quito/services/geocoding_service.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
-import 'dart:convert';
 
 class BusinessProfileScreen extends ConsumerStatefulWidget {
   const BusinessProfileScreen({super.key});
@@ -119,7 +115,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               .update({'branches': currentBranches.map((b) => b.toMap()).toList()});
                           ref.invalidate(huecasProvider);
                           ref.invalidate(myHuecaProvider);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Nombre de sticker guardado para la sucursal'),
@@ -163,7 +159,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               .update({fieldKey: newValue});
                         }
                         ref.invalidate(huecasProvider);
-                        if (mounted)
+                        if (context.mounted)
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Guardado exitosamente'),
@@ -278,7 +274,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               .collection('huecas')
                               .doc(hueca.id)
                               .update({'tags': currentTags});
-                          if (mounted)
+                          if (context.mounted)
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Tags guardados'),
@@ -421,9 +417,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       });
                     }
 
+                    if (!dialogContext.mounted) return;
                     Navigator.pop(dialogContext);
                     ref.invalidate(huecasProvider);
-                    if (mounted)
+                    if (context.mounted)
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Guardado exitosamente'),
@@ -449,9 +446,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     Map<String, String> currentSchedule = {};
     if (targetBranch != null && targetBranch.schedule.isNotEmpty) {
       currentSchedule = Map<String, String>.from(targetBranch.schedule);
-    } else if (hueca.schedule is Map) {
-      currentSchedule = Map<String, String>.from(hueca.schedule as Map);
+    } else {
+      currentSchedule = Map<String, String>.from(hueca.schedule);
     }
+
     final days = [
       'Lunes',
       'Martes',
@@ -933,7 +931,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
 
                         ref.invalidate(huecasProvider);
                         ref.invalidate(myHuecaProvider);
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(targetBranch != null
@@ -1017,7 +1015,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
         maxWidth: 1280,
       );
 
-      if (file == null || !mounted) return;
+      if (file == null || !context.mounted) return;
       String fileName = '${hueca.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String folder = 'hueca_images';
       if (fieldKey.contains('mainDish')) folder = 'dish_images';
@@ -1100,7 +1098,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
           await docRef.update({fieldKey: downloadUrl});
         }
 
-        if (mounted) {
+        if (context.mounted) {
           ref.invalidate(huecasProvider);
           ref.invalidate(myHuecaProvider);
           Navigator.of(context, rootNavigator: true).pop(); // close dialog
@@ -1112,7 +1110,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
           );
         }
       } catch (e) {
-        if (mounted) {
+        if (context.mounted) {
           Navigator.of(context, rootNavigator: true).pop(); // close dialog
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1123,7 +1121,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
         }
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error de galería: $e'),
@@ -1508,9 +1506,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
           }
           final bool isBranchManager = !isOwner && managedBranch != null;
 
-          final desc = hueca.description is Map
-              ? (hueca.description['es']?.toString() ?? '')
-              : hueca.description.toString();
+          final desc = (hueca.description['es']?.toString() ?? '');
           final dishDesc = hueca.mainDish['description'] is Map
               ? (hueca.mainDish['description']['es']?.toString() ?? '')
               : hueca.mainDish['description']?.toString() ?? '';

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/screens/scan_screen.dart';
-import 'package:hue_quito/providers/settings_provider.dart';
 
 class _FakeHttpOverrides extends HttpOverrides {
   @override

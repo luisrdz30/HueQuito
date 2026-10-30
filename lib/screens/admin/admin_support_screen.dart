@@ -183,7 +183,7 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen>
                           ref.invalidate(newSupportMessagesProvider);
                           ref.invalidate(myHuecaSupportMessagesProvider(msg.huecaId));
 
-                          if (mounted) {
+                          if (dialogCtx.mounted && context.mounted) {
                             Navigator.pop(dialogCtx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -194,7 +194,7 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen>
                           }
                         } catch (e) {
                           setDialogState(() => isProcessing = false);
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Error al responder: $e'), backgroundColor: Colors.redAccent),
                             );

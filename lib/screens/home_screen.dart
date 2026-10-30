@@ -24,9 +24,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _searchQuery = '';
   String _selectedLocation = 'Todo Quito';
   String _selectedFilter = '🍽️ Todos';
-  final String _selectedSort = 'Más cerca (km)';
   bool _checkedTutorial = false;
-  bool _hasAppliedUserPreferences = false;
   bool _userManuallyChangedLocation = false;
   bool _userManuallyChangedFilter = false;
   String? _guestPersona;
@@ -63,7 +61,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (!_userManuallyChangedFilter && savedPersona != null && savedPersona.isNotEmpty) {
             _applyPersonaToFilter(savedPersona);
           }
-          _hasAppliedUserPreferences = true;
         });
       }
     } catch (_) {}

@@ -188,7 +188,7 @@ class SupportRepository {
       'adminResponse': response.trim(),
       'respondedAt': FieldValue.serverTimestamp(),
       'respondedBy': adminUid,
-      if (FieldValue.serverTimestamp() != null) 'readAt': FieldValue.serverTimestamp(),
+      'readAt': FieldValue.serverTimestamp(),
       'readBy': adminUid,
     });
   }

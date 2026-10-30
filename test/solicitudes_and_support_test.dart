@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/repositories/hueca_request_repository.dart';
 import 'package:hue_quito/repositories/support_repository.dart';
 import 'package:hue_quito/providers/data_provider.dart';
