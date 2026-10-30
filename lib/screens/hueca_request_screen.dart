@@ -247,7 +247,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                     child: Text(
                       isEn
                           ? 'Reminder: Registration and your first 50 loyalty stamps are 100% free!'
-                          : 'Recuerda: ¡Tu registro y tus primeros 50 sellos de fidelidad son 100% gratuitos!',
+                          : 'Recuerda: ¡Tu registro y tus primeros 100 sellos de fidelidad son 100% gratuitos!',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green.shade900),
                     ),
                   ),
@@ -852,7 +852,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
             icon: Icons.card_giftcard,
             text: isEn
                 ? 'First 50 loyalty stamps free: Deliver stamps and points to diners without paying a single cent.'
-                : 'Primeros 50 sellos de cortesía: Otorga sellos y puntos de fidelidad sin pagar ni un solo centavo.',
+                : 'Primeros 100 sellos de cortesía: Otorga sellos y puntos de fidelidad sin pagar ni un solo centavo.',
             isDark: isDark,
           ),
           const SizedBox(height: 6),
@@ -867,8 +867,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
           _buildPricingBullet(
             icon: Icons.savings_outlined,
             text: isEn
-                ? 'Accessible subscription after: Only after reaching 50 stamps, a \$9.99/month subscription activates with a 7-day grace period.'
-                : 'Suscripción accesible posterior: Solo al alcanzar 50 sellos entregados, se habilitará el plan de \$9.99/mes con 7 días de gracia para continuar.',
+                ? 'Accessible subscription after: Only after reaching 100 stamps, a \$9.99/month subscription activates with a 7-day grace period.'
+                : 'Suscripción accesible posterior: Solo al alcanzar 100 sellos entregados, se habilitará el plan de \$9.99/mes con 7 días de gracia para continuar.',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -895,7 +895,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                 Expanded(
                   child: _buildPricingMiniPill(
                     label: isEn ? 'Courtesy' : 'Cortesía',
-                    value: isEn ? '50 stamps' : '50 sellos',
+                    value: isEn ? '100 stamps' : '100 sellos',
                     color: Colors.teal,
                   ),
                 ),

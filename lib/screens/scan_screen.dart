@@ -7,6 +7,7 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -264,6 +265,22 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
       // Validación de QR de UN SOLO USO para sellos/puntos
       if (_scannedData!['type'] == 'points') {
+        // Hueca suspendida por falta de pago: no puede entregar sellos
+        if (targetHuecaId.isNotEmpty &&
+            await ref.read(subscriptionRepositoryProvider).isHuecaSuspended(targetHuecaId)) {
+          closeLoadingDialog();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isEn
+                  ? 'This spot cannot give stamps right now (subscription pending).'
+                  : 'Esta hueca no puede entregar sellos por ahora (suscripción pendiente de pago).'),
+              backgroundColor: Colors.amber.shade900,
+            ));
+          }
+          _resetScanner();
+          return;
+        }
+
         final token = _scannedData!['token']?.toString();
         if (token == null || token.isEmpty) {
           closeLoadingDialog();
@@ -397,9 +414,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               'branchName': branchName,
               'date': FieldValue.serverTimestamp(),
             });
-            await FirebaseFirestore.instance.collection('huecas').doc(huecaId).update({
-              'metrics.stampsGiven': FieldValue.increment(stamps)
-            });
+            await ref.read(subscriptionRepositoryProvider).registerStampsGiven(huecaId, stamps);
           } catch (_) {}
 
           ref.invalidate(currentUserProvider);
@@ -499,9 +514,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           'date': FieldValue.serverTimestamp(),
         });
         
-        await FirebaseFirestore.instance.collection('huecas').doc(huecaId).update({
-          'metrics.stampsGiven': FieldValue.increment(stamps)
-        });
+        await ref.read(subscriptionRepositoryProvider).registerStampsGiven(huecaId, stamps);
 
         // Refrescar estado Riverpod de inmediato para Mi Álbum y Perfil
         ref.invalidate(currentUserProvider);

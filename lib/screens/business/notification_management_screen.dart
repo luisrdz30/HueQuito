@@ -2092,6 +2092,11 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
         statusText = 'Rechazada';
         statusIcon = Icons.cancel;
         break;
+      case 'system':
+        statusColor = Colors.blue;
+        statusText = 'Aviso de Hue-Quito';
+        statusIcon = Icons.info_outline;
+        break;
       case 'pending':
       default:
         statusColor = Colors.amber.shade800;

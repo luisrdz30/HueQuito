@@ -71,7 +71,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
     try {
       final newSettings = SubscriptionSettings(
         monthlyPrice: double.tryParse(_priceController.text.trim()) ?? 9.99,
-        freeTierMaxStamps: int.tryParse(_freeStampsController.text.trim()) ?? 50,
+        freeTierMaxStamps: int.tryParse(_freeStampsController.text.trim()) ?? 100,
         gracePeriodDays: int.tryParse(_graceDaysController.text.trim()) ?? 7,
         bankName: _bankNameController.text.trim(),
         accountType: _accountTypeController.text.trim(),
@@ -810,7 +810,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
   }
 
   Widget _buildProximityToChargeCard(List<Hueca> huecas, SubscriptionSettings settings, bool isDark) {
-    final maxFree = settings.freeTierMaxStamps > 0 ? settings.freeTierMaxStamps : 50;
+    final maxFree = settings.freeTierMaxStamps > 0 ? settings.freeTierMaxStamps : 100;
 
     // Ordenar todas las huecas según sellos otorgados (de mayor a menor)
     final sortedHuecas = List<Hueca>.from(huecas)

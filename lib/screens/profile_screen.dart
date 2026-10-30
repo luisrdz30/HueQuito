@@ -2,9 +2,7 @@ import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +12,7 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
 import 'package:hue_quito/widgets/client_onboarding_dialog.dart';
+import 'package:hue_quito/utils/account_deletion.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -134,35 +133,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (confirm != true || !mounted) return;
 
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final uid = user.uid;
-        // Desvincular de huecas/sucursales y eliminar documento de usuario
-        await ref.read(userRepositoryProvider).deleteUser(uid, email: user.email);
-        await user.delete();
-      }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+    // Reautentica, borra los datos y por último la cuenta de Auth
+    final error = await deleteCurrentAccount(context, ref, isEn: settings.language == 'en');
+    if (!mounted) return;
+    if (error == null) {
       ref.invalidate(currentUserProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cuenta eliminada con éxito.')),
-        );
-        context.go('/welcome');
-      }
-    } catch (e) {
-      if (e.toString().contains('requires-recent-login')) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Por seguridad, vuelve a iniciar sesión antes de solicitar la eliminación.')),
-          );
-        }
-      } else {
-        await ref.read(authRepositoryProvider).signOut();
-        ref.invalidate(currentUserProvider);
-        if (mounted) context.go('/welcome');
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(settings.language == 'en' ? 'Account deleted.' : 'Cuenta eliminada con éxito.')),
+      );
+      context.go('/welcome');
+    } else if (error.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
     }
   }
 

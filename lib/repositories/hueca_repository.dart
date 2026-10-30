@@ -26,7 +26,10 @@ class HuecaBranch {
 
   factory HuecaBranch.fromMap(Map<String, dynamic> map, {String? defaultId}) {
     return HuecaBranch(
-      id: map['id']?.toString() ?? defaultId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      // Sin 'id' guardado se deriva uno estable (antes usaba la hora y cambiaba en cada lectura)
+      id: map['id']?.toString() ??
+          defaultId ??
+          'sucursal_${(map['name']?.toString() ?? '').toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
       name: map['name']?.toString() ?? 'Sucursal',
       address: map['address']?.toString() ?? '',
       sector: map['sector']?.toString() ?? 'Centro',
@@ -426,7 +429,9 @@ class Hueca {
     List<HuecaBranch> parsedBranches = [];
     if (rawBranches != null && rawBranches.isNotEmpty) {
       parsedBranches = rawBranches
-          .map((b) => HuecaBranch.fromMap(Map<String, dynamic>.from(b)))
+          .asMap()
+          .entries
+          .map((e) => HuecaBranch.fromMap(Map<String, dynamic>.from(e.value), defaultId: 'sucursal_${e.key}'))
           .toList();
     } else {
       parsedBranches = [

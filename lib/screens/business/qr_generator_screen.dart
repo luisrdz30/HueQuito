@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:uuid/uuid.dart';
 
 class BusinessQrScreen extends ConsumerStatefulWidget {
@@ -182,6 +183,39 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
         data: (hueca) {
           if (hueca == null) {
             return const Center(child: Text('Hueca no encontrada'));
+          }
+
+          // Suscripción vencida sin pago: no se generan QR de sellos
+          final subSettings = ref.watch(subscriptionSettingsProvider).value ?? const SubscriptionSettings();
+          final subInfo = ref.watch(subscriptionRepositoryProvider).evaluateHuecaSubscription(hueca: hueca, settings: subSettings);
+          if (subInfo.isLocked) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock_outline, size: 64, color: Colors.red.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Entrega de sellos pausada',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'El periodo de gracia terminó. Sube tu comprobante de pago desde el Panel para volver a entregar sellos.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : AppTheme.textMedium),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final managedBranch = ref.watch(currentManagedBranchProvider).value;

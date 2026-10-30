@@ -9,8 +9,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/utils/auth_utils.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
+import 'package:hue_quito/utils/account_deletion.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
-import 'package:hue_quito/providers/auth_provider.dart' hide currentUserProvider;
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -160,18 +160,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (confirm != true) return;
     
     setState(() => _isLoading = true);
-    try {
-      await ref.read(authRepositoryProvider).deleteAccount();
+    // Reautentica, borra los datos y por último la cuenta de Auth
+    final error = await deleteCurrentAccount(context, ref, isEn: isEn);
+    if (!mounted) return;
+    if (error == null) {
       ref.invalidate(currentUserProvider);
-      if (mounted) context.go('/login');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isEn ? 'Error: $e. Please log in again and retry.' : 'Error: $e. Inicia sesión nuevamente e intenta de nuevo.')),
-        );
-      }
+      context.go('/login');
+      return;
     }
-    if (mounted) setState(() => _isLoading = false);
+    if (error.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    }
+    setState(() => _isLoading = false);
   }
 
   @override

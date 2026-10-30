@@ -141,18 +141,31 @@ class RouteRepository {
   // TOURS PERSONALIZADOS DEL USUARIO (CUSTOM TOURS)
   // ==========================================
 
+  /// Caché local de tours separada por cuenta: así otra cuenta en el mismo teléfono
+  /// no hereda los tours ajenos (antes todas compartían 'guest_custom_tours').
+  static String localToursKey(String? userId) =>
+      (userId == null || userId.isEmpty || userId == 'guest') ? 'guest_custom_tours' : 'custom_tours_$userId';
+
+  /// true si el tour se creó en modo invitado (sin cuenta)
+  static bool isGuestTour(Map item) {
+    final creator = item['creatorId']?.toString() ?? '';
+    return creator.isEmpty || creator == 'guest';
+  }
+
   /// Obtiene los tours creados por el usuario (en Firestore si está autenticado, o en SharedPreferences si es invitado)
   Future<List<RouteModel>> getUserTours({String? userId}) async {
     final List<RouteModel> results = [];
+    final localKey = localToursKey(userId);
 
-    // 1. Cargar tours locales de SharedPreferences (invitado o caché local)
+    // 1. Cargar tours locales de SharedPreferences (invitado o caché local de esta cuenta)
     try {
       final prefs = await SharedPreferences.getInstance();
-      final str = prefs.getString('guest_custom_tours');
+      final str = prefs.getString(localKey);
       if (str != null && str.isNotEmpty) {
         final List<dynamic> list = jsonDecode(str);
         for (var item in list) {
-          if (item is Map) {
+          // La caché de invitado pudo guardar tours de cuentas (versiones anteriores): se ignoran
+          if (item is Map && (localKey != 'guest_custom_tours' || isGuestTour(item))) {
             results.add(RouteModel.fromMap(
               Map<String, dynamic>.from(item),
               item['id']?.toString() ?? '',
@@ -224,14 +237,15 @@ class RouteRepository {
     // 1. Guardar siempre una copia local en SharedPreferences para acceso offline rápido
     try {
       final prefs = await SharedPreferences.getInstance();
-      final str = prefs.getString('guest_custom_tours');
+      final localKey = localToursKey(userId);
+      final str = prefs.getString(localKey);
       List<dynamic> list = [];
       if (str != null && str.isNotEmpty) {
         list = jsonDecode(str);
       }
       list.removeWhere((item) => item is Map && item['id'] == tour.id);
       list.insert(0, tour.toJsonMap());
-      await prefs.setString('guest_custom_tours', jsonEncode(list));
+      await prefs.setString(localKey, jsonEncode(list));
     } catch (_) {}
 
     // 2. Si está autenticado, guardar en Firestore en su subcolección
@@ -276,11 +290,12 @@ class RouteRepository {
     // 1. Eliminar de SharedPreferences
     try {
       final prefs = await SharedPreferences.getInstance();
-      final str = prefs.getString('guest_custom_tours');
+      final localKey = localToursKey(userId);
+      final str = prefs.getString(localKey);
       if (str != null && str.isNotEmpty) {
         final List<dynamic> list = jsonDecode(str);
         list.removeWhere((item) => item is Map && item['id'] == tourId);
-        await prefs.setString('guest_custom_tours', jsonEncode(list));
+        await prefs.setString(localKey, jsonEncode(list));
       }
     } catch (_) {}
 

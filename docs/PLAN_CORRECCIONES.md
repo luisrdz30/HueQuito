@@ -43,7 +43,22 @@ Pendiente de la fase:
 - Nota: encargados creados antes de este cambio no tienen invitación → el dueño debe volver a guardar la sucursal o el admin reasignarlos.
 - Limitación conocida: el usuario aún puede editar sus propios sellos en su doc (se resuelve en Fase 5).
 
-## Fase 2 — Errores de datos (pendiente)
+## Fase 2 — Errores de datos ✅ (rama `fase2-datos`)
+
+Hecho:
+- Meta gratuita: **100 sellos** (default en `SubscriptionSettings`; textos del dashboard usan `freeTierMaxStamps`/`gracePeriodDays`).
+- `SubscriptionRepository.registerStampsGiven` (transacción) suma sellos y guarda `subscription.gracePeriodStartDate` con hora del servidor al llegar a la meta (una sola vez). `isHuecaSuspended` bloquea el escaneo; `Mi QR` no genera códigos si está suspendida. Reglas: `isGraceStartRecord()` y `stampsAllowed()` (no suben sellos con la gracia vencida). No se oculta la hueca: solo deja de dar sellos.
+- Eliminar cuenta (`utils/account_deletion.dart`): reautenticar (contraseña o Google) → borrar datos (incluye `sector_albums` y `custom_tours`) → borrar Auth. Los datos van antes que Auth porque las reglas exigen sesión.
+- Migración de invitado: ya no corta si no hay sellos; persona y sector por campo (sin pisar los de la cuenta); solo migra tours de invitado.
+- Tours locales por cuenta (`custom_tours_{uid}`); la caché de invitado ignora tours de cuentas.
+- Avisos de suscripción con `message` y `status: 'system'` (historial del dueño, fuera de la moderación y de los comensales).
+- Diálogo de admin aclara que la cuenta de login no se borra. `HuecaBranch` con id estable. Registro: errores traducidos y contraseña sin `trim()`.
+
+Pendiente de la fase:
+- [ ] `firebase deploy --only firestore` (reglas nuevas) y prueba manual.
+- [ ] En el panel admin → Suscripciones, guardar la meta en 100 si `settings/subscription` tiene otro valor.
+
+Detalle original:
 
 1. **Periodo de gracia infinito** — `subscription_repository.evaluateHuecaSubscription`: `gracePeriodStartDate` nunca se guarda (usa "ahora"), nunca suspende. `suspendHueca()` no se llama nunca. Guardar la fecha al detectar el exceso y ocultar/bloquear sellos de huecas suspendidas. El texto "50 sellos" está fijo en `dashboard_screen.dart` aunque el admin cambie `freeTierMaxStamps`.
 2. **Eliminar cuenta** — `auth_repository.deleteAccount` y `profile_screen` borran Firestore antes que Auth; si Auth pide reautenticación, se pierde el progreso pero la cuenta sigue. Orden correcto: reautenticar → borrar Auth → borrar datos (subcolecciones incluidas).

@@ -31,17 +31,48 @@ class AuthRepository {
     await _auth.signOut();
   }
 
-  Future<void> deleteAccount() async {
+  /// true si la cuenta entra con correo y contraseña (y no solo con Google)
+  bool get usesPasswordLogin =>
+      _auth.currentUser?.providerData.any((p) => p.providerId == 'password') ?? false;
+
+  /// Firebase exige un inicio de sesión reciente para borrar la cuenta.
+  /// Cuentas de correo usan [password]; las de Google vuelven a elegir su cuenta de Google.
+  Future<void> reauthenticate({String? password}) async {
     final user = _auth.currentUser;
-    if (user != null) {
-      try {
-        await _db.collection('users').doc(user.uid).delete();
-      } catch (e) {
-        // Ignorar si no existe el documento
-      }
-      await user.delete();
-      await signOut();
+    if (user == null) return;
+
+    if (usesPasswordLogin) {
+      final credential = EmailAuthProvider.credential(email: user.email ?? '', password: password ?? '');
+      await user.reauthenticateWithCredential(credential);
+      return;
     }
+
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      throw FirebaseAuthException(code: 'reauth-cancelled', message: 'Reautenticación cancelada');
+    }
+    final googleAuth = await googleUser.authentication;
+    await user.reauthenticateWithCredential(GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    ));
+  }
+
+  /// Elimina la cuenta en este orden:
+  /// 1. Reautentica (así el borrado de Auth ya no falla por "requires-recent-login").
+  /// 2. Borra los datos de Firestore mientras la sesión aún tiene permiso (las reglas lo exigen).
+  /// 3. Borra la cuenta de Auth.
+  Future<void> deleteAccount({
+    String? password,
+    required Future<void> Function(User user) deleteUserData,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await reauthenticate(password: password);
+    await deleteUserData(user);
+    await user.delete();
+    await signOut();
   }
 
   // Create or Update user doc in Firestore after login

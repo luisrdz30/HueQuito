@@ -290,7 +290,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
           _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, fotos reales y Sticker Secreto imprimible'),
           _buildFeatureCheckItem(Icons.restaurant_menu, 'Pestaña Menú: Digitalización asistida por IA'),
           _buildFeatureCheckItem(Icons.qr_code, 'Pestaña Mi QR: Otorga puntos y sellos con QR dinámico antifraude'),
-          _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros 50 sellos entregados son 100% gratis'),
+          _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros 100 sellos entregados son 100% gratis'),
           _buildFeatureCheckItem(Icons.campaign, 'Pestaña Avisos: Envía promociones a tus clientes'),
           _buildFeatureCheckItem(Icons.bar_chart, 'Pestaña Dashboard: Vistas y favoritos en tiempo real'),
         ],
@@ -565,7 +565,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros 50 sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
+          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros 100 sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
       actionLabel: 'Ver Mi QR',
       onAction: () {
         Navigator.of(context).pop();
@@ -604,7 +604,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Tus primeros 50 sellos son 100% GRATIS',
+                      'Tus primeros 100 sellos son 100% GRATIS',
                       style: TextStyle(
                         color: Colors.green.shade900,
                         fontWeight: FontWeight.bold,
@@ -682,7 +682,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 50 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 50 sellos, se activará la suscripción mensual de \$9.99/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
+          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 100 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 100 sellos, se activará la suscripción mensual de \$9.99/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
       actionLabel: 'Ver Plan y Pagos',
       onAction: () {
         Navigator.of(context).pop();

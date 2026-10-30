@@ -27,8 +27,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _registerWithEmail() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirm = _confirmPasswordController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
       setState(() => _errorMessage = 'Por favor, llena todos los campos');
@@ -109,11 +109,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           context.go('/home');
         }
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = _registerErrorMessage(e.code);
         _isLoading = false;
       });
+    } catch (_) {
+      setState(() {
+        _errorMessage = 'No se pudo crear la cuenta. Inténtalo de nuevo.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _registerErrorMessage(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+        return 'Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.';
+      case 'invalid-email':
+        return 'El correo electrónico no es válido.';
+      case 'weak-password':
+        return 'La contraseña es muy débil. Usa al menos 8 caracteres.';
+      case 'network-request-failed':
+        return 'Sin conexión a internet. Revisa tu red e inténtalo de nuevo.';
+      case 'too-many-requests':
+        return 'Demasiados intentos. Espera un momento e inténtalo de nuevo.';
+      default:
+        return 'No se pudo crear la cuenta. Inténtalo de nuevo.';
     }
   }
 

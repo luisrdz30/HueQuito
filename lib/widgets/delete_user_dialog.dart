@@ -268,6 +268,7 @@ class _DeleteUserDialogContentState extends State<_DeleteUserDialogContent> {
               _buildBulletItem(Icons.person_off_outlined, 'Se borra permanentemente el perfil del usuario'),
               _buildBulletItem(Icons.link_off_outlined, 'Se desvincula de cualquier hueca o sucursal'),
               _buildBulletItem(Icons.lock_reset, 'Se revocan todos los accesos al panel de control'),
+              _buildBulletItem(Icons.info_outline, 'Su cuenta de inicio de sesión no se borra: si vuelve a entrar, empezará como comensal nuevo'),
 
               const SizedBox(height: 16),
               Text(

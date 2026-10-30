@@ -90,6 +90,46 @@ service cloud.firestore {
                .affectedKeys().hasOnly(['status', 'monthlyPrice', 'lastReceipt']);
     }
 
+    // Ajustes globales de suscripción (meta de sellos gratis y días de gracia)
+    function subSettings() {
+      return exists(/databases/$(database)/documents/settings/subscription)
+        ? get(/databases/$(database)/documents/settings/subscription).data
+        : {};
+    }
+
+    function graceDays() {
+      return subSettings().get('gracePeriodDays', 7);
+    }
+
+    // Gracia vencida sin pago (misma lógica que evaluateHuecaSubscription en la app)
+    function subscriptionExpired() {
+      let sub = resource.data.get('subscription', {});
+      let status = sub.get('status', '');
+      let graceStart = sub.get('gracePeriodStartDate', null);
+      let cutoff = sub.get('nextCutoffDate', null);
+      return status == 'suspended' ||
+        (status == 'active' && cutoff is timestamp &&
+         request.time > cutoff + duration.value(graceDays(), 'd')) ||
+        (status != 'active' && status != 'under_review' && graceStart is timestamp &&
+         request.time > graceStart + duration.value(graceDays(), 'd'));
+    }
+
+    // Una hueca con la gracia vencida no puede sumar sellos
+    function stampsAllowed() {
+      return newMetric('stampsGiven') == oldMetric('stampsGiven') || !subscriptionExpired();
+    }
+
+    // Al llegar a la meta de sellos gratis se guarda UNA vez el inicio de la gracia,
+    // siempre con la hora del servidor (nadie puede adelantarla ni reiniciarla)
+    function isGraceStartRecord() {
+      let oldSub = resource.data.get('subscription', {});
+      let newSub = request.resource.data.get('subscription', {});
+      return newSub.diff(oldSub).affectedKeys().hasOnly(['gracePeriodStartDate']) &&
+        oldSub.get('gracePeriodStartDate', null) == null &&
+        newSub.get('gracePeriodStartDate', null) == request.time &&
+        newMetric('stampsGiven') >= subSettings().get('freeTierMaxStamps', 100);
+    }
+
     // =====================================================================
     // 1. HUECAS
     // =====================================================================
@@ -102,16 +142,22 @@ service cloud.firestore {
         || (isHuecaStaff(huecaId)
             && !changedKeys().hasAny(['isActive', 'isSectorConfirmed'])
             && (!changedKeys().hasAny(['ownerId']) || (isHuecaOwner(huecaId) && request.resource.data.ownerId == ''))
-            && (!changedKeys().hasAny(['subscription']) || isValidReceiptSubmission())
+            && (!changedKeys().hasAny(['subscription']) || isValidReceiptSubmission() || isGraceStartRecord())
             && countersAreValid()
+            && stampsAllowed()
             && (!changedKeys().hasAny(['rating', 'reviewCount']) || ratingInRange()))
         // Comensales autenticados: métricas y recálculo de calificación al opinar
         || (isAuthenticated()
-            && changedKeys().hasOnly(['metrics', 'rating', 'reviewCount', 'updatedAt'])
+            && changedKeys().hasOnly(['metrics', 'rating', 'reviewCount', 'updatedAt', 'subscription'])
+            && (!changedKeys().hasAny(['subscription']) || isGraceStartRecord())
             && countersAreValid()
+            && stampsAllowed()
             && ratingIsValid())
         // Invitados: solo métricas (vistas, sellos y canjes en modo invitado)
-        || (changedKeys().hasOnly(['metrics', 'updatedAt']) && countersAreValid());
+        || (changedKeys().hasOnly(['metrics', 'updatedAt', 'subscription'])
+            && (!changedKeys().hasAny(['subscription']) || isGraceStartRecord())
+            && countersAreValid()
+            && stampsAllowed());
 
       // Reseñas: una por usuario (el ID del documento es el UID del autor)
       match /reviews/{reviewId} {

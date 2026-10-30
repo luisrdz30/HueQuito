@@ -7,10 +7,10 @@ import 'package:hue_quito/repositories/user_repository.dart';
 
 void main() {
   group('SubscriptionSettings Unit Tests', () {
-    test('Default values match agreed specifications (\$9.99, 50 stamps, 7 days grace, Pichincha)', () {
+    test('Default values match agreed specifications (\$9.99, 100 stamps, 7 days grace, Pichincha)', () {
       const settings = SubscriptionSettings();
       expect(settings.monthlyPrice, equals(9.99));
-      expect(settings.freeTierMaxStamps, equals(50));
+      expect(settings.freeTierMaxStamps, equals(100));
       expect(settings.gracePeriodDays, equals(7));
       expect(settings.bankName, equals('Banco Pichincha'));
       expect(settings.accountType, equals('Cuenta de ahorros'));

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hue_quito/repositories/route_repository.dart';
 
 class UserModel {
   final String uid;
@@ -639,7 +640,19 @@ class UserRepository {
       } catch (_) {}
     }
 
-    // 4. Eliminar documento del usuario en Firestore
+    // 4. Eliminar subcolecciones privadas (Firestore no las borra junto con el documento)
+    for (final sub in ['sector_albums', 'custom_tours']) {
+      try {
+        final snap = await _db.collection('users').doc(uid).collection(sub).get();
+        for (final doc in snap.docs) {
+          await doc.reference.delete();
+        }
+      } catch (e) {
+        print('Aviso eliminando $sub en deleteUser: $e');
+      }
+    }
+
+    // 5. Eliminar documento del usuario en Firestore
     await _db.collection('users').doc(uid).delete();
   }
 
@@ -889,72 +902,75 @@ class UserRepository {
   Future<void> migrateGuestDataToUser(String uid) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final str = prefs.getString('guest_gamification');
-      if (str == null || str.isEmpty) return;
-      final guestData = Map<String, dynamic>.from(jsonDecode(str));
-
       final docRef = _db.collection('users').doc(uid);
       final doc = await docRef.get();
       if (!doc.exists) return;
       final userData = doc.data() ?? {};
-      final userGamification = Map<String, dynamic>.from(userData['gamification'] ?? {});
 
-      // 1. Fusionar sellos por hueca
-      final guestStamps = Map<String, dynamic>.from(guestData['huecaStamps'] ?? {});
-      final userStamps = Map<String, dynamic>.from(userGamification['huecaStamps'] ?? {});
-      guestStamps.forEach((k, v) {
-        final current = (userStamps[k] as num?)?.toInt() ?? 0;
-        final guestCount = (v as num?)?.toInt() ?? 0;
-        userStamps[k] = current + guestCount;
-      });
+      // 1-3. Sellos y cromos del invitado (si los hay); el quiz y los tours se migran aunque no haya sellos
+      final str = prefs.getString('guest_gamification');
+      if (str != null && str.isNotEmpty) {
+        final guestData = Map<String, dynamic>.from(jsonDecode(str));
+        final userGamification = Map<String, dynamic>.from(userData['gamification'] ?? {});
 
-      // 2. Fusionar cromos secretos
-      final guestStickers = List<dynamic>.from(guestData['collectedStickers'] ?? []);
-      final userStickers = Set<dynamic>.from(userGamification['collectedStickers'] ?? []);
-      userStickers.addAll(guestStickers);
+        // 1. Fusionar sellos por hueca
+        final guestStamps = Map<String, dynamic>.from(guestData['huecaStamps'] ?? {});
+        final userStamps = Map<String, dynamic>.from(userGamification['huecaStamps'] ?? {});
+        guestStamps.forEach((k, v) {
+          final current = (userStamps[k] as num?)?.toInt() ?? 0;
+          final guestCount = (v as num?)?.toInt() ?? 0;
+          userStamps[k] = current + guestCount;
+        });
 
-      // 3. Fusionar puntos y sellos totales
-      final guestPoints = (guestData['points'] as num?)?.toInt() ?? 0;
-      final userPoints = (userGamification['points'] as num?)?.toInt() ?? 0;
-      final guestTotalStamps = (guestData['totalStamps'] as num?)?.toInt() ?? 0;
-      final userTotalStamps = (userGamification['totalStamps'] as num?)?.toInt() ?? 0;
-      final guestRewards = (guestData['rewardsCount'] as num?)?.toInt() ?? 0;
-      final userRewards = (userGamification['rewardsCount'] as num?)?.toInt() ?? 0;
+        // 2. Fusionar cromos secretos
+        final guestStickers = List<dynamic>.from(guestData['collectedStickers'] ?? []);
+        final userStickers = Set<dynamic>.from(userGamification['collectedStickers'] ?? []);
+        userStickers.addAll(guestStickers);
 
-      userGamification['huecaStamps'] = userStamps;
-      userGamification['collectedStickers'] = userStickers.toList();
-      userGamification['points'] = userPoints + guestPoints;
-      userGamification['totalStamps'] = userTotalStamps + guestTotalStamps;
-      userGamification['rewardsCount'] = userRewards + guestRewards;
+        // 3. Fusionar puntos y sellos totales
+        final guestPoints = (guestData['points'] as num?)?.toInt() ?? 0;
+        final userPoints = (userGamification['points'] as num?)?.toInt() ?? 0;
+        final guestTotalStamps = (guestData['totalStamps'] as num?)?.toInt() ?? 0;
+        final userTotalStamps = (userGamification['totalStamps'] as num?)?.toInt() ?? 0;
+        final guestRewards = (guestData['rewardsCount'] as num?)?.toInt() ?? 0;
+        final userRewards = (userGamification['rewardsCount'] as num?)?.toInt() ?? 0;
 
-      await docRef.update({'gamification': userGamification});
-      await prefs.remove('guest_gamification');
+        userGamification['huecaStamps'] = userStamps;
+        userGamification['collectedStickers'] = userStickers.toList();
+        userGamification['points'] = userPoints + guestPoints;
+        userGamification['totalStamps'] = userTotalStamps + guestTotalStamps;
+        userGamification['rewardsCount'] = userRewards + guestRewards;
 
-      // 4. Migrar perfil gastronómico descubierto en el quiz
+        await docRef.update({'gamification': userGamification});
+        await prefs.remove('guest_gamification');
+      }
+
+      // 4 y 5. Perfil gastronómico y sector del quiz: se actualizan campo por campo
+      // para que el sector no pise la persona (antes se reescribía 'preferences' completo).
+      // Solo se copian si la cuenta aún no tiene los suyos.
+      final userPrefs = userData['preferences'] is Map ? userData['preferences'] as Map : const {};
+      final prefUpdates = <String, dynamic>{};
       final guestPersona = prefs.getString('guest_persona') ?? prefs.getString('last_selected_persona');
-      if (guestPersona != null && guestPersona.isNotEmpty) {
-        final currentPrefs = Map<String, dynamic>.from(userData['preferences'] ?? {});
-        currentPrefs['persona'] = guestPersona;
-        await docRef.update({'preferences': currentPrefs});
+      if (guestPersona != null && guestPersona.isNotEmpty && (userPrefs['persona']?.toString() ?? '').isEmpty) {
+        prefUpdates['preferences.persona'] = guestPersona;
         await prefs.setString('last_selected_persona', guestPersona);
       }
-
-      // 5. Migrar sector seleccionado en el quiz
       final guestSector = prefs.getString('guest_sector') ?? prefs.getString('last_selected_sector');
-      if (guestSector != null && guestSector.isNotEmpty) {
-        final currentPrefs = Map<String, dynamic>.from(userData['preferences'] ?? {});
-        currentPrefs['sector'] = guestSector;
-        await docRef.update({'preferences': currentPrefs});
+      if (guestSector != null && guestSector.isNotEmpty && (userPrefs['sector']?.toString() ?? '').isEmpty) {
+        prefUpdates['preferences.sector'] = guestSector;
         await prefs.setString('last_selected_sector', guestSector);
       }
+      if (prefUpdates.isNotEmpty) {
+        await docRef.update(prefUpdates);
+      }
 
-      // 6. Migrar tours personalizados creados como invitado
+      // 6. Migrar tours personalizados creados como invitado (no los de otras cuentas del teléfono)
       final guestToursStr = prefs.getString('guest_custom_tours');
       if (guestToursStr != null && guestToursStr.isNotEmpty) {
         final List<dynamic> guestTours = jsonDecode(guestToursStr);
         final batch = _db.batch();
         for (var t in guestTours) {
-          if (t is Map) {
+          if (t is Map && RouteRepository.isGuestTour(t)) {
             final tourMap = Map<String, dynamic>.from(t);
             final tourId = tourMap['id']?.toString() ?? _db.collection('users').doc(uid).collection('custom_tours').doc().id;
             tourMap['id'] = tourId;
@@ -964,6 +980,7 @@ class UserRepository {
           }
         }
         await batch.commit();
+        await prefs.remove('guest_custom_tours');
       }
     } catch (e) {
       print('Error migrating guest data: $e');

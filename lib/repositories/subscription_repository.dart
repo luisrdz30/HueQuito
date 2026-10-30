@@ -16,7 +16,7 @@ class SubscriptionSettings {
 
   const SubscriptionSettings({
     this.monthlyPrice = 9.99,
-    this.freeTierMaxStamps = 50,
+    this.freeTierMaxStamps = 100,
     this.gracePeriodDays = 7,
     this.bankName = 'Banco Pichincha',
     this.accountType = 'Cuenta de ahorros',
@@ -30,7 +30,7 @@ class SubscriptionSettings {
     if (data == null) return const SubscriptionSettings();
     return SubscriptionSettings(
       monthlyPrice: (data['monthlyPrice'] as num?)?.toDouble() ?? 9.99,
-      freeTierMaxStamps: (data['freeTierMaxStamps'] as num?)?.toInt() ?? 50,
+      freeTierMaxStamps: (data['freeTierMaxStamps'] as num?)?.toInt() ?? 100,
       gracePeriodDays: (data['gracePeriodDays'] as num?)?.toInt() ?? 7,
       bankName: data['bankName']?.toString() ?? 'Banco Pichincha',
       accountType: data['accountType']?.toString() ?? 'Cuenta de ahorros',
@@ -58,11 +58,11 @@ class SubscriptionSettings {
 }
 
 enum HuecaSubscriptionState {
-  freeTier,     // Dentro de los 50 sellos gratis de prueba
-  gracePeriod,  // Superó los 50 sellos, dentro de los 7 días de gracia para pagar
+  freeTier,     // Dentro de los sellos gratis de prueba (freeTierMaxStamps)
+  gracePeriod,  // Llegó a la meta de sellos gratis, dentro de los días de gracia para pagar
   underReview,  // Comprobante de transferencia subido, esperando validación
   active,       // Pago aprobado, suscripción vigente (30 días)
-  suspended,    // 7 días de gracia vencidos sin pagar; oculta en la app
+  suspended,    // Gracia vencida sin pagar: no puede entregar sellos
 }
 
 class HuecaSubscriptionInfo {
@@ -292,6 +292,42 @@ class SubscriptionRepository {
     );
   }
 
+  /// true si la hueca ya no puede entregar sellos (gracia vencida sin pago).
+  Future<bool> isHuecaSuspended(String huecaId) async {
+    try {
+      final snap = await firestore.collection('huecas').doc(huecaId).get();
+      if (!snap.exists) return false;
+      final settings = await getSettings();
+      return evaluateHuecaSubscription(hueca: Hueca.fromFirestore(snap), settings: settings).isLocked;
+    } catch (_) {
+      return false; // Sin conexión no se bloquea al comensal; las reglas de Firestore validan igual
+    }
+  }
+
+  /// Suma los sellos entregados por la hueca. Si con ellos llega a la meta gratuita,
+  /// guarda (una sola vez) la fecha de inicio del periodo de gracia.
+  Future<void> registerStampsGiven(String huecaId, int stamps) async {
+    final settings = await getSettings();
+    final docRef = firestore.collection('huecas').doc(huecaId);
+    await firestore.runTransaction((tx) async {
+      final snap = await tx.get(docRef);
+      final data = snap.data() ?? <String, dynamic>{};
+      final metrics = data['metrics'] is Map ? data['metrics'] as Map : const {};
+      final sub = data['subscription'] is Map ? data['subscription'] as Map : const {};
+      final current = (metrics['stampsGiven'] as num?)?.toInt() ?? 0;
+      final status = sub['status']?.toString();
+
+      final update = <String, dynamic>{'metrics.stampsGiven': FieldValue.increment(stamps)};
+      if (current + stamps >= settings.freeTierMaxStamps &&
+          sub['gracePeriodStartDate'] == null &&
+          status != 'active' &&
+          status != 'under_review') {
+        update['subscription.gracePeriodStartDate'] = FieldValue.serverTimestamp();
+      }
+      tx.update(docRef, update);
+    });
+  }
+
   /// Sube un comprobante de transferencia y pasa el estado a 'under_review'
   Future<void> submitPaymentReceipt({
     required String huecaId,
@@ -363,10 +399,14 @@ class SubscriptionRepository {
     if (ownerId != null && ownerId.isNotEmpty) {
       await firestore.collection('notifications').add({
         'userId': ownerId,
-        'title': '¡Suscripción Aprobada!',
-        'body': 'Tu pago para $huecaName fue validado con éxito. Tu hueca está activa hasta el ${nextCutoff.day}/${nextCutoff.month}/${nextCutoff.year}.',
-        'type': 'subscription_approved',
         'huecaId': huecaId,
+        'huecaName': huecaName,
+        'category': 'suscripcion',
+        'title': '¡Suscripción Aprobada!',
+        'message': 'Tu pago para $huecaName fue validado con éxito. Tu hueca está activa hasta el ${nextCutoff.day}/${nextCutoff.month}/${nextCutoff.year}.',
+        'status': 'system',
+        'type': 'subscription_approved',
+        'createdBy': adminId,
         'createdAt': FieldValue.serverTimestamp(),
         'read': false,
       });
@@ -392,10 +432,14 @@ class SubscriptionRepository {
     if (ownerId != null && ownerId.isNotEmpty) {
       await firestore.collection('notifications').add({
         'userId': ownerId,
-        'title': 'Comprobante no aprobado',
-        'body': 'Hubo una observación con el comprobante de $huecaName: "$reason". Por favor sube un nuevo comprobante.',
-        'type': 'subscription_rejected',
         'huecaId': huecaId,
+        'huecaName': huecaName,
+        'category': 'suscripcion',
+        'title': 'Comprobante no aprobado',
+        'message': 'Hubo una observación con el comprobante de $huecaName: "$reason". Por favor sube un nuevo comprobante.',
+        'status': 'system',
+        'type': 'subscription_rejected',
+        'createdBy': 'admin',
         'createdAt': FieldValue.serverTimestamp(),
         'read': false,
       });

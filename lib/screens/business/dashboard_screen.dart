@@ -631,7 +631,7 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Goza de todas las herramientas de Hue-Quito sin costo hasta alcanzar la meta de 50 sellos entregados a clientes.',
+                  'Goza de todas las herramientas de Hue-Quito sin costo hasta alcanzar la meta de ${subInfo.maxFreeStamps} sellos entregados a clientes.',
                   style: TextStyle(
                     fontSize: 11.5,
                     color: isDark ? Colors.white70 : AppTheme.textMedium,
@@ -874,7 +874,7 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'El periodo de gracia de 7 días ha vencido. Tu hueca está oculta temporalmente de las búsquedas, catálogo y mapas de la aplicación.',
+                  'El periodo de gracia de ${subSettings.gracePeriodDays} días ha vencido. No puedes entregar sellos hasta que se apruebe tu pago.',
                   style: TextStyle(
                     fontSize: 12,
                     height: 1.35,
