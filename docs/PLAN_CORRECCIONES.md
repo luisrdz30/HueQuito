@@ -55,7 +55,8 @@ Hecho:
 - Diálogo de admin aclara que la cuenta de login no se borra. `HuecaBranch` con id estable. Registro: errores traducidos y contraseña sin `trim()`.
 
 Pendiente de la fase:
-- [ ] `firebase deploy --only firestore` (reglas nuevas) y prueba manual.
+- [x] `firebase deploy --only firestore` (reglas nuevas, 30-oct-2026).
+- [ ] Prueba manual en el teléfono.
 - [ ] En el panel admin → Suscripciones, guardar la meta en 100 si `settings/subscription` tiene otro valor.
 
 Detalle original:
