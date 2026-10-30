@@ -104,24 +104,90 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
     }
   }
 
+  /// Sellos entregados hoy (subcolección stamp_history). El encargado solo ve los de su sucursal.
   void _showHistoryModal(BuildContext context) {
+    final hueca = ref.read(myHuecaProvider).value;
+    if (hueca == null) return;
+    final isOwner = ref.read(isOwnerProvider).value ?? true;
+    final managedBranch = ref.read(currentManagedBranchProvider).value;
+    final branchFilter = (!isOwner && managedBranch != null) ? managedBranch.id : null;
+
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final historyFuture = FirebaseFirestore.instance
+        .collection('huecas')
+        .doc(hueca.id)
+        .collection('stamp_history')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .orderBy('date', descending: true)
+        .get();
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Historial de Sellos (Hoy)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              Expanded(
-                child: Center(
-                  child: Text('Próximamente... aquí verás el historial detallado.', style: TextStyle(color: Colors.grey)),
-                ),
-              ),
-            ],
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              future: historyFuture,
+              builder: (context, snapshot) {
+                Widget body;
+                int total = 0;
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  body = const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  body = const Center(
+                    child: Text('No se pudo cargar el historial.', style: TextStyle(color: Colors.grey)),
+                  );
+                } else {
+                  final docs = snapshot.data!.docs
+                      .where((d) => branchFilter == null || (d.data()['branchId'] ?? 'matriz') == branchFilter)
+                      .toList();
+                  total = docs.fold<int>(0, (sum, d) => sum + ((d.data()['stamps'] as num?)?.toInt() ?? 0));
+                  body = docs.isEmpty
+                      ? const Center(
+                          child: Text('Todavía no has entregado sellos hoy.', style: TextStyle(color: Colors.grey)),
+                        )
+                      : ListView.separated(
+                          itemCount: docs.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, i) {
+                            final data = docs[i].data();
+                            final stamps = (data['stamps'] as num?)?.toInt() ?? 0;
+                            final date = data['date'] is Timestamp ? (data['date'] as Timestamp).toDate() : null;
+                            final time = date != null
+                                ? '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'
+                                : '--:--';
+                            final isGuest = (data['userId'] ?? '').toString().startsWith('guest');
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: CircleAvatar(
+                                backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
+                                child: Text('+$stamps',
+                                    style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                              ),
+                              title: Text(isGuest ? 'Cliente invitado' : 'Cliente registrado'),
+                              subtitle: Text(data['branchName']?.toString() ?? 'Matriz Principal'),
+                              trailing: Text(time, style: const TextStyle(fontWeight: FontWeight.w600)),
+                            );
+                          },
+                        );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Historial de Sellos (Hoy)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('$total sellos entregados', style: const TextStyle(color: Colors.grey)),
+                    const SizedBox(height: 16),
+                    Expanded(child: body),
+                  ],
+                );
+              },
+            ),
           ),
         );
       },

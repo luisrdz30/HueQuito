@@ -237,14 +237,6 @@ service cloud.firestore {
     }
 
     // =====================================================================
-    // 3. RUTAS OFICIALES (heredado; los tours ahora viven en users/{uid}/custom_tours)
-    // =====================================================================
-    match /routes/{routeId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // =====================================================================
     // 4. SOLICITUDES DE HUECAS
     // =====================================================================
     match /hueca_requests/{requestId} {

@@ -441,55 +441,6 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     );
   }
 
-  void _showStaticQrDialog(
-    BuildContext context,
-    String qrSecret,
-    String huecaId,
-  ) {
-    // Generate the static JSON payload for the secret sticker
-    final qrData = jsonEncode({
-      'type': 'secret_sticker',
-      'business_id': huecaId,
-      'secret': qrSecret,
-    });
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('QR Sticker Secreto', textAlign: TextAlign.center),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Imprime este QR y colócalo en un lugar visible de tu local.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(16),
-                color: Colors.white,
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  backgroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showScheduleEditDialog(
     BuildContext context,
     Hueca hueca, {

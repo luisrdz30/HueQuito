@@ -29,12 +29,6 @@ final routeRepositoryProvider = Provider<RouteRepository>((ref) {
   return RouteRepository();
 });
 
-// Cache the list of routes globally
-final routesProvider = FutureProvider<List<RouteModel>>((ref) async {
-  final repository = ref.watch(routeRepositoryProvider);
-  return await repository.getRoutes();
-});
-
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository();
 });
@@ -131,11 +125,6 @@ final myHuecaNotificationsProvider = StreamProvider.autoDispose.family<List<Noti
 final allHuecasStreamProvider = StreamProvider<List<Hueca>>((ref) {
   final repo = ref.watch(huecaRepositoryProvider);
   return repo.streamAllHuecas();
-});
-
-final allRoutesStreamProvider = StreamProvider<List<RouteModel>>((ref) {
-  final repo = ref.watch(routeRepositoryProvider);
-  return repo.streamRoutes();
 });
 
 final allUsersStreamProvider = StreamProvider<List<UserModel>>((ref) {

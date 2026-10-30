@@ -6,12 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
-import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/screens/admin/admin_dashboard_screen.dart';
 import 'package:hue_quito/screens/admin/admin_huecas_screen.dart';
-import 'package:hue_quito/screens/admin/admin_routes_screen.dart';
-import 'package:hue_quito/screens/admin/admin_route_edit_screen.dart';
 import 'package:hue_quito/screens/admin/admin_users_screen.dart';
 
 class _FakeHttpOverrides extends HttpOverrides {
@@ -156,20 +153,6 @@ void main() {
     managedHuecaId: 'h1',
   );
 
-  final dummyRoute = RouteModel(
-    id: 'r1',
-    name: {'es': 'Ruta del Hornado y Tradición', 'en': 'Pork and Tradition Tour'},
-    narrative: {'es': 'Un viaje por los sabores más tradicionales', 'en': 'A trip around traditional flavors'},
-    bannerImageUrl: 'https://example.com/route.jpg',
-    tags: ['Tradicional', 'Centro'],
-    metrics: {'distance': '3.2 km', 'estimatedTime': '2 horas'},
-    recommendedSchedule: {'time': {'es': 'Mañanas'}, 'note': {'es': 'Zapatos cómodos'}},
-    stops: [
-      {'order': 1, 'huecaId': 'h1', 'huecaName': 'Hornado Doña Rosita', 'sector': 'Centro Histórico'},
-      {'order': 2, 'huecaId': 'h2', 'huecaName': 'Pailas de San Agustín', 'sector': 'Centro Histórico'},
-    ],
-  );
-
   testWidgets('AdminDashboardScreen renders KPIs, metrics and quick actions', (tester) async {
     await tester.binding.setSurfaceSize(const Size(450, 950));
 
@@ -178,7 +161,6 @@ void main() {
         overrides: [
           allHuecasStreamProvider.overrideWith((ref) => Stream.value([dummyHueca1, dummyHueca2])),
           allUsersStreamProvider.overrideWith((ref) => Stream.value([dummyUser1, dummyUser2])),
-          allRoutesStreamProvider.overrideWith((ref) => Stream.value([dummyRoute])),
           pendingNotificationsProvider.overrideWith((ref) => Stream.value([])),
           pendingHuecaRequestsProvider.overrideWith((ref) => Stream.value([])),
           newSupportMessagesProvider.overrideWith((ref) => Stream.value([])),
@@ -303,54 +285,5 @@ void main() {
     // Cancelar diálogo
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
-  });
-
-  testWidgets('AdminRoutesScreen renders route card with stops and metrics', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(450, 950));
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          allRoutesStreamProvider.overrideWith((ref) => Stream.value([dummyRoute])),
-        ],
-        child: const MaterialApp(
-          home: AdminRoutesScreen(),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    expect(find.text('Ruta del Hornado y Tradición'), findsOneWidget);
-    expect(find.text('2 paradas'), findsOneWidget);
-    expect(find.text('3.2 km'), findsOneWidget);
-    expect(find.text('2 horas'), findsOneWidget);
-  });
-
-  testWidgets('AdminRouteEditScreen renders bilingual fields, translation banner and buttons', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(450, 950));
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          allHuecasStreamProvider.overrideWith((ref) => Stream.value([dummyHueca1, dummyHueca2])),
-        ],
-        child: const MaterialApp(
-          home: AdminRouteEditScreen(),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nueva Ruta Gastronómica'), findsOneWidget);
-    expect(find.text('Traducción Automática Multilingüe'), findsOneWidget);
-    expect(find.text('✨ Traducir Todo al Inglés'), findsOneWidget);
-    expect(find.text('Nombre de la Ruta (Español) *'), findsOneWidget);
-    expect(find.text('Nombre en Inglés (Traducción)'), findsOneWidget);
-    expect(find.text('Historia o descripción (Español) *'), findsOneWidget);
-    expect(find.text('Historia o descripción (Inglés)'), findsOneWidget);
-    expect(find.text('Añadir Parada'), findsOneWidget);
-    expect(find.text('Crear Ruta Gastronómica'), findsOneWidget);
   });
 }

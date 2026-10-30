@@ -103,40 +103,6 @@ class RouteModel {
 class RouteRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<List<RouteModel>> getRoutes() async {
-    try {
-      final snapshot = await _db.collection('routes').get();
-      return snapshot.docs.map((doc) => RouteModel.fromFirestore(doc)).toList();
-    } catch (e) {
-      print('Error fetching routes: $e');
-      return [];
-    }
-  }
-
-  Stream<List<RouteModel>> streamRoutes() {
-    return _db.collection('routes').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => RouteModel.fromFirestore(doc)).toList();
-    });
-  }
-
-  Future<void> addRoute(Map<String, dynamic> routeData) async {
-    final String id = routeData['id'] ?? _db.collection('routes').doc().id;
-    routeData['id'] = id;
-    await _db.collection('routes').doc(id).set(routeData);
-  }
-
-  Future<void> saveRoute(Map<String, dynamic> routeData) async {
-    final String id = (routeData['id'] != null && routeData['id'].toString().isNotEmpty)
-        ? routeData['id'].toString()
-        : _db.collection('routes').doc().id;
-    routeData['id'] = id;
-    await _db.collection('routes').doc(id).set(routeData, SetOptions(merge: true));
-  }
-
-  Future<void> deleteRoute(String routeId) async {
-    await _db.collection('routes').doc(routeId).delete();
-  }
-
   // ==========================================
   // TOURS PERSONALIZADOS DEL USUARIO (CUSTOM TOURS)
   // ==========================================

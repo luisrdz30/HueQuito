@@ -15,9 +15,7 @@ import 'package:hue_quito/screens/hueca_detail_screen.dart';
 import 'package:hue_quito/screens/route_detail_screen.dart';
 import 'package:hue_quito/screens/map_screen.dart';
 import 'package:hue_quito/screens/route_map_screen.dart';
-import 'package:hue_quito/screens/navigation_screen.dart';
 import 'package:hue_quito/screens/route_navigation_screen.dart';
-import 'package:hue_quito/screens/reward_screen.dart';
 import 'package:hue_quito/screens/main_layout.dart';
 import 'package:hue_quito/screens/business/business_layout.dart';
 import 'package:hue_quito/screens/business/dashboard_screen.dart';
@@ -32,8 +30,6 @@ import 'package:hue_quito/screens/admin/admin_layout.dart';
 import 'package:hue_quito/screens/admin/admin_dashboard_screen.dart';
 import 'package:hue_quito/screens/admin/admin_huecas_screen.dart';
 import 'package:hue_quito/screens/admin/admin_hueca_edit_screen.dart';
-import 'package:hue_quito/screens/admin/admin_routes_screen.dart';
-import 'package:hue_quito/screens/admin/admin_route_edit_screen.dart';
 import 'package:hue_quito/screens/admin/admin_users_screen.dart';
 import 'package:hue_quito/screens/admin/admin_reviews_screen.dart';
 import 'package:hue_quito/screens/admin/admin_notifications_screen.dart';
@@ -221,13 +217,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       ),
       GoRoute(
-        path: '/navigation',
-        builder: (context, state) {
-          final extra = state.extra as dynamic; 
-          return NavigationScreen(targetHueca: extra);
-        }
-      ),
-      GoRoute(
         path: '/route_navigation',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>; 
@@ -241,10 +230,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/create_tour',
         builder: (context, state) => const TourCreatorScreen(),
-      ),
-      GoRoute(
-        path: '/reward',
-        builder: (context, state) => const RewardScreen(),
       ),
       GoRoute(
         path: '/hueca_request',
@@ -331,17 +316,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             huecaId: huecaId,
             initialHueca: initialHueca,
           );
-        },
-      ),
-      GoRoute(
-        path: '/admin/routes/new',
-        builder: (context, state) => const AdminRouteEditScreen(),
-      ),
-      GoRoute(
-        path: '/admin/routes/edit',
-        builder: (context, state) {
-          final extra = state.extra as RouteModel?;
-          return AdminRouteEditScreen(routeModel: extra);
         },
       ),
       GoRoute(

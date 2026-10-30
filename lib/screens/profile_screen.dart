@@ -166,7 +166,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
     updateSetting();
     ref.invalidate(huecasProvider);
-    ref.invalidate(routesProvider);
   }
 
   @override

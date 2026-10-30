@@ -644,32 +644,6 @@ class HuecaRepository {
         print('Error deleting branch invitations: $e');
       }
 
-      // 4. Limpiar paradas en rutas que contengan esta hueca o sus sucursales
-      try {
-        final routesSnap = await _db.collection('routes').get();
-        for (final rDoc in routesSnap.docs) {
-          final rData = rDoc.data();
-          final stops = rData['stops'] as List<dynamic>?;
-          if (stops != null && stops.isNotEmpty) {
-            final filteredStops = stops.where((s) {
-              if (s is Map) {
-                final sId = s['huecaId']?.toString() ?? s['id']?.toString();
-                return sId == null || !branchIds.contains(sId);
-              } else if (s is String) {
-                return !branchIds.contains(s);
-              }
-              return true;
-            }).toList();
-
-            if (filteredStops.length != stops.length) {
-              await rDoc.reference.update({'stops': filteredStops});
-            }
-          }
-        }
-      } catch (e) {
-        print('Error cleaning routes for hueca: $e');
-      }
-
       // 5. Remover de favoritos y suscripciones de usuarios
       try {
         final favUsers = await _db
