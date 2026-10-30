@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
@@ -22,6 +23,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
   late Timer _timer;
   String _qrToken = const Uuid().v4();
   StreamSubscription<DocumentSnapshot>? _tokenSubscription;
+  String? _registeredToken;
 
   @override
   void initState() {
@@ -80,6 +82,25 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
         _qrToken = newToken;
       });
       _listenToToken(newToken);
+    }
+  }
+
+  /// Registra el QR emitido (issued_qr_tokens): las reglas solo dejan canjear códigos
+  /// que el negocio generó, con los sellos que el negocio eligió.
+  Future<void> _registerIssuedToken(String huecaId, String branchId) async {
+    if (_registeredToken == _qrToken) return;
+    final token = _qrToken;
+    _registeredToken = token;
+    try {
+      await FirebaseFirestore.instance.collection('issued_qr_tokens').doc(token).set({
+        'huecaId': huecaId,
+        'branchId': branchId,
+        'points': _stampCount,
+        'createdBy': FirebaseAuth.instance.currentUser?.uid ?? '',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      if (_registeredToken == token) _registeredToken = null;
     }
   }
 
@@ -288,6 +309,8 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
           final isOwner = ref.watch(isOwnerProvider).value ?? true;
           final branchId = (!isOwner && managedBranch != null) ? managedBranch.id : 'matriz';
           final branchName = (!isOwner && managedBranch != null) ? managedBranch.name : 'Matriz Principal';
+
+          _registerIssuedToken(hueca.id, branchId);
 
           final qrData = jsonEncode({
             'type': 'points',

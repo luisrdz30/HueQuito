@@ -320,9 +320,25 @@ service cloud.firestore {
     // =====================================================================
     // 10. TOKENS DE QR DE UN SOLO USO
     // =====================================================================
+    // QR emitidos por el negocio (uno por código, con los sellos elegidos)
+    match /issued_qr_tokens/{token} {
+      allow read: if true;
+      allow create: if isHuecaStaff(request.resource.data.huecaId)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.points is int
+        && request.resource.data.points >= 1 && request.resource.data.points <= 10
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+
     match /redeemed_qr_tokens/{token} {
       allow read: if true;
-      allow create: if true; // 'create' falla si el token ya existe: no se puede reutilizar
+      // 'create' falla si el token ya existe: no se puede reutilizar.
+      // Solo se canjean QR emitidos por esa hueca, con sus mismos sellos y con menos de 10 minutos.
+      allow create: if exists(/databases/$(database)/documents/issued_qr_tokens/$(token))
+        && get(/databases/$(database)/documents/issued_qr_tokens/$(token)).data.huecaId == request.resource.data.huecaId
+        && get(/databases/$(database)/documents/issued_qr_tokens/$(token)).data.points == request.resource.data.points
+        && request.time < get(/databases/$(database)/documents/issued_qr_tokens/$(token)).data.createdAt + duration.value(10, 'm');
       allow update, delete: if isAdmin();
     }
 

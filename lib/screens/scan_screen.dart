@@ -73,8 +73,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
         if ((sSecret.isNotEmpty && sSecret == rawCode) ||
             (sCode.isNotEmpty && sCode == rawCode) ||
-            (sId.isNotEmpty && sId == rawCode) ||
-            h.id.trim() == rawCode) {
+            (sId.isNotEmpty && sId == rawCode)) {
           matchedHueca = h;
           if (s['name'] is Map) {
             matchedStickerName = s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? matchedStickerName;
@@ -130,20 +129,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           'sticker_image': matchedStickerImage,
           'secret': rawCode,
         };
-      } else if (rawCode.toLowerCase().contains('sticker') ||
-          rawCode.toLowerCase().contains('cromo') ||
-          rawCode.toLowerCase().contains('secreto')) {
-        parsed = {
-          'type': 'secret_sticker',
-          'business_id': '',
-          'branch_id': 'matriz',
-          'branch_name': isEn ? 'Secret Spot' : 'Puesto Secreto',
-          'sticker_name': isEn ? 'Secret Sticker' : 'Sticker Secreto',
-          'secret': rawCode,
-        };
       } else {
         parsed = {'type': 'unknown', 'raw': rawCode};
       }
+    }
+
+    final parsedType = parsed['type']?.toString();
+    if ((parsedType == 'secret_sticker' || parsedType == 'cromo') && !_isValidStickerSecret(parsed)) {
+      parsed = {'type': 'unknown', 'raw': rawCode};
     }
 
     setState(() {
@@ -151,6 +144,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       _scannedData = parsed;
       _isProcessing = false;
     });
+  }
+
+  /// El cromo solo vale si su secreto es el de esa hueca o sucursal (antes bastaba con
+  /// el ID público de la hueca o cualquier texto con "sticker"/"cromo").
+  bool _isValidStickerSecret(Map<String, dynamic> data) {
+    final huecaId = data['business_id']?.toString().trim() ?? '';
+    final secret = data['secret']?.toString().trim() ?? '';
+    if (huecaId.isEmpty || secret.isEmpty) return false;
+
+    final hueca = (ref.read(huecasProvider).value ?? []).where((h) => h.id == huecaId).firstOrNull;
+    // Sin la lista de huecas (p. ej. sin conexión) no se puede verificar: no se bloquea
+    if (hueca == null) return (ref.read(huecasProvider).value ?? []).isEmpty;
+
+    final branchId = data['branch_id']?.toString().trim() ?? 'matriz';
+    final branch = hueca.branches.where((b) => b.id == branchId).firstOrNull;
+    final sticker = (branch?.secretSticker?.isNotEmpty ?? false) ? branch!.secretSticker! : hueca.secretSticker;
+
+    final valid = <String>{
+      for (final key in ['qrSecret', 'code', 'id'])
+        if ((sticker[key]?.toString().trim() ?? '').isNotEmpty) sticker[key].toString().trim(),
+    };
+    // QR impresos sin secreto guardado usan este valor por defecto (qr_secret_sticker_screen)
+    if (valid.isEmpty) valid.add('STICKER_$huecaId');
+    return valid.contains(secret);
   }
 
   Future<void> _saveScannedData() async {
@@ -332,7 +349,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           return;
         }
 
-        // 3. Verificar en Firestore de forma atómica para que NADIE MÁS en otro teléfono pueda canjearlo
+        // 3. El QR debe haber sido emitido por la hueca; los sellos son los que eligió el negocio
+        //    (no los del JSON, que cualquiera podría editar)
+        try {
+          final issued = await FirebaseFirestore.instance.collection('issued_qr_tokens').doc(token).get();
+          final issuedData = issued.data();
+          if (!issued.exists || issuedData == null || issuedData['huecaId'] != targetHuecaId) {
+            closeLoadingDialog();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isEn
+                    ? 'Invalid QR code. Please request a new code from the store.'
+                    : 'Código QR no válido. Solicita al negocio generar uno nuevo.'),
+                backgroundColor: Colors.red.shade700,
+              ));
+            }
+            _resetScanner();
+            return;
+          }
+          _scannedData!['points'] = (issuedData['points'] as num?)?.toInt() ?? 1;
+        } catch (_) {
+          // Sin conexión: se sigue con el QR; las reglas validan el canje al sincronizar
+        }
+
+        // 4. Verificar en Firestore de forma atómica para que NADIE MÁS en otro teléfono pueda canjearlo
         bool alreadyUsedInCloud = false;
         try {
           final tokenRef = FirebaseFirestore.instance.collection('redeemed_qr_tokens').doc(token);
