@@ -135,13 +135,13 @@ class UserRepository {
           final albums = await _db.collection('users').doc(user.uid).collection('sector_albums').get();
           userModel.sectorAlbums.addAll(albums.docs.map((d) => d.data()).toList());
         } catch (albumError) {
-          print('Warning: error fetching sector albums: $albumError');
+          debugPrint('Warning: error fetching sector albums: $albumError');
         }
 
         return userModel;
       }
     } catch (e) {
-      print('Error fetching user: $e');
+      debugPrint('Error fetching user: $e');
     }
 
     // Resilient fallback: If Firebase Auth is authenticated, NEVER return null (which drops to guest mode)!
@@ -363,7 +363,7 @@ class UserRepository {
           await doc.reference.update({'ownerId': ''});
         }
       } catch (e) {
-        print('Error clearing owned huecas for user $uid: $e');
+        debugPrint('Error clearing owned huecas for user $uid: $e');
       }
     }
     await _db.collection('users').doc(uid).set(updates, SetOptions(merge: true));
@@ -393,7 +393,7 @@ class UserRepository {
         }
       }
     } catch (e) {
-      print('Error cleaning previous huecas for user $uid: $e');
+      debugPrint('Error cleaning previous huecas for user $uid: $e');
     }
 
     // 2. Desvincular de sucursales si tenía alguna asignada (regla 1-a-1)
@@ -438,7 +438,7 @@ class UserRepository {
           }
         }
       } catch (e) {
-        print('Error unlinking old owner of hueca $cleanHuecaId: $e');
+        debugPrint('Error unlinking old owner of hueca $cleanHuecaId: $e');
       }
 
       // 4. Asignar la hueca al usuario
@@ -478,7 +478,7 @@ class UserRepository {
         await doc.reference.update({'ownerId': ''});
       }
     } catch (e) {
-      print('Error unlinking previous hueca owner: $e');
+      debugPrint('Error unlinking previous hueca owner: $e');
     }
 
     // 2. Desvincular este correo de cualquier otra sucursal y asignar a la sucursal deseada
@@ -507,7 +507,7 @@ class UserRepository {
         }
       }
     } catch (e) {
-      print('Error assigning branch to user: $e');
+      debugPrint('Error assigning branch to user: $e');
     }
 
     // 3. Registrar la invitación vigente: las reglas de seguridad la usan para dar
@@ -606,7 +606,7 @@ class UserRepository {
         await doc.reference.update({'ownerId': ''});
       }
     } catch (e) {
-      print('Aviso desvinculando ownerId en deleteUser: $e');
+      debugPrint('Aviso desvinculando ownerId en deleteUser: $e');
     }
 
     // 2. Desvincular de sucursales donde su email sea managerEmail
@@ -631,7 +631,7 @@ class UserRepository {
           }
         }
       } catch (e) {
-        print('Aviso desvinculando managerEmail en deleteUser: $e');
+        debugPrint('Aviso desvinculando managerEmail en deleteUser: $e');
       }
 
       // 3. Eliminar invitaciones de sucursal pendientes para este correo
@@ -648,7 +648,7 @@ class UserRepository {
           await doc.reference.delete();
         }
       } catch (e) {
-        print('Aviso eliminando $sub en deleteUser: $e');
+        debugPrint('Aviso eliminando $sub en deleteUser: $e');
       }
     }
 
@@ -717,7 +717,7 @@ class UserRepository {
           await albumDoc.reference.delete();
         }
       } catch (e) {
-        print('Aviso limpiando albumes de explorador: $e');
+        debugPrint('Aviso limpiando albumes de explorador: $e');
       }
 
       // Decrementar métricas de favoritos en las huecas que tenía marcadas
@@ -772,7 +772,7 @@ class UserRepository {
         await _auth.setLanguageCode('es');
         await _auth.sendPasswordResetEmail(email: cleanEmail);
       } catch (e) {
-        print('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
+        debugPrint('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
       }
 
       final docSnap = await _db.collection('users').doc(targetUid).get();
@@ -864,7 +864,7 @@ class UserRepository {
       await _auth.setLanguageCode('es');
       await _auth.sendPasswordResetEmail(email: cleanEmail);
     } catch (e) {
-      print('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
+      debugPrint('Aviso: No se pudo enviar el correo de definición de contraseña: $e');
     }
 
     final docSnap = await _db.collection('users').doc(newUid).get();
@@ -983,7 +983,7 @@ class UserRepository {
         await prefs.remove('guest_custom_tours');
       }
     } catch (e) {
-      print('Error migrating guest data: $e');
+      debugPrint('Error migrating guest data: $e');
     }
   }
 

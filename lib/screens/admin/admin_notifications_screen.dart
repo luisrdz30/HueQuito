@@ -261,7 +261,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
         ),
       ),
       child: Column(
@@ -338,7 +338,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
             color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: badgeCount > 0 ? iconColor.withOpacity(0.4) : Colors.white.withOpacity(0.06),
+              color: badgeCount > 0 ? iconColor.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.06),
             ),
           ),
           child: Row(
@@ -346,7 +346,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.15),
+                  color: iconColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: iconColor, size: 18),
@@ -439,7 +439,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          separatorBuilder: (_, _) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final item = items[index];
             return _buildPendingCard(item, isDark);
@@ -752,7 +752,7 @@ class _AdminNotificationsScreenState extends ConsumerState<AdminNotificationsScr
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: filteredItems.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final item = filteredItems[index];
                         return _buildHistoryItem(item, isDark);

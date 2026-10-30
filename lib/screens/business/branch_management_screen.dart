@@ -244,9 +244,9 @@ class _BranchManagementScreenState extends ConsumerState<BranchManagementScreen>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.08),
+                      color: AppTheme.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -435,7 +435,7 @@ class _BranchManagementScreenState extends ConsumerState<BranchManagementScreen>
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: isAdmin ? const Color(0xFFF1F5F9) : Colors.grey.withOpacity(0.1),
+                                    color: isAdmin ? const Color(0xFFF1F5F9) : Colors.grey.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/services/gemini_menu_service.dart';
@@ -54,10 +54,10 @@ class MenuOcrService {
     try {
       final hasKey = await GeminiMenuService.hasApiKey();
       if (hasKey) {
-        print('[MENU_AI] Extrayendo platos con Google Gemini 1.5 Flash...');
+        debugPrint('[MENU_AI] Extrayendo platos con Google Gemini 1.5 Flash...');
         final geminiDishes = await GeminiMenuService.extractDishesFromImage(imagePath);
         if (geminiDishes.isNotEmpty) {
-          print('[MENU_AI] Gemini 1.5 Flash extrajo ${geminiDishes.length} platos exitosamente.');
+          debugPrint('[MENU_AI] Gemini 1.5 Flash extrajo ${geminiDishes.length} platos exitosamente.');
           return MenuOcrResult(
             dishes: geminiDishes,
             rawText: 'Digitalización inteligente realizada con Google Gemini 1.5 Flash Vision (${geminiDishes.length} platos extraídos con traducción bilingüe).',
@@ -68,7 +68,7 @@ class MenuOcrService {
       if (e is GeminiApiKeyMissingException) {
         rethrow;
       }
-      print('[MENU_AI] Error con Gemini, recurriendo a fallback ML Kit: $e');
+      debugPrint('[MENU_AI] Error con Gemini, recurriendo a fallback ML Kit: $e');
     }
 
     // 2. Fallback a Google ML Kit on-device (no existe en web)
@@ -109,12 +109,12 @@ class MenuOcrService {
       final rawText = recognizedText.text;
 
       final List<Map<String, dynamic>> parsedDishes = await _parseRecognizedTextToDishes(recognizedText);
-      print('[OCR_DEBUG] ML Kit blocks: ${recognizedText.blocks.length}, rawText chars: ${rawText.length}');
-      print('[OCR_DEBUG] Dishes detected (${parsedDishes.length}): ${parsedDishes.map((d) => d['name']['es']).toList()}');
+      debugPrint('[OCR_DEBUG] ML Kit blocks: ${recognizedText.blocks.length}, rawText chars: ${rawText.length}');
+      debugPrint('[OCR_DEBUG] Dishes detected (${parsedDishes.length}): ${parsedDishes.map((d) => d['name']['es']).toList()}');
 
       return MenuOcrResult(dishes: parsedDishes, rawText: rawText);
     } catch (e) {
-      print('Error en MenuOcrService: $e');
+      debugPrint('Error en MenuOcrService: $e');
       return MenuOcrResult(dishes: [], rawText: '');
     } finally {
       await textRecognizer.close();

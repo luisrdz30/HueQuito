@@ -320,7 +320,7 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen>
                   );
                 },
                 loading: () => const Text('Nuevos'),
-                error: (_, __) => const Text('Nuevos'),
+                error: (_, _) => const Text('Nuevos'),
               ),
             ),
             const Tab(text: 'Leídos'),

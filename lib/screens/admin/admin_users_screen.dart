@@ -241,7 +241,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
                           isExpanded: true,
-                          value: assignmentType,
+                          initialValue: assignmentType,
                           dropdownColor: Colors.white,
                           style: const TextStyle(color: Color(0xFF0F172A)),
                           decoration: InputDecoration(
@@ -314,7 +314,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
                               return DropdownButtonFormField<String?>(
                                 isExpanded: true,
-                                value: validValue,
+                                initialValue: validValue,
                                 dropdownColor: Colors.white,
                                 style: const TextStyle(color: Color(0xFF0F172A)),
                                 decoration: InputDecoration(
@@ -346,7 +346,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String?>(
                             isExpanded: true,
-                            value: selectedHuecaId,
+                            initialValue: selectedHuecaId,
                             dropdownColor: Colors.white,
                             style: const TextStyle(color: Color(0xFF0F172A)),
                             decoration: InputDecoration(
@@ -387,7 +387,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                           else
                             DropdownButtonFormField<String?>(
                               isExpanded: true,
-                              value: currentBranches.any((b) => b.id == selectedBranchId)
+                              initialValue: currentBranches.any((b) => b.id == selectedBranchId)
                                   ? selectedBranchId
                                   : currentBranches.first.id,
                               dropdownColor: Colors.white,
@@ -775,7 +775,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       isExpanded: true,
-                      value: selectedRole,
+                      initialValue: selectedRole,
                       dropdownColor: Colors.white,
                       style: const TextStyle(color: Color(0xFF0F172A)),
                       decoration: InputDecoration(
@@ -803,7 +803,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: assignmentType,
+                        initialValue: assignmentType,
                         dropdownColor: Colors.white,
                         style: const TextStyle(color: Color(0xFF0F172A)),
                         decoration: InputDecoration(
@@ -877,7 +877,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
                             return DropdownButtonFormField<String?>(
                               isExpanded: true,
-                              value: validValue,
+                              initialValue: validValue,
                               dropdownColor: Colors.white,
                               style: const TextStyle(color: Color(0xFF0F172A)),
                               decoration: InputDecoration(
@@ -911,7 +911,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String?>(
                           isExpanded: true,
-                          value: selectedHuecaId,
+                          initialValue: selectedHuecaId,
                           dropdownColor: Colors.white,
                           style: const TextStyle(color: Color(0xFF0F172A)),
                           decoration: InputDecoration(
@@ -953,7 +953,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                         else
                           DropdownButtonFormField<String?>(
                             isExpanded: true,
-                            value: currentBranches.any((b) => b.id == selectedBranchId)
+                            initialValue: currentBranches.any((b) => b.id == selectedBranchId)
                                 ? selectedBranchId
                                 : currentBranches.first.id,
                             dropdownColor: Colors.white,

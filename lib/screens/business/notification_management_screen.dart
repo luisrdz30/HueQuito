@@ -1477,7 +1477,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String?>(
-                value: _selectedBranchId,
+                initialValue: _selectedBranchId,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
@@ -2014,7 +2014,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: filteredItems.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final item = filteredItems[index];
                         return _buildHistoryCard(item, isDark);

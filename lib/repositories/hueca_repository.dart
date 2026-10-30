@@ -614,7 +614,7 @@ class HuecaRepository {
             await doc.reference.delete();
           }
         } catch (e) {
-          print('Error deleting subcollection $sub: $e');
+          debugPrint('Error deleting subcollection $sub: $e');
         }
       }
 
@@ -628,7 +628,7 @@ class HuecaRepository {
           await doc.reference.delete();
         }
       } catch (e) {
-        print('Error deleting notifications for hueca: $e');
+        debugPrint('Error deleting notifications for hueca: $e');
       }
 
       // 3. Eliminar invitaciones de sucursales vinculadas a esta hueca
@@ -641,7 +641,7 @@ class HuecaRepository {
           await doc.reference.delete();
         }
       } catch (e) {
-        print('Error deleting branch invitations: $e');
+        debugPrint('Error deleting branch invitations: $e');
       }
 
       // 5. Remover de favoritos y suscripciones de usuarios
@@ -731,7 +731,7 @@ class HuecaRepository {
             'managedBranchId': FieldValue.delete(),
           });
         } catch (e) {
-          print('Error resetting owner role: $e');
+          debugPrint('Error resetting owner role: $e');
         }
       }
 
@@ -757,7 +757,7 @@ class HuecaRepository {
       // 7. Eliminar el documento principal de la hueca
       await huecaRef.delete();
     } catch (e) {
-      print('Error in deleteHueca: $e');
+      debugPrint('Error in deleteHueca: $e');
       rethrow;
     }
   }
@@ -840,7 +840,7 @@ class HuecaRepository {
         'rating': realRating,
       };
     } catch (e) {
-      print('Error in syncHuecaMetrics: $e');
+      debugPrint('Error in syncHuecaMetrics: $e');
       return {
         'favoriteCount': 0,
         'routeAdditions': 0,
@@ -891,7 +891,7 @@ class HuecaRepository {
           updated = true;
         }
       } catch (e) {
-        print('Error actualizando por doc ID direct: $e');
+        debugPrint('Error actualizando por doc ID direct: $e');
       }
     }
 
@@ -904,7 +904,7 @@ class HuecaRepository {
           updated = true;
         }
       } catch (e) {
-        print('Error actualizando por data id: $e');
+        debugPrint('Error actualizando por data id: $e');
       }
     }
 
@@ -919,7 +919,7 @@ class HuecaRepository {
             updated = true;
           }
         } catch (e) {
-          print('Error actualizando por name: $e');
+          debugPrint('Error actualizando por name: $e');
         }
       }
     }
@@ -941,7 +941,7 @@ class HuecaRepository {
         }
       }
     } catch (e) {
-      print('Error cleaning previous owner of hueca $huecaId: $e');
+      debugPrint('Error cleaning previous owner of hueca $huecaId: $e');
     }
 
     if (cleanOwnerId.isNotEmpty) {
@@ -957,7 +957,7 @@ class HuecaRepository {
           }
         }
       } catch (e) {
-        print('Error unlinking cleanOwnerId from other huecas: $e');
+        debugPrint('Error unlinking cleanOwnerId from other huecas: $e');
       }
 
       // 3. Asignar la hueca al nuevo dueño y actualizar rol y managedHuecaId en su perfil
@@ -993,7 +993,7 @@ class HuecaRepository {
       final searchTags = Hueca.extractSearchKeywords(data);
       await docRef.update({'searchTags': searchTags});
     } catch (e) {
-      print('Error in syncHuecaSearchKeywords: $e');
+      debugPrint('Error in syncHuecaSearchKeywords: $e');
     }
   }
 
@@ -1044,7 +1044,7 @@ class HuecaRepository {
           .get();
       return snapshot.docs.map((doc) => Review.fromFirestore(doc)).toList();
     } catch (e) {
-      print('Error getting global reviews: $e');
+      debugPrint('Error getting global reviews: $e');
       return [];
     }
   }

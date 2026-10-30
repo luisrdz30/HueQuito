@@ -158,8 +158,8 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                               ? [
                                   BoxShadow(
                                     color: isDark
-                                        ? AppTheme.primary.withOpacity(0.35)
-                                        : Colors.black.withOpacity(0.08),
+                                        ? AppTheme.primary.withValues(alpha: 0.35)
+                                        : Colors.black.withValues(alpha: 0.08),
                                     blurRadius: isDark ? 8 : 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -209,8 +209,8 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                               ? [
                                   BoxShadow(
                                     color: isDark
-                                        ? AppTheme.primary.withOpacity(0.35)
-                                        : Colors.black.withOpacity(0.08),
+                                        ? AppTheme.primary.withValues(alpha: 0.35)
+                                        : Colors.black.withValues(alpha: 0.08),
                                     blurRadius: isDark ? 8 : 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -302,7 +302,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.12),
+              color: AppTheme.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -380,7 +380,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -446,7 +446,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -465,7 +465,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     height: 160,
                     color: Colors.grey[800],
                     child: const Icon(Icons.restaurant, color: Colors.white, size: 40),
@@ -480,7 +480,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withValues(alpha: 0.8),
                       Colors.transparent,
                     ],
                   ),
@@ -519,7 +519,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                 right: 10,
                 child: CircleAvatar(
                   radius: 16,
-                  backgroundColor: Colors.black.withOpacity(0.5),
+                  backgroundColor: Colors.black.withValues(alpha: 0.5),
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
@@ -637,7 +637,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
                               Expanded(
                                 child: Container(
                                   width: 2,
-                                  color: AppTheme.primary.withOpacity(0.3),
+                                  color: AppTheme.primary.withValues(alpha: 0.3),
                                 ),
                               ),
                           ],

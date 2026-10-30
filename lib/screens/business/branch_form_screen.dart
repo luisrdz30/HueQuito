@@ -169,7 +169,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.08),
+                  color: AppTheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -391,9 +391,9 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.08),
+                color: AppTheme.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -431,7 +431,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
             const Text('Sector en Quito', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             const SizedBox(height: 6),
             DropdownButtonFormField<String>(
-              value: _selectedSector,
+              initialValue: _selectedSector,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.explore_outlined),
                 filled: true,
@@ -468,7 +468,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -477,7 +477,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.12),
+                          color: AppTheme.primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.pin_drop, color: AppTheme.primary, size: 24),
@@ -565,9 +565,9 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.08),
+                  color: AppTheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.primary.withOpacity(0.15)),
+                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.15)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

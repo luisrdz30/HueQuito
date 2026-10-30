@@ -103,7 +103,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.12),
+                      color: AppTheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(Icons.explore_rounded, color: AppTheme.primary, size: 20),
@@ -433,8 +433,8 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            gradientColors.first.withOpacity(0.3),
-                            gradientColors.last.withOpacity(0.15),
+                            gradientColors.first.withValues(alpha: 0.3),
+                            gradientColors.last.withValues(alpha: 0.15),
                           ],
                         ),
                       ),
@@ -451,7 +451,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.55),
+                          Colors.black.withValues(alpha: 0.55),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -466,7 +466,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.65),
+                      color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white24),
                     ),
@@ -492,7 +492,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),

@@ -224,7 +224,7 @@ class _BusinessSupportScreenState extends ConsumerState<BusinessSupportScreen> {
                     ),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
-                      value: _selectedSubject,
+                      initialValue: _selectedSubject,
                       isExpanded: true,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.primary, size: 20),

@@ -1505,10 +1505,12 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
 
                   final displayReviews = <Review>[];
                   displayReviews.addAll(goodReviews.take(5));
-                  if (avgReviews.isNotEmpty)
+                  if (avgReviews.isNotEmpty) {
                     displayReviews.add(avgReviews.first);
-                  if (badReviews.isNotEmpty)
+                  }
+                  if (badReviews.isNotEmpty) {
                     displayReviews.add(badReviews.first);
+                  }
 
                   return Column(
                     children: displayReviews
@@ -1762,7 +1764,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

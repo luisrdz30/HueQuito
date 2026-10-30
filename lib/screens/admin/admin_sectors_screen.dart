@@ -243,7 +243,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                     itemBuilder: (context, index) {
                       final sectorItem = filtered[index];
                       final isCurrent = sectorItem.toLowerCase() == selectedSector.toLowerCase();
@@ -945,7 +945,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.all(12),
               itemCount: huecas.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final hueca = huecas[index];
                 return _buildHuecaSectorItem(hueca, sectorName);
@@ -992,7 +992,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           width: 50,
                           height: 50,
                           color: Colors.grey.shade200,
@@ -1135,7 +1135,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                           width: 32,
                           height: 32,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.star, color: Colors.amber, size: 18),
+                          errorBuilder: (_, _, _) => const Icon(Icons.star, color: Colors.amber, size: 18),
                         ),
                       )
                     : Icon(hasSticker ? Icons.star : Icons.star_border, color: hasSticker ? Colors.amber.shade800 : Colors.grey, size: 18),

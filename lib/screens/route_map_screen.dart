@@ -358,7 +358,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
                   ),
                   child: TextField(
                     controller: _searchController,
@@ -472,7 +472,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                     );
                   },
                   loading: () => const SizedBox.shrink(),
-                  error: (_,__) => const SizedBox.shrink(),
+                  error: (_,_) => const SizedBox.shrink(),
                 ),
               ],
             ),

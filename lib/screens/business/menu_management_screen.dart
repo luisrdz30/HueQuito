@@ -151,9 +151,9 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: const Color(0xFF3B82F6).withOpacity(0.4)),
+                    side: BorderSide(color: const Color(0xFF3B82F6).withValues(alpha: 0.4)),
                   ),
-                  tileColor: isDark ? const Color(0xFF3B82F6).withOpacity(0.15) : const Color(0xFF3B82F6).withOpacity(0.08),
+                  tileColor: isDark ? const Color(0xFF3B82F6).withValues(alpha: 0.15) : const Color(0xFF3B82F6).withValues(alpha: 0.08),
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -183,13 +183,13 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.amber.withOpacity(0.4)),
+                    side: BorderSide(color: Colors.amber.withValues(alpha: 0.4)),
                   ),
-                  tileColor: isDark ? Colors.amber.withOpacity(0.12) : Colors.amber.withOpacity(0.06),
+                  tileColor: isDark ? Colors.amber.withValues(alpha: 0.12) : Colors.amber.withValues(alpha: 0.06),
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
+                      color: Colors.amber.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.camera_enhance, color: Colors.amber, size: 22),
@@ -215,13 +215,13 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.green.withOpacity(0.4)),
+                    side: BorderSide(color: Colors.green.withValues(alpha: 0.4)),
                   ),
-                  tileColor: isDark ? Colors.green.withOpacity(0.12) : Colors.green.withOpacity(0.06),
+                  tileColor: isDark ? Colors.green.withValues(alpha: 0.12) : Colors.green.withValues(alpha: 0.06),
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.photo_library_outlined, color: Colors.green, size: 22),
@@ -323,7 +323,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.15),
+                      color: Colors.blue.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.camera_alt_outlined, color: Colors.blue, size: 22),
@@ -337,7 +337,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.15),
+                      color: Colors.purple.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.photo_library_outlined, color: Colors.purple, size: 22),
@@ -655,7 +655,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                     height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox(),
+                    errorBuilder: (_, _, _) => const SizedBox(),
                   ),
                 ),
               const SizedBox(height: 12),
@@ -772,9 +772,9 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.15),
+                    color: Colors.amber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber.shade700.withOpacity(0.4)),
+                    border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -809,9 +809,9 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                 margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.12),
+                  color: Colors.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.amber.shade700.withOpacity(0.3)),
+                  border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -841,7 +841,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: AppTheme.primary.withOpacity(0.15),
+                                color: AppTheme.primary.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 64),
@@ -935,11 +935,11 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                             return Card(
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               elevation: isDark ? 0 : 2,
-                              shadowColor: Colors.black.withOpacity(0.04),
+                              shadowColor: Colors.black.withValues(alpha: 0.04),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 side: BorderSide(
-                                  color: hasImage ? cardBorder : (isDark ? Colors.amber.withOpacity(0.4) : Colors.amber.shade300),
+                                  color: hasImage ? cardBorder : (isDark ? Colors.amber.withValues(alpha: 0.4) : Colors.amber.shade300),
                                   width: 1,
                                 ),
                               ),
@@ -988,7 +988,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                             margin: const EdgeInsets.only(left: 6),
                                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                             decoration: BoxDecoration(
-                                              color: Colors.blueAccent.withOpacity(0.15),
+                                              color: Colors.blueAccent.withValues(alpha: 0.15),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Text(
@@ -1010,7 +1010,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            color: isDark ? Colors.lightBlueAccent.withOpacity(0.9) : Colors.blue.shade700,
+                                            color: isDark ? Colors.lightBlueAccent.withValues(alpha: 0.9) : Colors.blue.shade700,
                                             fontSize: 11,
                                             fontStyle: FontStyle.italic,
                                           ),
@@ -1063,7 +1063,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            color: (subtextColor ?? Colors.grey).withOpacity(0.85),
+                                            color: (subtextColor ?? Colors.grey).withValues(alpha: 0.85),
                                             fontSize: 10.5,
                                             fontStyle: FontStyle.italic,
                                           ),

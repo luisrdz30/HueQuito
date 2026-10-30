@@ -167,14 +167,14 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                   final docs = snapshot.data!.docs
                       .where((d) => branchFilter == null || (d.data()['branchId'] ?? 'matriz') == branchFilter)
                       .toList();
-                  total = docs.fold<int>(0, (sum, d) => sum + ((d.data()['stamps'] as num?)?.toInt() ?? 0));
+                  total = docs.fold<int>(0, (acc, d) => acc + ((d.data()['stamps'] as num?)?.toInt() ?? 0));
                   body = docs.isEmpty
                       ? const Center(
                           child: Text('Todavía no has entregado sellos hoy.', style: TextStyle(color: Colors.grey)),
                         )
                       : ListView.separated(
                           itemCount: docs.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (context, i) {
                             final data = docs[i].data();
                             final stamps = (data['stamps'] as num?)?.toInt() ?? 0;
@@ -348,7 +348,7 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.white30),
                         ),

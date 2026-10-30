@@ -545,7 +545,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                                 )
                               : ListView.separated(
                                   itemCount: matches.length,
-                                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                                   itemBuilder: (context, idx) {
                                     final u = matches[idx];
                                     final isCurrent = u.uid == _selectedOwnerId;
@@ -821,7 +821,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                   Expanded(
                     child: ListView.separated(
                       itemCount: _days.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final day = _days[index];
                         final raw = tempSchedule[day] ?? '08:00 - 18:00';
@@ -1066,7 +1066,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                   Image.network(
                     url,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
+                    errorBuilder: (_, _, _) => Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1201,12 +1201,12 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
         'description': {
           'es': _descEsController.text.trim().isNotEmpty
               ? _descEsController.text.trim()
-              : 'Tradición y sabor en ${_selectedSector}. Muy pronto más detalles.',
+              : 'Tradición y sabor en $_selectedSector. Muy pronto más detalles.',
           'en': _descEnController.text.trim().isNotEmpty
               ? _descEnController.text.trim()
               : (_descEsController.text.trim().isNotEmpty
                   ? _descEsController.text.trim()
-                  : 'Traditional flavors in ${_selectedSector}. More details coming soon.'),
+                  : 'Traditional flavors in $_selectedSector. More details coming soon.'),
         },
         'mainDish': {
           'name': _mainDishNameController.text.trim().isNotEmpty
@@ -1360,7 +1360,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                           ),
                           Switch(
                             value: _isActive,
-                            activeColor: Colors.green.shade600,
+                            activeThumbColor: Colors.green.shade600,
                             onChanged: (val) => setState(() => _isActive = val),
                           ),
                         ],
@@ -1425,7 +1425,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                                 flex: 2,
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
-                                  value: _selectedSector,
+                                  initialValue: _selectedSector,
                                   dropdownColor: Colors.white,
                                   style: const TextStyle(color: Color(0xFF0F172A)),
                                   decoration: _inputDecoration('Sector', Icons.map),
@@ -1440,7 +1440,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                                 flex: 1,
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
-                                  value: _priceLevel,
+                                  initialValue: _priceLevel,
                                   dropdownColor: Colors.white,
                                   style: const TextStyle(color: Color(0xFF0F172A)),
                                   decoration: _inputDecoration('Precio', Icons.attach_money),

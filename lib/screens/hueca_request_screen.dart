@@ -387,7 +387,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
 
                   _buildLabel(isEn ? 'Quito Sector / Area *' : 'Sector de Quito *'),
                   DropdownButtonFormField<String>(
-                    value: _selectedSector,
+                    initialValue: _selectedSector,
                     isExpanded: true,
                     decoration: _inputDecoration('', Icons.location_on),
                     items: _sectors.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),

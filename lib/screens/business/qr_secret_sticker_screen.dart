@@ -101,9 +101,9 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.12),
+                    color: AppTheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+                    border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -141,7 +141,7 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
                       border: Border.all(color: AppTheme.primary, width: 2.5),
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.2),
+                          color: AppTheme.primary.withValues(alpha: 0.2),
                           blurRadius: 8,
                           spreadRadius: 2,
                         ),
@@ -151,7 +151,7 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
                       child: Image.network(
                         widget.stickerImage!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.star, color: Colors.amber, size: 36),
+                        errorBuilder: (_, _, _) => const Icon(Icons.star, color: Colors.amber, size: 36),
                       ),
                     ),
                   ),

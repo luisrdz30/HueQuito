@@ -227,7 +227,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     padding: const EdgeInsets.all(20),
                     color: Colors.white,
                     child: const Text('No se pudo cargar la imagen'),
@@ -433,7 +433,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade300),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
         ],
       ),
       child: Column(
@@ -623,7 +623,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.lightBlue.withOpacity(0.15),
+                        color: Colors.lightBlue.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -656,7 +656,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
                             Image.network(
                               imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, size: 40)),
+                              errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image, size: 40)),
                             ),
                             Positioned(
                               bottom: 8,

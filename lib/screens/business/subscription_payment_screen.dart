@@ -208,7 +208,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -236,7 +236,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
                       isEn
                           ? 'Keep your spot highlighted on the map, featured routes, search results, and digital loyalty passport.'
                           : 'Mantén tu local destacado en el mapa, rutas turísticas, búsquedas y pasaporte de sellos para turistas y comensales.',
-                      style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12.5, height: 1.3),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12.5, height: 1.3),
                     ),
                   ],
                 ),
@@ -261,7 +261,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -392,7 +392,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AppTheme.primary.withOpacity(0.08),
+                                color: AppTheme.primary.withValues(alpha: 0.08),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.add_a_photo_outlined, color: AppTheme.primary, size: 36),
@@ -434,9 +434,9 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.08),
+                  color: Colors.blue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

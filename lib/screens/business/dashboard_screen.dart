@@ -588,9 +588,9 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: Column(
@@ -659,7 +659,7 @@ class _BusinessDashboardScreenState extends ConsumerState<BusinessDashboardScree
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.amber.shade700, width: 1.5),
               boxShadow: [
-                BoxShadow(color: Colors.amber.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 3)),
+                BoxShadow(color: Colors.amber.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 3)),
               ],
             ),
             child: Column(

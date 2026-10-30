@@ -564,7 +564,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                       );
                     },
                     loading: () => const Text('Pendientes'),
-                    error: (_, __) => const Text('Pendientes'),
+                    error: (_, _) => const Text('Pendientes'),
                   ),
                 ),
                 const Tab(text: 'Aprobadas'),

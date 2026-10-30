@@ -367,8 +367,8 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
     final cardBorder = isDark ? const Color(0xFF333333) : const Color(0xFFE5E7EB);
     final textColor = isDark ? Colors.white : AppTheme.textDark;
     final subtextColor = isDark ? Colors.grey[400] : AppTheme.textMedium;
-    final bannerBg = isDark ? AppTheme.primary.withOpacity(0.15) : AppTheme.primary.withOpacity(0.08);
-    final bannerBorder = isDark ? AppTheme.primary.withOpacity(0.35) : AppTheme.primary.withOpacity(0.25);
+    final bannerBg = isDark ? AppTheme.primary.withValues(alpha: 0.15) : AppTheme.primary.withValues(alpha: 0.08);
+    final bannerBorder = isDark ? AppTheme.primary.withValues(alpha: 0.35) : AppTheme.primary.withValues(alpha: 0.25);
     final bottomBarBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final bottomBarBorder = isDark ? const Color(0xFF333333) : const Color(0xFFE5E7EB);
 
@@ -469,7 +469,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                                     style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    backgroundColor: isDark ? AppTheme.primary.withOpacity(0.08) : Colors.white,
+                                    backgroundColor: isDark ? AppTheme.primary.withValues(alpha: 0.08) : Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 14),
                                     side: const BorderSide(color: AppTheme.primary),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -498,7 +498,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                                 border: Border.all(color: cardBorder),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -572,7 +572,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                                                       : Column(
                                                           mainAxisAlignment: MainAxisAlignment.center,
                                                           children: [
-                                                            Icon(Icons.add_a_photo, size: 22, color: AppTheme.primary.withOpacity(0.8)),
+                                                            Icon(Icons.add_a_photo, size: 22, color: AppTheme.primary.withValues(alpha: 0.8)),
                                                             const SizedBox(height: 4),
                                                             Text('Foto', style: TextStyle(fontSize: 10, color: subtextColor)),
                                                           ],
@@ -639,7 +639,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
 
                                     // Categoría
                                     DropdownButtonFormField<String>(
-                                      value: _categories.contains(category) ? category : 'Platos Fuertes',
+                                      initialValue: _categories.contains(category) ? category : 'Platos Fuertes',
                                       dropdownColor: isDark ? const Color(0xFF282828) : Colors.white,
                                       style: TextStyle(color: textColor, fontSize: 14),
                                       decoration: _buildInputDecoration(
@@ -711,7 +711,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                 border: Border(top: BorderSide(color: bottomBarBorder)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),

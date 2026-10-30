@@ -206,7 +206,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             _selectedBranch = null;
           });
         },
-        selectedColor: AppTheme.primary.withOpacity(0.2),
+        selectedColor: AppTheme.primary.withValues(alpha: 0.2),
         checkmarkColor: AppTheme.primary,
         backgroundColor: Theme.of(context).cardColor,
         side: BorderSide(color: isSelected ? AppTheme.primary : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[700] : Colors.grey[300])!),
@@ -405,7 +405,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   top: 155, left: 16,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Theme.of(context).cardColor.withOpacity(0.9), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)]),
+                    decoration: BoxDecoration(color: Theme.of(context).cardColor.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)]),
                     child: Row(
                       children: [
                         const Icon(Icons.location_on, color: AppTheme.primary, size: 16),
@@ -424,7 +424,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   bottom: 16, left: 16, right: 16,
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20)]),
+                    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20)]),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,

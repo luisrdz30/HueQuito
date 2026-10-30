@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -162,7 +163,7 @@ class RouteRepository {
           }
         }
       } catch (e) {
-        print('Error fetching user tours from Firestore: $e');
+        debugPrint('Error fetching user tours from Firestore: $e');
       }
     }
 
@@ -224,7 +225,7 @@ class RouteRepository {
             .doc(tour.id)
             .set(tour.toMap(), SetOptions(merge: true));
       } catch (e) {
-        print('Error saving user tour to Firestore: $e');
+        debugPrint('Error saving user tour to Firestore: $e');
       }
     }
 
@@ -275,7 +276,7 @@ class RouteRepository {
             .doc(tourId)
             .delete();
       } catch (e) {
-        print('Error deleting user tour from Firestore: $e');
+        debugPrint('Error deleting user tour from Firestore: $e');
       }
     }
   }

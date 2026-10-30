@@ -372,8 +372,8 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
     final textColor = isDark ? Colors.white : AppTheme.textDark;
     final subtextColor = isDark ? Colors.grey[400] : AppTheme.textMedium;
     final cardBorder = isDark ? const Color(0xFF333333) : const Color(0xFFE5E7EB);
-    final bannerBg = isDark ? AppTheme.primary.withOpacity(0.15) : AppTheme.primary.withOpacity(0.08);
-    final bannerBorder = isDark ? AppTheme.primary.withOpacity(0.35) : AppTheme.primary.withOpacity(0.25);
+    final bannerBg = isDark ? AppTheme.primary.withValues(alpha: 0.15) : AppTheme.primary.withValues(alpha: 0.08);
+    final bannerBorder = isDark ? AppTheme.primary.withValues(alpha: 0.35) : AppTheme.primary.withValues(alpha: 0.25);
     final photoBoxBg = isDark ? const Color(0xFF282828) : const Color(0xFFF3F4F6);
     final switchTileBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
@@ -447,12 +447,12 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                               color: photoBoxBg,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: AppTheme.primary.withOpacity(0.4),
+                                color: AppTheme.primary.withValues(alpha: 0.4),
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(isDark ? 0.25 : 0.06),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -466,7 +466,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                                       ? Image.network(
                                           _imageUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(
+                                          errorBuilder: (_, _, _) => const Icon(
                                             Icons.image_not_supported,
                                             size: 50,
                                             color: Colors.grey,
@@ -478,7 +478,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                                             Icon(
                                               Icons.add_a_photo_outlined,
                                               size: 44,
-                                              color: AppTheme.primary.withOpacity(0.85),
+                                              color: AppTheme.primary.withValues(alpha: 0.85),
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
@@ -647,7 +647,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedCategory,
+                          initialValue: _selectedCategory,
                           dropdownColor: isDark ? const Color(0xFF282828) : Colors.white,
                           style: TextStyle(color: textColor, fontSize: 14),
                           decoration: _buildInputDecoration(
@@ -731,14 +731,14 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                       border: Border.all(color: cardBorder),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: SwitchListTile(
-                      activeColor: AppTheme.primary,
+                      activeThumbColor: AppTheme.primary,
                       title: Text(
                         'Disponible en la Carta',
                         style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 15),

@@ -146,9 +146,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 margin: EdgeInsets.all(16),
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AppTheme.primary, AppTheme.primary.withOpacity(0.8)]),
+                  gradient: LinearGradient(colors: [AppTheme.primary, AppTheme.primary.withValues(alpha: 0.8)]),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 12, offset: Offset(0, 6))],
+                  boxShadow: [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 12, offset: Offset(0, 6))],
                 ),
                 child: Row(
                   children: [
@@ -163,7 +163,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(displayUser.name, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text(displayUser.gamification['title'] ?? (lang == 'es' ? 'Novato' : 'Rookie'), style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
+                          Text(displayUser.gamification['title'] ?? (lang == 'es' ? 'Novato' : 'Rookie'), style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14)),
                           SizedBox(height: 8),
                           Row(
                             children: [
@@ -221,7 +221,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           decoration: BoxDecoration(
                             color: _selectedTab == 0 ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.primary : Colors.white) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
+                            boxShadow: _selectedTab == 0 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
                             child: Text(lang == 'es' ? 'Cartillas por Hueca' : 'Cards by Spot', style: TextStyle(
@@ -241,7 +241,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           decoration: BoxDecoration(
                             color: _selectedTab == 1 ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.primary : Colors.white) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : [],
+                            boxShadow: _selectedTab == 1 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : [],
                           ),
                           child: Center(
                             child: Text(lang == 'es' ? 'Cromos por Sector' : 'Stickers by Sector', style: TextStyle(
@@ -596,7 +596,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                                         width: 36,
                                         height: 36,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
+                                        errorBuilder: (_, _, _) => const Icon(
                                           Icons.check_circle,
                                           color: AppTheme.primary,
                                           size: 26,
@@ -705,7 +705,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                             width: 24,
                             height: 24,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
+                            errorBuilder: (_, _, _) => const Icon(Icons.card_giftcard, size: 18, color: AppTheme.accentRed),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -809,7 +809,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.08),
+                color: AppTheme.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -822,7 +822,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                         width: 44,
                         height: 44,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 30, color: AppTheme.primary),
+                        errorBuilder: (_, _, _) => const Icon(Icons.card_giftcard, size: 30, color: AppTheme.primary),
                       ),
                     )
                   else
@@ -1187,8 +1187,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-          border: isCompleted ? Border.all(color: AppTheme.accentGreen.withOpacity(0.4), width: 1.5) : null,
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+          border: isCompleted ? Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.4), width: 1.5) : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1201,7 +1201,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isCompleted ? AppTheme.accentGreen.withOpacity(0.12) : AppTheme.primary.withOpacity(0.1),
+                        color: isCompleted ? AppTheme.accentGreen.withValues(alpha: 0.12) : AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -1217,7 +1217,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isCompleted ? AppTheme.accentGreen.withOpacity(0.15) : (isDark ? Colors.white10 : Colors.grey.shade100),
+                    color: isCompleted ? AppTheme.accentGreen.withValues(alpha: 0.15) : (isDark ? Colors.white10 : Colors.grey.shade100),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -1318,7 +1318,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.12),
+                      color: AppTheme.primary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.collections_bookmark, color: AppTheme.primary, size: 24),
@@ -1379,7 +1379,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(isUnlocked ? 0.08 : 0.02),
+                              color: Colors.black.withValues(alpha: isUnlocked ? 0.08 : 0.02),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -1399,7 +1399,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                                         stickerImg,
                                         fit: BoxFit.cover,
                                         width: double.infinity,
-                                        errorBuilder: (_, __, ___) => Container(
+                                        errorBuilder: (_, _, _) => Container(
                                           color: Colors.amber.shade50,
                                           child: Icon(Icons.star, color: Colors.amber.shade700, size: 40),
                                         ),
@@ -1408,7 +1408,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                                   else
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Center(

@@ -30,7 +30,7 @@ class TourModeSelectionDialog extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -65,7 +65,7 @@ class TourModeSelectionDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.12),
+                  color: AppTheme.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.explore_rounded, color: AppTheme.primary, size: 24),
@@ -161,14 +161,14 @@ class TourModeSelectionDialog extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isRecommended
-                  ? AppTheme.primary.withOpacity(0.6)
+                  ? AppTheme.primary.withValues(alpha: 0.6)
                   : (isDark ? Colors.grey[800]! : Colors.grey[250] ?? Colors.grey[300]!),
               width: isRecommended ? 1.8 : 1.0,
             ),
             boxShadow: isRecommended
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary.withOpacity(0.08),
+                      color: AppTheme.primary.withValues(alpha: 0.08),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -182,7 +182,7 @@ class TourModeSelectionDialog extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: iconBg.withOpacity(0.15),
+                  color: iconBg.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: iconBg, size: 26),
@@ -198,7 +198,7 @@ class TourModeSelectionDialog extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: isRecommended
-                                ? AppTheme.primary.withOpacity(0.12)
+                                ? AppTheme.primary.withValues(alpha: 0.12)
                                 : (isDark ? Colors.grey[800] : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(8),
                           ),

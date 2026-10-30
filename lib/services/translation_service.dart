@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -18,7 +19,7 @@ class TranslationService {
       }
       return text; // Fallback to original text if error
     } catch (e) {
-      print('Error en traducción: $e');
+      debugPrint('Error en traducción: $e');
       return text;
     }
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,7 +111,7 @@ class HuecaRequestRepository {
       final snapshot = await ImagePickerHelper.uploadXFile(ref, file);
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
-      print('Error subiendo foto de solicitud: $e');
+      debugPrint('Error subiendo foto de solicitud: $e');
       return null;
     }
   }

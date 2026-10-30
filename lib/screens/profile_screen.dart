@@ -360,7 +360,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   );
                 },
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
 
               // Admin Banner (Solo visible para la cuenta de superadmin)

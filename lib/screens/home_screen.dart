@@ -407,14 +407,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           builder: (context) {
                             String persona = activePersona;
                             List<String> targetTags = [];
-                            if (persona == 'aventurero')
+                            if (persona == 'aventurero') {
                               targetTags = [
                                 'mercado',
                                 'tradicional',
                                 'tripa mishqui',
                                 'guatita',
                               ];
-                            else if (persona == 'picador')
+                            } else if (persona == 'picador')
                               targetTags = [
                                 'empanadas',
                                 'snack',
@@ -702,7 +702,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
         ],
       ),
       child: Column(
@@ -722,7 +722,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
                 ),
               ),
               padding: EdgeInsets.all(12),
@@ -770,7 +770,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Container(
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor.withOpacity(0.8),
+                            color: Theme.of(context).cardColor.withValues(alpha: 0.8),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

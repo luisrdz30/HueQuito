@@ -465,7 +465,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                         ? Image.network(
                             hueca.images.first,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.restaurant, color: Color(0xFF0F172A)),
+                            errorBuilder: (_, _, _) => const Icon(Icons.restaurant, color: Color(0xFF0F172A)),
                           )
                         : const Icon(Icons.restaurant, color: Color(0xFF0F172A), size: 30),
                   ),
@@ -492,7 +492,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                           ),
                           Switch(
                             value: hueca.isActive,
-                            activeColor: Colors.green.shade600,
+                            activeThumbColor: Colors.green.shade600,
                             inactiveThumbColor: Colors.grey,
                             inactiveTrackColor: Colors.grey.shade200,
                             onChanged: (val) => _toggleHuecaStatus(hueca, val),

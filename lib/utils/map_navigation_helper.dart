@@ -129,7 +129,7 @@ class MapNavigationHelper {
                     shrinkWrap: true,
                     physics: const BouncingScrollPhysics(),
                     itemCount: branches.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, idx) {
                       final branch = branches[idx];
                       final isSelected = selectedBranchIndex == idx;

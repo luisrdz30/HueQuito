@@ -55,9 +55,9 @@ class AiGenerationService {
 
       case 'menu_del_dia':
         return [
-          '🍽️ ¡Almuerzo completo de hoy en ' + cleanHueca + '! ' + cleanTitle + branchText + tagText + '. ¡Sopa calientita, segundo contundente y jugo fresco esperándote!',
-          '🍲 Sabor casero de primera en ' + cleanHueca + ': ' + cleanTitle + branchText + tagText + '. ¡Ven a recargar energías al mediodía con auténtica sazón tradicional!',
-          '✨ ¿Pensando qué almorzar hoy? En ' + cleanHueca + ' tenemos listo: ' + cleanTitle + branchText + tagText + '. ¡Comida fresca hecha con cariño de la abuela!'
+          '🍽️ ¡Almuerzo completo de hoy en $cleanHueca! $cleanTitle$branchText$tagText. ¡Sopa calientita, segundo contundente y jugo fresco esperándote!',
+          '🍲 Sabor casero de primera en $cleanHueca: $cleanTitle$branchText$tagText. ¡Ven a recargar energías al mediodía con auténtica sazón tradicional!',
+          '✨ ¿Pensando qué almorzar hoy? En $cleanHueca tenemos listo: $cleanTitle$branchText$tagText. ¡Comida fresca hecha con cariño de la abuela!'
         ];
 
       case 'nuevo_plato':

@@ -36,7 +36,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
     bool isNumber = false,
     HuecaBranch? targetBranch,
   }) {
-    final TextEditingController _controller = TextEditingController(
+    final TextEditingController controller = TextEditingController(
       text: currentValue,
     );
 
@@ -65,7 +65,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                 ),
                 SizedBox(height: 16),
                 TextField(
-                  controller: _controller,
+                  controller: controller,
                   maxLines: needsTranslation ? 4 : 1,
                   keyboardType: isNumber
                       ? TextInputType.number
@@ -83,7 +83,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () async {
-                      final newValue = _controller.text.trim();
+                      final newValue = controller.text.trim();
                       if (newValue.isEmpty) return;
 
                       Navigator.pop(dialogContext); // Close input modal
@@ -159,13 +159,14 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               .update({fieldKey: newValue});
                         }
                         ref.invalidate(huecasProvider);
-                        if (context.mounted)
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Guardado exitosamente'),
                               backgroundColor: Colors.green,
                             ),
                           );
+                        }
                       }
                     },
                     child: Text('Guardar'),
@@ -181,7 +182,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
 
   void _showTagsEditDialog(BuildContext context, Hueca hueca) {
     List<String> currentTags = List.from(hueca.tags);
-    final TextEditingController _tagController = TextEditingController();
+    final TextEditingController tagController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -231,7 +232,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                         children: [
                           Expanded(
                             child: TextField(
-                              controller: _tagController,
+                              controller: tagController,
                               decoration: InputDecoration(
                                 hintText: 'Añadir nuevo tag...',
                                 border: OutlineInputBorder(
@@ -248,13 +249,13 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               size: 32,
                             ),
                             onPressed: () {
-                              final text = _tagController.text.trim();
+                              final text = tagController.text.trim();
                               if (text.isNotEmpty &&
                                   currentTags.length < 4 &&
                                   !currentTags.contains(text)) {
                                 setStateModal(() {
                                   currentTags.add(text);
-                                  _tagController.clear();
+                                  tagController.clear();
                                 });
                               }
                             },
@@ -274,13 +275,14 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                               .collection('huecas')
                               .doc(hueca.id)
                               .update({'tags': currentTags});
-                          if (context.mounted)
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Tags guardados'),
                                 backgroundColor: Colors.green,
                               ),
                             );
+                          }
                         },
                         child: Text('Guardar Cambios'),
                       ),
@@ -355,7 +357,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       padding: EdgeInsets.all(12),
                       margin: EdgeInsets.only(top: 4, bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(newEsText),
@@ -373,7 +375,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       padding: EdgeInsets.all(12),
                       margin: EdgeInsets.only(top: 4),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.1),
+                        color: AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(newEnText),
@@ -420,13 +422,14 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                     if (!dialogContext.mounted) return;
                     Navigator.pop(dialogContext);
                     ref.invalidate(huecasProvider);
-                    if (context.mounted)
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Guardado exitosamente'),
                           backgroundColor: Colors.green,
                         ),
                       );
+                    }
                   },
                   child: Text('Confirmar Cambios'),
                 ),
@@ -658,7 +661,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                   Expanded(
                     child: ListView.separated(
                       itemCount: days.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final day = days[index];
                         final rawSchedule = currentSchedule[day] ?? '08:00 - 18:00';
@@ -845,7 +848,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                                   ),
                                   Switch(
                                     value: !isClosed,
-                                    activeColor: Colors.green,
+                                    activeThumbColor: Colors.green,
                                     inactiveThumbColor: Colors.red,
                                     inactiveTrackColor: Colors.red.shade100,
                                     onChanged: (val) {
@@ -1175,7 +1178,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                     height: 260,
                     width: double.infinity,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Padding(
+                    errorBuilder: (_, _, _) => const Padding(
                       padding: EdgeInsets.all(32.0),
                       child: Text('No se pudo cargar la imagen'),
                     ),
@@ -1218,7 +1221,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -1237,12 +1240,12 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppTheme.primary.withOpacity(0.4),
+                      color: AppTheme.primary.withValues(alpha: 0.4),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -1254,10 +1257,10 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: isReadOnly ? Colors.grey.withOpacity(0.12) : AppTheme.primary.withOpacity(0.1),
+                          color: isReadOnly ? Colors.grey.withValues(alpha: 0.12) : AppTheme.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(icon, color: isReadOnly ? Colors.grey[600] : AppTheme.primary),
@@ -1282,7 +1285,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
             : Container(
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isReadOnly ? Colors.grey.withOpacity(0.12) : AppTheme.primary.withOpacity(0.1),
+                  color: isReadOnly ? Colors.grey.withValues(alpha: 0.12) : AppTheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: isReadOnly ? Colors.grey[600] : AppTheme.primary),
@@ -1306,7 +1309,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 margin: const EdgeInsets.only(left: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1606,9 +1609,9 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.15),
+                          color: Colors.amber.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.amber.shade700.withOpacity(0.4)),
+                          border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

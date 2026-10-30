@@ -108,12 +108,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: huecasAsync.when(
                         data: (h) => '${h.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: huecasAsync.when(
                         data: (h) => '${h.where((x) => x.isActive).length} activas',
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.go('/admin/huecas'),
                     ),
@@ -127,7 +127,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: usersAsync.when(
                         data: (u) => '${u.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: usersAsync.when(
                         data: (u) {
@@ -135,7 +135,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return '$businessCount negocios';
                         },
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.go('/admin/users'),
                     ),
@@ -153,12 +153,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: pendingNotifsAsync.when(
                         data: (p) => '${p.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: pendingNotifsAsync.when(
                         data: (p) => p.isEmpty ? 'Todo al día' : 'Requieren revisión',
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.go('/admin/notifications'),
                     ),
@@ -184,7 +184,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return '$totalCromos';
                         },
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: huecasAsync.when(
                         data: (h) {
@@ -196,7 +196,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return '$distinctSectors ${distinctSectors == 1 ? "sector" : "sectores"} • ${h.length} ${h.length == 1 ? "hueca" : "huecas"}';
                         },
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.push('/admin/sectors'),
                     ),
@@ -214,12 +214,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: pendingRequestsAsync.when(
                         data: (p) => '${p.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: pendingRequestsAsync.when(
                         data: (p) => p.isEmpty ? 'Sin solicitudes' : '${p.length} por revisar',
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.go('/admin/solicitudes'),
                     ),
@@ -233,12 +233,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: newSupportAsync.when(
                         data: (s) => '${s.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: newSupportAsync.when(
                         data: (s) => s.isEmpty ? 'Todo respondido' : '${s.length} nuevos',
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.push('/admin/support'),
                     ),
@@ -259,7 +259,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return '$underReview';
                         },
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: huecasAsync.when(
                         data: (h) {
@@ -267,7 +267,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return underReview == 0 ? 'Sin comprobantes' : '$underReview por validar';
                         },
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Error',
+                        error: (_, _) => 'Error',
                       ),
                       onTap: () => context.go('/admin/subscriptions'),
                     ),
@@ -281,12 +281,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                       value: quizQuestionsAsync.when(
                         data: (q) => '${q.length}',
                         loading: () => '...',
-                        error: (_, __) => '0',
+                        error: (_, _) => '0',
                       ),
                       subtitle: quizQuestionsAsync.when(
                         data: (q) => '${q.length} preguntas activas',
                         loading: () => 'Cargando...',
-                        error: (_, __) => 'Preguntas activas',
+                        error: (_, _) => 'Preguntas activas',
                       ),
                       onTap: () => context.push('/admin/quiz'),
                     ),

@@ -275,9 +275,9 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.08),
+            color: AppTheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -395,8 +395,8 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             boxShadow: [
               BoxShadow(
                 color: isRecommended
-                    ? AppTheme.primary.withOpacity(0.12)
-                    : Colors.black.withOpacity(0.04),
+                    ? AppTheme.primary.withValues(alpha: 0.12)
+                    : Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -409,7 +409,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                 height: 52,
                 decoration: BoxDecoration(
                   color: isRecommended
-                      ? AppTheme.primary.withOpacity(0.15)
+                      ? AppTheme.primary.withValues(alpha: 0.15)
                       : (isDark ? Colors.grey[800] : Colors.grey[100]),
                   shape: BoxShape.circle,
                 ),
@@ -426,7 +426,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: isRecommended
-                            ? AppTheme.primary.withOpacity(0.12)
+                            ? AppTheme.primary.withValues(alpha: 0.12)
                             : (isDark ? Colors.grey[800] : Colors.grey[200]),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -487,7 +487,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -501,7 +501,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.12),
+                      color: AppTheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -556,7 +556,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                             setState(() => _selectedCraving = opt.type);
                           }
                         },
-                        selectedColor: AppTheme.primary.withOpacity(0.2),
+                        selectedColor: AppTheme.primary.withValues(alpha: 0.2),
                         backgroundColor: isDark ? Colors.grey[800] : Colors.grey[100],
                         labelStyle: TextStyle(
                           fontSize: 12,
@@ -645,9 +645,9 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withOpacity(0.1),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -697,7 +697,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, -2),
               ),
@@ -777,8 +777,8 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? AppTheme.primary.withOpacity(0.12)
-                : Colors.black.withOpacity(0.04),
+                ? AppTheme.primary.withValues(alpha: 0.12)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -803,7 +803,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                           width: 80,
                           height: 80,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             width: 80,
                             height: 80,
                             color: Colors.grey[300],
@@ -832,7 +832,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: item.isClose
-                                    ? const Color(0xFF10B981).withOpacity(0.15)
+                                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
                                     : (isDark ? Colors.grey[800] : Colors.grey[200]),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -969,7 +969,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             gradient: LinearGradient(
               colors: [
                 AppTheme.primary,
-                AppTheme.primary.withOpacity(0.85),
+                AppTheme.primary.withValues(alpha: 0.85),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -977,7 +977,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primary.withOpacity(0.3),
+                color: AppTheme.primary.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -991,7 +991,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.celebration, color: Colors.white, size: 24),
@@ -1058,7 +1058,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -1115,7 +1115,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -1150,7 +1150,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                               width: 44,
                               height: 44,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, _, _) => Container(
                                 width: 44,
                                 height: 44,
                                 color: Colors.grey[300],
@@ -1194,7 +1194,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
                   child: Row(
                     children: [
                       const SizedBox(width: 28),
-                      Container(width: 2, height: 26, color: AppTheme.primary.withOpacity(0.4)),
+                      Container(width: 2, height: 26, color: AppTheme.primary.withValues(alpha: 0.4)),
                       const SizedBox(width: 16),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

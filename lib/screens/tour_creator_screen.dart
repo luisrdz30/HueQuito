@@ -215,7 +215,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -532,7 +532,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
                                         width: 48,
                                         height: 48,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
+                                        errorBuilder: (_, _, _) => Container(
                                           width: 48,
                                           height: 48,
                                           color: Colors.grey[300],
@@ -605,7 +605,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, -3),
             ),
