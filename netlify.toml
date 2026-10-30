@@ -1,0 +1,8 @@
+# Netlify: publicar la carpeta generada por `flutter build web --release`
+[build]
+  publish = "build/web"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

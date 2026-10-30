@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,7 +26,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
   final _ownerEmailController = TextEditingController();
 
   String _selectedSector = 'Centro Histórico';
-  File? _selectedImage;
+  XFile? _selectedImage;
   bool _isSubmitting = false;
 
   final List<String> _sectors = [
@@ -591,7 +590,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                       child: Stack(
                         alignment: Alignment.topRight,
                         children: [
-                          Image.file(
+                          ImagePickerHelper.preview(
                             _selectedImage!,
                             width: double.infinity,
                             height: 180,

@@ -12,7 +12,6 @@ import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:hue_quito/screens/business/qr_secret_sticker_screen.dart';
@@ -1088,8 +1087,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
       );
 
       try {
-        UploadTask uploadTask = storageRef.putFile(file);
-        TaskSnapshot snapshot = await uploadTask;
+        TaskSnapshot snapshot = await ImagePickerHelper.uploadXFile(storageRef, file);
         String downloadUrl = await snapshot.ref.getDownloadURL();
 
         final docRef = FirebaseFirestore.instance

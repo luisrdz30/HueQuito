@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
@@ -22,7 +22,7 @@ class SubscriptionPaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentScreen> {
-  File? _receiptFile;
+  XFile? _receiptFile;
   final TextEditingController _referenceController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -76,7 +76,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
 
       String downloadUrl = '';
       try {
-        final uploadTask = await storageRef.putFile(_receiptFile!);
+        final uploadTask = await ImagePickerHelper.uploadXFile(storageRef, _receiptFile!);
         downloadUrl = await uploadTask.ref.getDownloadURL();
       } catch (storageErr) {
         // Fallback si Storage da error de permisos en desarrollo
@@ -357,7 +357,7 @@ class _SubscriptionPaymentScreenState extends ConsumerState<SubscriptionPaymentS
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.file(
+                              ImagePickerHelper.preview(
                                 _receiptFile!,
                                 fit: BoxFit.cover,
                               ),

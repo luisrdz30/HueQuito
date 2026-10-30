@@ -1,5 +1,7 @@
-import 'dart:io';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_picker_android/image_picker_android.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
@@ -18,6 +20,7 @@ class ImagePickerHelper {
   /// Configura dinámicamente si se usa el selector de Google Fotos (Photo Picker)
   /// o la galería local del dispositivo (Android Intent Chooser).
   static void configureAndroidPicker({required bool usePhotoPicker}) {
+    if (kIsWeb) return;
     final implementation = ImagePickerPlatform.instance;
     if (implementation is ImagePickerAndroid) {
       implementation.useAndroidPhotoPicker = usePhotoPicker;
@@ -29,7 +32,7 @@ class ImagePickerHelper {
   /// 2. Galería del dispositivo (Galería local de Samsung/Android)
   /// 3. Google Fotos / Selector del sistema
   /// 4. Quitar foto (opcional)
-  static Future<File?> showImageSourceDialog({
+  static Future<XFile?> showImageSourceDialog({
     required BuildContext context,
     String? title,
     String? subtitle,
@@ -89,7 +92,30 @@ class ImagePickerHelper {
               ),
               const SizedBox(height: 16),
 
+              // Web (PC o navegador del celular): explorador de archivos / galería
+              if (kIsWeb)
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.folder_open_outlined, color: AppTheme.primary, size: 22),
+                  ),
+                  title: Text(
+                    isEn ? 'Choose a file' : 'Elegir un archivo',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: textColor, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    isEn ? 'Open your files or photo gallery' : 'Abre tus archivos o la galería de fotos',
+                    style: TextStyle(fontSize: 11, color: subtextColor),
+                  ),
+                  onTap: () => Navigator.pop(ctx, PhotoSourceChoice.deviceGallery),
+                ),
+
               // 1. Galería del Dispositivo (Galería local)
+              if (!kIsWeb)
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -111,6 +137,7 @@ class ImagePickerHelper {
               ),
 
               // 2. Google Fotos / Selector del Sistema
+              if (!kIsWeb)
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -131,7 +158,8 @@ class ImagePickerHelper {
                 onTap: () => Navigator.pop(ctx, PhotoSourceChoice.googlePhotos),
               ),
 
-              // 3. Tomar foto con la cámara
+              // 3. Tomar foto con la cámara (en web solo se muestra en el navegador del celular)
+              if (!kIsWeb || _isMobileBrowser)
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
@@ -212,12 +240,77 @@ class ImagePickerHelper {
       }
 
       if (picked != null) {
-        return File(picked.path);
+        return picked;
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
     }
 
     return null;
+  }
+
+  /// true cuando la app web se abre desde el navegador de un celular/tablet.
+  static bool get _isMobileBrowser =>
+      kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  /// Deduce el tipo MIME de la imagen (requerido por las reglas de Storage).
+  static String contentTypeFor(XFile file) {
+    final mime = file.mimeType;
+    if (mime != null && mime.startsWith('image/')) return mime;
+    final name = (file.name.isNotEmpty ? file.name : file.path).toLowerCase();
+    if (name.endsWith('.png')) return 'image/png';
+    if (name.endsWith('.webp')) return 'image/webp';
+    if (name.endsWith('.gif')) return 'image/gif';
+    if (name.endsWith('.heic')) return 'image/heic';
+    return 'image/jpeg';
+  }
+
+  /// Sube una imagen elegida a Firebase Storage.
+  /// Android/iOS: igual que antes (putFile). Web: sube los bytes (putData).
+  static Future<TaskSnapshot> uploadXFile(Reference ref, XFile file) async {
+    final metadata = SettableMetadata(contentType: contentTypeFor(file));
+    if (kIsWeb) {
+      final bytes = await file.readAsBytes();
+      return await ref.putData(bytes, metadata);
+    }
+    return await ref.putFile(File(file.path), metadata);
+  }
+
+  /// Igual que [uploadXFile] pero a partir de la ruta guardada de la imagen.
+  static Future<TaskSnapshot> uploadPath(Reference ref, String path) {
+    return uploadXFile(ref, XFile(path));
+  }
+
+  /// Vista previa de una imagen local en cualquier plataforma.
+  static Widget previewPath(
+    String path, {
+    BoxFit? fit,
+    double? width,
+    double? height,
+    ImageErrorWidgetBuilder? errorBuilder,
+  }) {
+    if (kIsWeb) {
+      return Image.network(path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
+    }
+    return Image.file(File(path), fit: fit, width: width, height: height, errorBuilder: errorBuilder);
+  }
+
+  /// Vista previa de una imagen elegida ([XFile]) en cualquier plataforma.
+  static Widget preview(
+    XFile file, {
+    BoxFit? fit,
+    double? width,
+    double? height,
+    ImageErrorWidgetBuilder? errorBuilder,
+  }) {
+    return previewPath(file.path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
+  }
+
+  /// ImageProvider para usar en CircleAvatar/DecorationImage.
+  static ImageProvider providerFor(XFile file) {
+    if (kIsWeb) return NetworkImage(file.path);
+    return FileImage(File(file.path));
   }
 }

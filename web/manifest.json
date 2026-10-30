@@ -1,11 +1,11 @@
 {
-    "name": "hue_quito",
-    "short_name": "hue_quito",
+    "name": "Hue-Quito",
+    "short_name": "Hue-Quito",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Descubre las huecas y la gastronomía tradicional de Quito.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

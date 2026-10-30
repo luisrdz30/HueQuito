@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:hue_quito/services/translation_service.dart';
+import 'package:hue_quito/services/gemini_menu_service.dart';
 
 class MenuOcrResult {
   final List<Map<String, dynamic>> dishes;
@@ -45,8 +47,60 @@ class _SpatialLine {
 }
 
 class MenuOcrService {
-  /// Procesa una imagen física de la carta usando ML Kit y devuelve los platos extraídos
+  /// Procesa una imagen física de la carta usando preferentemente Google Gemini Vision (1.5 Flash),
+  /// con fallback automático a Google ML Kit en caso de modo offline o sin clave.
   static Future<MenuOcrResult> extractDishesFromImage(String imagePath) async {
+    // 1. Intentar con Google Gemini Vision si la API Key está configurada
+    try {
+      final hasKey = await GeminiMenuService.hasApiKey();
+      if (hasKey) {
+        print('[MENU_AI] Extrayendo platos con Google Gemini 1.5 Flash...');
+        final geminiDishes = await GeminiMenuService.extractDishesFromImage(imagePath);
+        if (geminiDishes.isNotEmpty) {
+          print('[MENU_AI] Gemini 1.5 Flash extrajo ${geminiDishes.length} platos exitosamente.');
+          return MenuOcrResult(
+            dishes: geminiDishes,
+            rawText: 'Digitalización inteligente realizada con Google Gemini 1.5 Flash Vision (${geminiDishes.length} platos extraídos con traducción bilingüe).',
+          );
+        }
+      }
+    } catch (e) {
+      if (e is GeminiApiKeyMissingException) {
+        rethrow;
+      }
+      print('[MENU_AI] Error con Gemini, recurriendo a fallback ML Kit: $e');
+    }
+
+    // 2. Fallback a Google ML Kit on-device (no existe en web)
+    if (kIsWeb) {
+      return MenuOcrResult(dishes: [], rawText: '');
+    }
+    return _extractDishesWithMlKit(imagePath);
+  }
+
+  /// Procesa múltiples imágenes de páginas de carta (hasta 10 fotos) con Gemini Vision
+  static Future<MenuOcrResult> extractDishesFromMultipleImages(
+    List<String> imagePaths, {
+    void Function(int current, int total)? onProgress,
+  }) async {
+    final hasKey = await GeminiMenuService.hasApiKey();
+    if (!hasKey) {
+      throw GeminiApiKeyMissingException();
+    }
+
+    final dishes = await GeminiMenuService.extractDishesFromMultipleImages(
+      imagePaths,
+      onProgress: onProgress,
+    );
+
+    return MenuOcrResult(
+      dishes: dishes,
+      rawText: 'Extracción múltiple de ${imagePaths.length} páginas con Gemini (${dishes.length} platos extraídos).',
+    );
+  }
+
+  /// Extracción fallback usando ML Kit local
+  static Future<MenuOcrResult> _extractDishesWithMlKit(String imagePath) async {
     final inputImage = InputImage.fromFilePath(imagePath);
     final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 

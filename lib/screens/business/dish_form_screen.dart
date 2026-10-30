@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +13,7 @@ class DishFormScreen extends ConsumerStatefulWidget {
   final String huecaId;
   final Map<String, dynamic>? initialDish;
   final int? dishIndex;
-  final File? initialImageFile;
+  final XFile? initialImageFile;
 
   const DishFormScreen({
     super.key,
@@ -40,7 +39,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
   String _selectedCategory = 'Platos Fuertes';
   bool _isAvailable = true;
   String _imageUrl = '';
-  File? _localImageFile;
+  XFile? _localImageFile;
 
   bool _isTranslatingName = false;
   bool _isTranslatingDesc = false;
@@ -243,7 +242,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('dish_images/${widget.huecaId}_dish_$timestamp.jpg');
-        final uploadTask = await storageRef.putFile(_localImageFile!);
+        final uploadTask = await ImagePickerHelper.uploadXFile(storageRef, _localImageFile!);
         finalImageUrl = await uploadTask.ref.getDownloadURL();
       }
 
@@ -462,7 +461,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(18),
                               child: _localImageFile != null
-                                  ? Image.file(_localImageFile!, fit: BoxFit.cover)
+                                  ? ImagePickerHelper.preview(_localImageFile!, fit: BoxFit.cover)
                                   : _imageUrl.isNotEmpty
                                       ? Image.network(
                                           _imageUrl,

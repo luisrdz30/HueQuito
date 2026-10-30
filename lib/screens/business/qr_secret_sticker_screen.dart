@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 
 class QrSecretStickerScreen extends StatefulWidget {
@@ -41,12 +42,23 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
       ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
+      final locationName = widget.branchName != null ? ' en ${widget.branchName}' : '';
+      final shareText = '¡Encuentra nuestro Sticker Secreto$locationName en HueQuito y gana recompensas!';
+
+      if (kIsWeb) {
+        // En el navegador no hay carpeta temporal: se comparte (o descarga) desde memoria
+        await Share.shareXFiles(
+          [XFile.fromData(pngBytes, mimeType: 'image/png', name: 'sticker_qr.png')],
+          text: shareText,
+        );
+        return;
+      }
+
       final tempDir = await getTemporaryDirectory();
       final file = await File('${tempDir.path}/sticker_qr.png').create();
       await file.writeAsBytes(pngBytes);
 
-      final locationName = widget.branchName != null ? ' en ${widget.branchName}' : '';
-      await Share.shareXFiles([XFile(file.path)], text: '¡Encuentra nuestro Sticker Secreto$locationName en HueQuito y gana recompensas!');
+      await Share.shareXFiles([XFile(file.path)], text: shareText);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al compartir QR: $e')));
     }

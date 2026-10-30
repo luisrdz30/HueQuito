@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -62,8 +61,7 @@ class _GalleryManagementScreenState extends ConsumerState<GalleryManagementScree
       String fileName = '${targetId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       Reference storageRef = FirebaseStorage.instance.ref().child('hueca_images/$fileName');
 
-      UploadTask uploadTask = storageRef.putFile(file);
-      TaskSnapshot snapshot = await uploadTask;
+      TaskSnapshot snapshot = await ImagePickerHelper.uploadXFile(storageRef, file);
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
       final docRef = FirebaseFirestore.instance.collection('huecas').doc(targetId);

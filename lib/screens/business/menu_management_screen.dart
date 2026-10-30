@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +8,7 @@ import 'package:hue_quito/providers/auth_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
+import 'package:hue_quito/services/gemini_menu_service.dart';
 import 'package:hue_quito/screens/business/dish_form_screen.dart';
 import 'package:hue_quito/screens/business/menu_review_screen.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
@@ -24,6 +24,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
   Hueca? _currentHueca;
   bool _isLoading = true;
   bool _isAiProcessing = false;
+  String _aiProcessingMessage = 'Analizando carta con Inteligencia Artificial...';
   List<dynamic> _menuItems = [];
 
   @override
@@ -152,23 +153,23 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: AppTheme.primary.withOpacity(0.4)),
+                    side: BorderSide(color: const Color(0xFF3B82F6).withOpacity(0.4)),
                   ),
-                  tileColor: isDark ? AppTheme.primary.withOpacity(0.12) : AppTheme.primary.withOpacity(0.06),
+                  tileColor: isDark ? const Color(0xFF3B82F6).withOpacity(0.15) : const Color(0xFF3B82F6).withOpacity(0.08),
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.2),
+                      gradient: const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF7C3AED)]),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 22),
+                    child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
                   ),
                   title: Text(
-                    'Escanear Carta Completa (IA)',
+                    'Escanear Carta con Gemini IA (1 a 10 páginas)',
                     style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 14),
                   ),
                   subtitle: Text(
-                    'Para cartas físicas o afiches. La IA extraerá todos los platos y precios.',
+                    'Sube fotos de páginas de tu carta física. Extrae platos, precios y traduce al instante.',
                     style: TextStyle(fontSize: 11, color: subtextColor),
                   ),
                   onTap: () {
@@ -272,6 +273,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                     _openManualDishForm();
                   },
                 ),
+
                 const SizedBox(height: 8),
               ],
             ),
@@ -284,20 +286,116 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
   Future<void> _startAiMenuScan() async {
     if (_currentHueca == null) return;
 
-    final file = await ImagePickerHelper.showImageSourceDialog(
+    // Ofrecer elegir Cámara (1 página) o Galería (1 a 10 páginas)
+    final choice = await showModalBottomSheet<String>(
       context: context,
-      title: 'Escanear Menú con IA',
-      subtitle: '¿De dónde deseas cargar la foto de tu carta física o afiche?',
-      imageQuality: 90,
-      maxWidth: 1920,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Digitalizar Carta con Gemini IA',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Elige cómo deseas capturar las páginas de tu menú físico:',
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.camera_alt_outlined, color: Colors.blue, size: 22),
+                  ),
+                  title: const Text('Tomar Foto de Página (Cámara)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Fotografía 1 página o afiche de tu menú', style: TextStyle(fontSize: 11)),
+                  onTap: () => Navigator.pop(ctx, 'camera'),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.photo_library_outlined, color: Colors.purple, size: 22),
+                  ),
+                  title: const Text('Seleccionar Páginas (Galería)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  subtitle: const Text('Selecciona de 1 a 10 fotos de las páginas de tu carta', style: TextStyle(fontSize: 11)),
+                  onTap: () => Navigator.pop(ctx, 'gallery'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
 
-    if (file == null) return;
+    if (choice == null || !mounted) return;
 
-    setState(() => _isAiProcessing = true);
+    List<String> imagePaths = [];
+
+    if (choice == 'camera') {
+      final picker = ImagePicker();
+      final photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 90, maxWidth: 2048);
+      if (photo == null) return;
+      imagePaths.add(photo.path);
+    } else {
+      final picker = ImagePicker();
+      final photos = await picker.pickMultiImage(imageQuality: 90, maxWidth: 2048);
+      if (photos.isEmpty) return;
+      if (photos.length > 10) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Se procesarán las primeras 10 fotos seleccionadas')),
+        );
+        imagePaths = photos.take(10).map((p) => p.path).toList();
+      } else {
+        imagePaths = photos.map((p) => p.path).toList();
+      }
+    }
+
+    setState(() {
+      _isAiProcessing = true;
+      _aiProcessingMessage = imagePaths.length == 1
+          ? 'Digitalizando carta con Google Gemini 1.5 Flash...'
+          : 'Digitalizando página 1 de ${imagePaths.length} con Gemini IA...';
+    });
 
     try {
-      final ocrResult = await MenuOcrService.extractDishesFromImage(file.path);
+      final ocrResult = await MenuOcrService.extractDishesFromMultipleImages(
+        imagePaths,
+        onProgress: (current, total) {
+          if (mounted) {
+            setState(() {
+              _aiProcessingMessage = 'Digitalizando página $current de $total con Gemini IA...';
+            });
+          }
+        },
+      );
 
       if (!mounted) return;
       setState(() => _isAiProcessing = false);
@@ -313,33 +411,13 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                 Text('Sin platos detectados'),
               ],
             ),
-            content: Text(
-              ocrResult.rawText.trim().isEmpty
-                  ? 'No se detectó ningún texto en la fotografía. Intenta tomar una foto más nítida y con mejor iluminación.'
-                  : 'Se detectó texto pero no se reconocieron precios claros (\$X.XX). ¿Deseas ingresar a la pantalla de revisión para cargar platos manualmente o revisar el texto?',
+            content: const Text(
+              'No se detectaron platos con precios claros en las fotos. Asegúrate de que las fotos tengan buena iluminación y sean legibles.',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Reintentar Foto'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => MenuReviewScreen(
-                        huecaId: _currentHueca!.id,
-                        initialDishes: const [],
-                        rawOcrText: ocrResult.rawText,
-                      ),
-                    ),
-                  ).then((val) {
-                    if (val == true) _loadHueca();
-                  });
-                },
-                child: const Text('Revisar Texto'),
+                child: const Text('Entendido'),
               ),
             ],
           ),
@@ -363,12 +441,14 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
         _loadHueca();
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isAiProcessing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al procesar la imagen con IA: $e')),
-        );
-      }
+      if (!mounted) return;
+      setState(() => _isAiProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo digitalizar con IA: Revisa tu conexión a internet o intenta con una foto más nítida.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -405,7 +485,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
           builder: (_) => DishFormScreen(
             huecaId: _currentHueca!.id,
             initialDish: initialDishData,
-            initialImageFile: File(file.path),
+            initialImageFile: file,
           ),
         ),
       );
@@ -770,10 +850,10 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                             const SizedBox(height: 24),
                             CircularProgressIndicator(color: AppTheme.primary),
                             const SizedBox(height: 24),
-                            const Text(
-                              'Analizando carta con Inteligencia Artificial...',
+                            Text(
+                              _aiProcessingMessage,
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             const Text(

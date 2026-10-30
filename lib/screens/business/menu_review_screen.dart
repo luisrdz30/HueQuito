@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -160,7 +159,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('dish_images/${widget.huecaId}_dish_${timestamp}_$i.jpg');
-          final uploadTask = await storageRef.putFile(File(localPath));
+          final uploadTask = await ImagePickerHelper.uploadPath(storageRef, localPath);
           imageUrl = await uploadTask.ref.getDownloadURL();
         }
 
@@ -568,7 +567,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                                             child: ClipRRect(
                                               borderRadius: BorderRadius.circular(11),
                                               child: localPath != null
-                                                  ? Image.file(File(localPath), fit: BoxFit.cover)
+                                                  ? ImagePickerHelper.previewPath(localPath, fit: BoxFit.cover)
                                                   : imageUrl.isNotEmpty
                                                       ? Image.network(imageUrl, fit: BoxFit.cover)
                                                       : Column(

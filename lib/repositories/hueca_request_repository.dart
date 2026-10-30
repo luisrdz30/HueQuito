@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -102,12 +103,11 @@ class HuecaRequestRepository {
       _firestore.collection('hueca_requests');
 
   // Sube una foto a Storage para la solicitud
-  Future<String?> uploadRequestPhoto(File file, String userId) async {
+  Future<String?> uploadRequestPhoto(XFile file, String userId) async {
     try {
       final fileName = 'request_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = _storage.ref().child('hueca_requests/$fileName');
-      final uploadTask = ref.putFile(file);
-      final snapshot = await uploadTask;
+      final snapshot = await ImagePickerHelper.uploadXFile(ref, file);
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
       print('Error subiendo foto de solicitud: $e');

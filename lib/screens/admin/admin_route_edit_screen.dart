@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,7 +35,7 @@ class _AdminRouteEditScreenState extends ConsumerState<AdminRouteEditScreen> {
 
   List<Map<String, dynamic>> _stops = [];
   bool _isSaving = false;
-  File? _localImageFile;
+  XFile? _localImageFile;
   bool _showManualUrlInput = false;
 
   // Estados de traducción individual y global
@@ -482,7 +481,7 @@ class _AdminRouteEditScreenState extends ConsumerState<AdminRouteEditScreen> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('tour_images/tour_$timestamp.jpg');
-        final uploadTask = await storageRef.putFile(_localImageFile!);
+        final uploadTask = await ImagePickerHelper.uploadXFile(storageRef, _localImageFile!);
         bannerImageUrl = await uploadTask.ref.getDownloadURL();
       }
 
@@ -1182,7 +1181,7 @@ class _AdminRouteEditScreenState extends ConsumerState<AdminRouteEditScreen> {
                 fit: StackFit.expand,
                 children: [
                   if (hasLocalImage)
-                    Image.file(
+                    ImagePickerHelper.preview(
                       _localImageFile!,
                       fit: BoxFit.cover,
                       width: double.infinity,

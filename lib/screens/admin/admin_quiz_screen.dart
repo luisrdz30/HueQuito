@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -633,7 +633,7 @@ class _QuestionFormModalState extends State<_QuestionFormModal> {
   late TextEditingController _imageUrlCtrl;
   late List<_OptionFormData> _options;
 
-  File? _localImageFile;
+  XFile? _localImageFile;
   bool _isUploadingImage = false;
 
   // Preset food images for rapid testing
@@ -794,7 +794,7 @@ class _QuestionFormModalState extends State<_QuestionFormModal> {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('quiz_images/quiz_question_$timestamp.jpg');
-        final uploadTask = await storageRef.putFile(_localImageFile!);
+        final uploadTask = await ImagePickerHelper.uploadXFile(storageRef, _localImageFile!);
         finalImageUrl = await uploadTask.ref.getDownloadURL();
       } catch (e) {
         if (mounted) {
@@ -988,7 +988,7 @@ class _QuestionFormModalState extends State<_QuestionFormModal> {
                                   child: SizedBox(
                                     height: 150,
                                     width: double.infinity,
-                                    child: Image.file(
+                                    child: ImagePickerHelper.preview(
                                       _localImageFile!,
                                       fit: BoxFit.cover,
                                     ),

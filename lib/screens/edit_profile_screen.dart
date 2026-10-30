@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -64,7 +64,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       final refStorage = FirebaseStorage.instance.ref().child('user_profiles').child('${user.uid}.jpg');
       
-      await refStorage.putFile(file);
+      await ImagePickerHelper.uploadXFile(refStorage, file);
       final downloadUrl = await refStorage.getDownloadURL();
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
