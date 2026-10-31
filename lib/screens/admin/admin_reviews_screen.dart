@@ -246,7 +246,7 @@ class _AdminReviewsScreenState extends ConsumerState<AdminReviewsScreen> {
               CircleAvatar(
                 radius: 16,
                 backgroundColor: const Color(0xFF0F172A),
-                backgroundImage: review.userPic.isNotEmpty ? NetworkImage(review.userPic) : null,
+                backgroundImage: review.userPic.isNotEmpty ? NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, review.userPic) : null,
                 child: review.userPic.isEmpty
                     ? Text(review.userName.isNotEmpty ? review.userName[0] : 'U', style: const TextStyle(color: Colors.white))
                     : null,

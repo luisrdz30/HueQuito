@@ -1316,7 +1316,7 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
               CircleAvatar(
                 radius: 22,
                 backgroundColor: roleColor.withValues(alpha: 0.12),
-                backgroundImage: user.profilePicUrl.isNotEmpty ? NetworkImage(user.profilePicUrl) : null,
+                backgroundImage: user.profilePicUrl.isNotEmpty ? NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, user.profilePicUrl) : null,
                 child: user.profilePicUrl.isEmpty
                     ? Icon(
                         user.role == 'admin'

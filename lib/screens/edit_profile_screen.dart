@@ -195,7 +195,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage(userAsync?.profilePicUrl ?? 'https://ui-avatars.com/api/?name=Invitado&background=random'),
+                      backgroundImage: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, userAsync?.profilePicUrl ?? 'https://ui-avatars.com/api/?name=Invitado&background=random'),
                     ),
                     Positioned(
                       bottom: 0,

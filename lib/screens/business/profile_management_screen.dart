@@ -1173,7 +1173,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: InteractiveViewer(
-                  child: Image.network(
+                  child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                     imageUrl,
                     height: 260,
                     width: double.infinity,
@@ -1252,7 +1252,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                     ],
                   ),
                   child: ClipOval(
-                    child: Image.network(
+                    child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                       imageUrl.trim(),
                       width: 44,
                       height: 44,
@@ -1567,7 +1567,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                         CircleAvatar(
                           radius: 60,
                           backgroundImage: imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
+                              ? NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl)
                               : null,
                           backgroundColor: Colors.grey[300],
                           child: imageUrl.isEmpty

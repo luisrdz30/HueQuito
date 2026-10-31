@@ -12,6 +12,8 @@ import 'package:hue_quito/screens/settings/faq_screen.dart';
 import 'package:hue_quito/screens/settings/terms_screen.dart';
 import 'package:hue_quito/widgets/client_onboarding_dialog.dart';
 import 'package:hue_quito/utils/account_deletion.dart';
+import 'package:hue_quito/models/gastronomic_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -35,8 +37,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'favorites': 'Mis Favoritos',
       'see_more': 'Ver más',
       'see_less': 'Ver menos',
-      'preferences': 'Mis Preferencias de Paladar',
-      'edit_preferences': 'Modificar preferencias',
+      'preferences': 'Mi Perfil Gastronómico',
+      'edit_preferences': 'Volver a hacer el cuestionario',
+      'discover_profile': 'Descubre tu perfil gastronómico',
+      'no_profile': 'Responde unas preguntas rápidas y te diremos qué tipo de comensal quiteño eres.',
       'settings': 'Configuración y Experiencia',
       'language': 'Idioma de la Guía:',
       'accessibility': 'Accesibilidad y Lectura Andina:',
@@ -69,8 +73,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'favorites': 'My Favorites',
       'see_more': 'See more',
       'see_less': 'See less',
-      'preferences': 'My Palate Preferences',
-      'edit_preferences': 'Edit preferences',
+      'preferences': 'My Food Profile',
+      'edit_preferences': 'Retake the quiz',
+      'discover_profile': 'Discover your food profile',
+      'no_profile': 'Answer a few quick questions and we will tell you what kind of Quito foodie you are.',
       'settings': 'Settings & Experience',
       'language': 'Guide Language:',
       'accessibility': 'Accessibility & Andean Reading:',
@@ -235,7 +241,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(radius: 36, backgroundImage: NetworkImage(displayUser.profilePicUrl)),
+                        CircleAvatar(radius: 36, backgroundImage: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, displayUser.profilePicUrl)),
                         SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -499,14 +505,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [Icon(Icons.tune, color: AppTheme.primary), SizedBox(width: 8), Text(lang['preferences']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
+                    Row(children: [Icon(Icons.restaurant_menu, color: AppTheme.primary), SizedBox(width: 8), Text(lang['preferences']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))]),
                     SizedBox(height: 12),
-                    _buildPreferenceItem(context, Icons.local_fire_department, 'Nivel de Picante', displayUser.preferences['spiceLevel']?.toString() ?? 'Medio'),
-                    _buildPreferenceItem(context, Icons.dinner_dining, 'Platos Favoritos Elegidos', (displayUser.preferences['favoriteDishes'] as List<dynamic>? ?? []).isEmpty ? 'Ninguno' : (displayUser.preferences['favoriteDishes'] as List<dynamic>).join(', ')),
-                    SizedBox(height: 12),
-                    SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {
-                      context.push('/preferences');
-                    }, child: Text(lang['edit_preferences']!))),
+                    // Perfil asignado por el cuestionario inicial (invitados: guardado en el teléfono)
+                    FutureBuilder<String?>(
+                      future: isGuest ? SharedPreferences.getInstance().then((p) => p.getString('guest_persona')) : Future.value(displayUser.preferences['persona']?.toString()),
+                      builder: (context, snap) => _buildPersonaCard(context, lang, snap.data, settings.language == 'en'),
+                    ),
                   ],
                 ),
               ),
@@ -713,7 +718,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(borderRadius: BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
+          ClipRRect(borderRadius: BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
           Padding(
             padding: EdgeInsets.all(8.0),
             child: Column(
@@ -729,19 +734,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildPreferenceItem(BuildContext context, IconData icon, String title, String value) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.grey[100]), borderRadius: BorderRadius.circular(12)),
-      child: Column(
+  Widget _buildPersonaCard(BuildContext context, Map<String, String> lang, String? personaId, bool isEn) {
+    final matches = hueQuitoProfiles.where((p) => p.id == personaId);
+    final profile = matches.isEmpty ? null : matches.first;
+    if (profile == null) {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 12, color: Colors.grey))]),
-          SizedBox(height: 4),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(lang['no_profile']!, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+          SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: ElevatedButton.icon(
+            onPressed: () => context.push('/preferences'),
+            icon: Icon(Icons.auto_awesome),
+            label: Text(lang['discover_profile']!),
+          )),
         ],
-      ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(profile.emoji, style: TextStyle(fontSize: 36)),
+              SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(isEn ? profile.titleEn : profile.titleEs, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppTheme.primary)),
+                  SizedBox(height: 4),
+                  Text(isEn ? profile.descriptionEn : profile.descriptionEs, style: TextStyle(fontSize: 13)),
+                ],
+              )),
+            ],
+          ),
+        ),
+        SizedBox(height: 12),
+        SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => context.push('/preferences'), child: Text(lang['edit_preferences']!))),
+      ],
     );
   }
 }

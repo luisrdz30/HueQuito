@@ -181,7 +181,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                               radius: 16,
                               backgroundColor: const Color(0xFF0F172A),
                               backgroundImage: user.profilePicUrl.isNotEmpty
-                                  ? NetworkImage(user.profilePicUrl)
+                                  ? NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, user.profilePicUrl)
                                   : null,
                               child: user.profilePicUrl.isEmpty
                                   ? Text(user.name.isNotEmpty ? user.name[0] : 'U', style: const TextStyle(color: Colors.white))
@@ -462,7 +462,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                     height: 70,
                     color: const Color(0xFFF1F5F9),
                     child: hueca.images.isNotEmpty
-                        ? Image.network(
+                        ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                             hueca.images.first,
                             fit: BoxFit.cover,
                             errorBuilder: (_, _, _) => const Icon(Icons.restaurant, color: Color(0xFF0F172A)),

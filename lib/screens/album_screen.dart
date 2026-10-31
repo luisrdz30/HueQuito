@@ -155,7 +155,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                      backgroundImage: NetworkImage(displayUser.profilePicUrl),
+                      backgroundImage: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, displayUser.profilePicUrl),
                     ),
                     SizedBox(width: 16),
                     Expanded(
@@ -591,7 +591,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           child: isStamped
                               ? ((stampImageUrl != null && stampImageUrl.isNotEmpty)
                                   ? ClipOval(
-                                      child: Image.network(
+                                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                         stampImageUrl,
                                         width: 36,
                                         height: 36,
@@ -700,7 +700,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                       if (rewardImageUrl != null && rewardImageUrl.isNotEmpty) ...[
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: Image.network(
+                          child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                             rewardImageUrl,
                             width: 24,
                             height: 24,
@@ -817,7 +817,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   if (rewardImageUrl != null && rewardImageUrl.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
+                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                         rewardImageUrl,
                         width: 44,
                         height: 44,
@@ -1395,7 +1395,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                                   if (isUnlocked && stickerImg.isNotEmpty)
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
+                                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                         stickerImg,
                                         fit: BoxFit.cover,
                                         width: double.infinity,

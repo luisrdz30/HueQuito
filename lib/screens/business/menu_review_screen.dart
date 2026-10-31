@@ -569,7 +569,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                                               child: localPath != null
                                                   ? ImagePickerHelper.previewPath(localPath, fit: BoxFit.cover)
                                                   : imageUrl.isNotEmpty
-                                                      ? Image.network(imageUrl, fit: BoxFit.cover)
+                                                      ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl, fit: BoxFit.cover)
                                                       : Column(
                                                           mainAxisAlignment: MainAxisAlignment.center,
                                                           children: [

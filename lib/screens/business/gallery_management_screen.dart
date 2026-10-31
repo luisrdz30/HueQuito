@@ -270,7 +270,7 @@ class _GalleryManagementScreenState extends ConsumerState<GalleryManagementScree
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
+                                        child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                           imgUrl,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) => Container(

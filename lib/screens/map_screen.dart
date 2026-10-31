@@ -276,7 +276,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   TileLayer(
                     urlTemplate: Theme.of(context).brightness == Brightness.dark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'ec.huequito.app',
-                    errorImage: const NetworkImage('https://tile.openstreetmap.org/0/0/0.png'),
+                    errorImage: const NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 'https://tile.openstreetmap.org/0/0/0.png'),
                   ),
                   MarkerLayer(
                     markers: _getMarkers(huecas, ref.watch(currentUserProvider).value),
@@ -436,7 +436,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
+                              child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                 _selectedHueca!.images.isNotEmpty ? _selectedHueca!.images[0] : 'https://via.placeholder.com/150', 
                                 width: 80, height: 80, fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Container(

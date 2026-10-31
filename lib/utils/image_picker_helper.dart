@@ -292,7 +292,7 @@ class ImagePickerHelper {
     ImageErrorWidgetBuilder? errorBuilder,
   }) {
     if (kIsWeb) {
-      return Image.network(path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
+      return Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
     }
     return Image.file(File(path), fit: fit, width: width, height: height, errorBuilder: errorBuilder);
   }
@@ -310,7 +310,7 @@ class ImagePickerHelper {
 
   /// ImageProvider para usar en CircleAvatar/DecorationImage.
   static ImageProvider providerFor(XFile file) {
-    if (kIsWeb) return NetworkImage(file.path);
+    if (kIsWeb) return NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, file.path);
     return FileImage(File(file.path));
   }
 }
