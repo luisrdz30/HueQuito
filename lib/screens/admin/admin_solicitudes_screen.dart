@@ -462,7 +462,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
             ),
             ClipRRect(
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-              child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+              child: Image.network(
                 url,
                 fit: BoxFit.contain,
                 loadingBuilder: (c, w, p) => p == null ? w : const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
@@ -876,7 +876,7 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                      child: Image.network(
                         req.photoUrl!,
                         width: 70,
                         height: 50,

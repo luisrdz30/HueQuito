@@ -224,7 +224,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
             InteractiveViewer(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                child: Image.network(
                   imageUrl,
                   fit: BoxFit.contain,
                   errorBuilder: (_, _, _) => Container(
@@ -653,7 +653,7 @@ class _AdminSubscriptionsScreenState extends ConsumerState<AdminSubscriptionsScr
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                            Image.network(
                               imageUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image, size: 40)),

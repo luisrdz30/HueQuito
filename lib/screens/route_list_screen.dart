@@ -460,7 +460,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                child: Image.network(
                   tour.bannerImageUrl,
                   height: 160,
                   width: double.infinity,

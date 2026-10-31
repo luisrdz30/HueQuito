@@ -73,7 +73,7 @@ class RouteDetailScreen extends ConsumerWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                  Image.network(
                     route.bannerImageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey),
@@ -337,7 +337,7 @@ class RouteDetailScreen extends ConsumerWidget {
                                               children: [
                                                 ClipRRect(
                                                   borderRadius: BorderRadius.circular(8),
-                                                  child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                                                  child: Image.network(
                                                     hueca.images.isNotEmpty ? hueca.images[0] : 'https://via.placeholder.com/80',
                                                     width: 64,
                                                     height: 64,

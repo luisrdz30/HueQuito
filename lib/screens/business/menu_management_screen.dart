@@ -650,7 +650,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
               if (imageUrl.isNotEmpty)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                  child: Image.network(
                     imageUrl,
                     height: 160,
                     width: double.infinity,
@@ -957,7 +957,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                     image: hasImage
                                         ? DecorationImage(
-                                            image: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl),
+                                            image: NetworkImage(imageUrl),
                                             fit: BoxFit.cover,
                                           )
                                         : null,

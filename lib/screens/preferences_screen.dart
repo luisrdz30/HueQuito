@@ -263,7 +263,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
         children: [
           // 1. Photographic background with layered gradient (matching WelcomeScreen)
           Positioned.fill(
-            child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+            child: Image.network(
               'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&auto=format&fit=crop&q=80',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
@@ -917,7 +917,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                 fit: StackFit.expand,
                 children: [
                   if (q.imageUrl.isNotEmpty)
-                    Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                    Image.network(
                       q.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(

@@ -241,7 +241,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(radius: 36, backgroundImage: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, displayUser.profilePicUrl)),
+                        CircleAvatar(radius: 36, backgroundImage: NetworkImage(displayUser.profilePicUrl)),
                         SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -718,7 +718,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(borderRadius: BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
+          ClipRRect(borderRadius: BorderRadius.vertical(top: Radius.circular(12)), child: Image.network(imageUrl, height: 80, width: 140, fit: BoxFit.cover)),
           Padding(
             padding: EdgeInsets.all(8.0),
             child: Column(

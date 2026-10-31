@@ -526,7 +526,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                         final imageUrl = _currentHueca.images.isNotEmpty
                             ? _currentHueca.images[index]
                             : 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80';
-                        return Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                        return Image.network(
                           imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Container(
@@ -1639,7 +1639,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+            child: Image.network(
               imageUrl,
               width: 60,
               height: 60,
@@ -1677,7 +1677,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
               CircleAvatar(
                 radius: 16,
                 backgroundImage: r.userPic.isNotEmpty
-                    ? NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, r.userPic)
+                    ? NetworkImage(r.userPic)
                     : null,
                 child: r.userPic.isEmpty
                     ? Text(
@@ -1996,7 +1996,7 @@ class _FullScreenGalleryViewerState extends State<_FullScreenGalleryViewer> {
                   maxScale: 4.0,
                   clipBehavior: Clip.none,
                   child: Center(
-                    child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                    child: Image.network(
                       imageUrl,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {

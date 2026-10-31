@@ -712,7 +712,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
-                image: NetworkImage(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, imageUrl),
+                image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
               ),
             ),

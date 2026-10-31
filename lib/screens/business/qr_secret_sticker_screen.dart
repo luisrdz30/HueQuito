@@ -148,7 +148,7 @@ class _QrSecretStickerScreenState extends State<QrSecretStickerScreen> {
                       ],
                     ),
                     child: ClipOval(
-                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                      child: Image.network(
                         widget.stickerImage!,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) => const Icon(Icons.star, color: Colors.amber, size: 36),

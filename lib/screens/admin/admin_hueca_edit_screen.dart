@@ -1064,7 +1064,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                  Image.network(
                     url,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => Center(

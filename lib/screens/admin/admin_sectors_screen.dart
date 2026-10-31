@@ -987,7 +987,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: hueca.images.isNotEmpty
-                    ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                    ? Image.network(
                         hueca.images.first,
                         width: 50,
                         height: 50,
@@ -1130,7 +1130,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
                 child: hasSticker && stickerImage.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                        child: Image.network(
                           stickerImage,
                           width: 32,
                           height: 32,

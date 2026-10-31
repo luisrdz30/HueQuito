@@ -1003,7 +1003,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                             if (_scannedData!['sticker_image'] != null && _scannedData!['sticker_image'].toString().isNotEmpty)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
+                                child: Image.network(
                                   _scannedData!['sticker_image'].toString(),
                                   width: 44,
                                   height: 44,
