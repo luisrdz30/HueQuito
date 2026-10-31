@@ -1,6 +1,6 @@
-# Guía rápida de pruebas (fases 1 a 6)
+# Guía rápida de pruebas (fases 1 a 7)
 
-Necesitas: la app nueva instalada (rama `fase6-limpieza`), las reglas desplegadas y tres cuentas: **comensal**, **dueño** de una hueca y **admin**. Lo ideal son dos teléfonos (uno muestra el QR y el otro escanea).
+Necesitas: la app nueva instalada (rama `fase7-navegacion`, que ya incluye todas las fases), las reglas desplegadas y tres cuentas: **comensal**, **dueño** de una hueca y **admin**. Lo ideal son dos teléfonos (uno muestra el QR y el otro escanea).
 
 Marca cada punto. Si algo falla, anota la pantalla y el mensaje.
 
@@ -46,3 +46,18 @@ Para simularlo, en la consola de Firebase, en la hueca de prueba: `metrics.stamp
 - [ ] Mi QR: "Entrega de sellos pausada" (no muestra código).
 - [ ] Al escanear un QR viejo de esa hueca: "no puede entregar sellos por ahora".
 - [ ] El admin aprueba el pago: vuelve a funcionar.
+
+## 6. Publicar la versión web (Firebase Hosting, gratis en el plan Spark)
+`firebase.json` ya tiene configurado Hosting para publicar `build/web`. Desde la carpeta `hue_quito`:
+1. Compila: doble clic en `build_web.bat` (toma la clave de Maps de `android/local.properties`).
+2. Publica: `firebase deploy --only hosting --project huequito-b091a`
+3. Abre `https://huequito-b091a.web.app` y prueba lo básico: login (correo y Google), mapa y detalle de huecas (escanear QR es solo en el celular).
+
+Si prefieres Netlify (ya está `netlify.toml`), arrastra la carpeta `build/web` a app.netlify.com/drop. En ese caso agrega el dominio de Netlify en Firebase → Authentication → Configuración → **Dominios autorizados**, o el login falla.
+
+## 7. Pendientes en la consola (solo los puedes hacer tú)
+- [ ] **Firebase → AI Logic**: que esté activado (lo usa la lectura de menús con IA). Si al escanear un menú sale error de permisos o de API, actívalo ahí.
+- [ ] **Google Cloud → Credenciales**: revoca o elimina la clave vieja de Gemini que estaba en el código.
+- [ ] **Google Cloud → Credenciales → clave de Maps**: restríngela por referente HTTP (`huequito-b091a.web.app/*`, `huequito-b091a.firebaseapp.com/*`, `localhost/*` y tu dominio de Netlify si lo usas) y por app Android.
+- [ ] Panel admin → Suscripciones: meta de sellos gratis en **100** (punto 0).
+- [ ] Cuando termines de probar: unir `fase7-navegacion` a `main` (me dices y lo hago).
