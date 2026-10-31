@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class AdminReviewsScreen extends ConsumerStatefulWidget {
   const AdminReviewsScreen({super.key});
@@ -81,7 +82,7 @@ class _AdminReviewsScreenState extends ConsumerState<AdminReviewsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/admin/dashboard'),
         ),
         title: const Text('Moderación de Reseñas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 17)),
         actions: [

@@ -8,6 +8,7 @@ import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class DishFormScreen extends ConsumerStatefulWidget {
   final String huecaId;
@@ -389,7 +390,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: textColor),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/menu'),
         ),
         actions: [
           if (_isSaving)

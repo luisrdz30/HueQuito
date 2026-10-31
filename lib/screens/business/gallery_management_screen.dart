@@ -6,6 +6,7 @@ import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class GalleryManagementScreen extends ConsumerStatefulWidget {
   final String huecaId;
@@ -181,7 +182,7 @@ class _GalleryManagementScreenState extends ConsumerState<GalleryManagementScree
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/profile'),
         ),
       ),
       body: StreamBuilder<DocumentSnapshot>(

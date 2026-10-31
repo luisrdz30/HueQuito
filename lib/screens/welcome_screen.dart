@@ -334,7 +334,29 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
+
+                          // El cuestionario es opcional: se puede saltar e ir directo a iniciar sesión
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () => context.push('/login'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppTheme.primary,
+                                side: const BorderSide(color: AppTheme.primary, width: 1.4),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(9999),
+                                ),
+                              ),
+                              child: Text(
+                                isEn ? 'Skip quiz and log in' : 'Saltar cuestionario e iniciar sesión',
+                                style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
 
                           // Fila de acciones secundarias: Iniciar sesión / Entrar como invitado
                           Row(
@@ -348,7 +370,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () => context.go('/login'),
+                                onPressed: () => context.push('/login'),
                                 style: TextButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   visualDensity: VisualDensity.compact,

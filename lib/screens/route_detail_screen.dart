@@ -7,6 +7,7 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class RouteDetailScreen extends ConsumerWidget {
   final Object? routeModel;
@@ -40,7 +41,7 @@ class RouteDetailScreen extends ConsumerWidget {
                 backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
                 child: IconButton(
                   icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-                  onPressed: () => context.pop(),
+                  onPressed: () => goBack(context, fallback: '/rutas'),
                 ),
               ),
             ),

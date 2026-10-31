@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class TermsScreen extends ConsumerWidget {
   const TermsScreen({super.key});
@@ -16,7 +17,7 @@ class TermsScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: isEn ? 'Back' : 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/profile'),
         ),
       ),
       body: SingleChildScrollView(

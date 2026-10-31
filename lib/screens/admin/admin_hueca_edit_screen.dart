@@ -8,6 +8,7 @@ import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/screens/business/location_picker_screen.dart';
 import 'package:hue_quito/services/geocoding_service.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class AdminHuecaEditScreen extends ConsumerStatefulWidget {
   final Hueca? hueca;
@@ -1288,7 +1289,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/admin/huecas'),
         ),
         title: Text(
           isNew ? 'Nueva Hueca' : 'Editar Hueca',

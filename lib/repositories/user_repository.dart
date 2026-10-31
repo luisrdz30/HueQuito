@@ -658,8 +658,8 @@ class UserRepository {
 
   /// ADMIN: Crear o actualizar cuenta de usuario con rol 'business' desde el panel de admin o aprobación de solicitud.
   /// Si el correo ya pertenece a un usuario registrado (ej. ingresó con Google o creó cuenta como comensal),
-  /// se limpia su historial antiguo de cliente (favoritos, álbumes, etc.) y se transforma su cuenta para
-  /// que gestione la hueca sin provocar error de correo duplicado.
+  /// se le asigna el rol de negocio conservando su historial de comensal (favoritos, álbumes, etc.),
+  /// sin provocar error de correo duplicado.
   /// Si es una cuenta nueva, genera una clave temporal segura y envía el correo para definir contraseña.
   Future<UserModel> createBusinessAccount({
     required String name,
@@ -708,39 +708,13 @@ class UserRepository {
       }
     }
 
-    // 2. Si ya existe el usuario: Limpiar datos antiguos de explorador/comensal y convertirlo a business
+    // 2. Si ya existe el usuario: se convierte en business conservando su perfil de comensal
+    //    (favoritos, sellos, álbumes y preferencias), porque también sigue usando la app normal
     if (targetUid != null) {
-      // Limpiar álbumes antiguos de explorador en subcolección
-      try {
-        final albumsSnap = await _db.collection('users').doc(targetUid).collection('sector_albums').get();
-        for (final albumDoc in albumsSnap.docs) {
-          await albumDoc.reference.delete();
-        }
-      } catch (e) {
-        debugPrint('Aviso limpiando albumes de explorador: $e');
-      }
-
-      // Decrementar métricas de favoritos en las huecas que tenía marcadas
-      try {
-        final oldDoc = await _db.collection('users').doc(targetUid).get();
-        final oldFavs = List<String>.from(oldDoc.data()?['favoriteHuecas'] ?? []);
-        for (final fHuecaId in oldFavs) {
-          _db.collection('huecas').doc(fHuecaId).set({
-            'metrics': {'favoriteCount': FieldValue.increment(-1)}
-          }, SetOptions(merge: true));
-        }
-      } catch (_) {}
-
       final updatedData = <String, dynamic>{
         'uid': targetUid,
-        'name': name.trim(),
         'email': cleanEmail,
         'role': 'business',
-        'profilePicUrl': 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name.trim())}&background=0F172A&color=ffffff',
-        'gamification': {'totalStamps': 0, 'level': 1, 'title': 'Dueño de Negocio'},
-        'preferences': {'favoriteDishes': [], 'dietaryRestrictions': []},
-        'favoriteHuecas': [],
-        'subscribedHuecas': [],
       };
 
       if (assignedHuecaId != null && assignedHuecaId.trim().isNotEmpty) {

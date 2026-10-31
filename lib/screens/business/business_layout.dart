@@ -34,6 +34,11 @@ class BusinessLayout extends StatelessWidget {
       case 4:
         context.go('/business/profile');
         break;
+      case 5:
+        // Igual que el admin: sale del panel a la app normal sin cerrar sesión
+        // (favoritos, sellos y álbum). Desde Perfil se vuelve con "Entrar" al panel.
+        context.go('/home');
+        break;
     }
   }
 
@@ -67,6 +72,10 @@ class BusinessLayout extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.store),
             label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore_outlined),
+            label: 'Ver app',
           ),
         ],
       ),

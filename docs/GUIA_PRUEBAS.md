@@ -32,7 +32,14 @@ Marca cada punto. Si algo falla, anota la pantalla y el mensaje.
 - [ ] Eliminar usuario: el diálogo aclara que la cuenta de inicio de sesión no se borra.
 - [ ] Ya **no** existe la sección de rutas oficiales en el menú del admin.
 
-## 4. Suscripción vencida (opcional, usa una hueca de prueba)
+## 4. Navegación (fase 7)
+- [ ] Bienvenida → **Saltar cuestionario e iniciar sesión**: va directo al login sin pasar por el quiz.
+- [ ] En el quiz, **Saltar** (arriba a la derecha) también lleva al login.
+- [ ] Prueba la flecha de regresar en: detalle de hueca, detalle de ruta, crear tour, asistente de tour, solicitar hueca, preguntas frecuentes, términos, y en el panel de negocio (soporte, galería, platos, sucursales). Siempre regresa, nunca se queda pegada ni cierra la app.
+- [ ] Dueño: pestaña **Ver app** (abajo a la derecha) → entra a la app normal con sus favoritos y sellos. En **Perfil → Administrar … → Entrar** vuelve al panel. Nunca pide cerrar sesión.
+- [ ] Admin convierte en dueño a una cuenta que ya era comensal: conserva sus favoritos, sellos y álbum.
+
+## 5. Suscripción vencida (opcional, usa una hueca de prueba)
 Para simularlo, en la consola de Firebase, en la hueca de prueba: `metrics.stampsGiven` = 100 y `subscription.gracePeriodStartDate` = una fecha de hace 8 días.
 - [ ] Panel del dueño: "Cuenta suspendida por pago pendiente".
 - [ ] Mi QR: "Entrega de sellos pausada" (no muestra código).

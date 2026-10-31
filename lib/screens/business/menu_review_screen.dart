@@ -8,6 +8,7 @@ import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class MenuReviewScreen extends ConsumerStatefulWidget {
   final String huecaId;
@@ -382,7 +383,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: textColor),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/menu'),
         ),
         actions: [
           if (widget.rawOcrText.isNotEmpty)

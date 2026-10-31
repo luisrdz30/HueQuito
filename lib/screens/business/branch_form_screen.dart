@@ -9,6 +9,7 @@ import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/screens/business/location_picker_screen.dart';
 import 'package:hue_quito/services/geocoding_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class BranchFormScreen extends ConsumerStatefulWidget {
   final Hueca hueca;
@@ -379,7 +380,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: isAdmin ? Colors.white : Theme.of(context).colorScheme.onSurface),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/profile'),
         ),
       ),
       body: SingleChildScrollView(

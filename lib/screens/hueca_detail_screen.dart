@@ -8,12 +8,12 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/utils/auth_utils.dart';
 import 'package:hue_quito/providers/data_provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:hue_quito/utils/map_navigation_helper.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class HuecaDetailScreen extends ConsumerStatefulWidget {
   final Object? hueca;
@@ -434,7 +434,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         toolbarHeight: 70,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () => goBack(context, fallback: '/home'),
         ),
         title: Row(
           children: [

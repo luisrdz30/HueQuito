@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/services/geocoding_service.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   final LatLng? initialLocation;
@@ -126,7 +127,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/profile'),
         ),
       ),
       body: Stack(

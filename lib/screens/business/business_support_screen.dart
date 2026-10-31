@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/support_repository.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class BusinessSupportScreen extends ConsumerStatefulWidget {
   const BusinessSupportScreen({super.key});
@@ -117,7 +118,7 @@ class _BusinessSupportScreenState extends ConsumerState<BusinessSupportScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Volver',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => goBack(context, fallback: '/business/dashboard'),
         ),
       ),
       body: SingleChildScrollView(

@@ -7,6 +7,7 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/utils/tour_distance_helper.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class TourWizardScreen extends ConsumerStatefulWidget {
   const TourWizardScreen({super.key});
@@ -88,7 +89,7 @@ class _TourWizardScreenState extends ConsumerState<TourWizardScreen> {
         }
       });
     } else {
-      context.pop();
+      goBack(context, fallback: '/rutas');
     }
   }
 

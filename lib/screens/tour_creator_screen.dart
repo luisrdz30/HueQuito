@@ -7,6 +7,7 @@ import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/route_repository.dart';
 import 'package:hue_quito/utils/tour_distance_helper.dart';
+import 'package:hue_quito/utils/back_navigation.dart';
 
 class TourCreatorScreen extends ConsumerStatefulWidget {
   const TourCreatorScreen({super.key});
@@ -195,7 +196,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () => context.pop(),
+          onPressed: () => goBack(context, fallback: '/rutas'),
         ),
         title: Text(
           isEn ? 'Build Tour My Way' : 'Armar Tour a mi Manera',
