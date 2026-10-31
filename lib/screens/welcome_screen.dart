@@ -100,7 +100,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         children: [
           // 1. Imagen de fondo evocadora con overlay degradado
           Positioned.fill(
-            child: Image.network(
+            child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
               'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&auto=format&fit=crop&q=80',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(

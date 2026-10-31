@@ -464,7 +464,7 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                               child: _localImageFile != null
                                   ? ImagePickerHelper.preview(_localImageFile!, fit: BoxFit.cover)
                                   : _imageUrl.isNotEmpty
-                                      ? Image.network(
+                                      ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                           _imageUrl,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, _, _) => const Icon(

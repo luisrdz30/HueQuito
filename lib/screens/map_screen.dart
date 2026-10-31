@@ -436,7 +436,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
+                              child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                 _selectedHueca!.images.isNotEmpty ? _selectedHueca!.images[0] : 'https://via.placeholder.com/150', 
                                 width: 80, height: 80, fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Container(

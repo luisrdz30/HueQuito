@@ -292,7 +292,7 @@ class ImagePickerHelper {
     ImageErrorWidgetBuilder? errorBuilder,
   }) {
     if (kIsWeb) {
-      return Image.network(path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
+      return Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, path, fit: fit, width: width, height: height, errorBuilder: errorBuilder);
     }
     return Image.file(File(path), fit: fit, width: width, height: height, errorBuilder: errorBuilder);
   }

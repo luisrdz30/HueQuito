@@ -528,7 +528,7 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: hueca.images.isNotEmpty
-                                    ? Image.network(
+                                    ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                         hueca.images.first,
                                         width: 48,
                                         height: 48,

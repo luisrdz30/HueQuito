@@ -462,7 +462,7 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                     height: 70,
                     color: const Color(0xFFF1F5F9),
                     child: hueca.images.isNotEmpty
-                        ? Image.network(
+                        ? Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                             hueca.images.first,
                             fit: BoxFit.cover,
                             errorBuilder: (_, _, _) => const Icon(Icons.restaurant, color: Color(0xFF0F172A)),

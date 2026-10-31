@@ -709,14 +709,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Container(
             height: 180,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
-              ),
+              color: Colors.grey.shade400,
             ),
-            child: Container(
+            // Image (no DecorationImage): en la web puede caer a <img> si Storage no permite CORS
+            child: Stack(fit: StackFit.expand, children: [
+            Image.network(imageUrl, fit: BoxFit.cover, webHtmlElementStrategy: WebHtmlElementStrategy.fallback, errorBuilder: (context, error, stack) => SizedBox.shrink()),
+            Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 gradient: LinearGradient(
@@ -898,7 +899,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
-            ),
+            )]),
           ),
           Padding(
             padding: EdgeInsets.all(16),

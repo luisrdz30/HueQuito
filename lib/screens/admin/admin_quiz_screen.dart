@@ -497,7 +497,7 @@ class _AdminQuizScreenState extends ConsumerState<AdminQuizScreen> {
                     child: SizedBox(
                       height: 120,
                       width: double.infinity,
-                      child: Image.network(
+                      child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                         q.imageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
@@ -1048,7 +1048,7 @@ class _QuestionFormModalState extends State<_QuestionFormModal> {
                                   child: SizedBox(
                                     height: 130,
                                     width: double.infinity,
-                                    child: Image.network(
+                                    child: Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                                       _imageUrlCtrl.text,
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) => Container(

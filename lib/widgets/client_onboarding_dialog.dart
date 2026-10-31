@@ -406,7 +406,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
             borderRadius: BorderRadius.circular(16),
             child: Stack(
               children: [
-                Image.network(
+                Image.network(webHtmlElementStrategy: WebHtmlElementStrategy.fallback, 
                   imageUrl,
                   height: 125,
                   width: double.infinity,
