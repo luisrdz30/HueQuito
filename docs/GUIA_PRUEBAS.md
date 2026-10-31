@@ -38,6 +38,7 @@ Marca cada punto. Si algo falla, anota la pantalla y el mensaje.
 - [ ] Prueba la flecha de regresar en: detalle de hueca, detalle de ruta, crear tour, asistente de tour, solicitar hueca, preguntas frecuentes, términos, y en el panel de negocio (soporte, galería, platos, sucursales). Siempre regresa, nunca se queda pegada ni cierra la app.
 - [ ] Dueño: pestaña **Ver app** (abajo a la derecha) → entra a la app normal con sus favoritos y sellos. En **Perfil → Administrar … → Entrar** vuelve al panel. Nunca pide cerrar sesión.
 - [ ] Admin convierte en dueño a una cuenta que ya era comensal: conserva sus favoritos, sellos y álbum.
+- [ ] Dueño: cierra y vuelve a abrir la app al día siguiente: sigue con la sesión abierta. Solo el **admin** debe volver a iniciar sesión pasadas 24 horas.
 
 ## 5. Suscripción vencida (opcional, usa una hueca de prueba)
 Para simularlo, en la consola de Firebase, en la hueca de prueba: `metrics.stampsGiven` = 100 y `subscription.gracePeriodStartDate` = una fecha de hace 8 días.

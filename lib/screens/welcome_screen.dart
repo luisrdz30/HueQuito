@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
+import 'package:hue_quito/providers/auth_provider.dart' show authRepositoryProvider;
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -31,31 +32,32 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         final userRepo = ref.read(userRepositoryProvider);
         final userModel = await userRepo.getCurrentUser();
 
-        if (userModel != null && userModel.role == 'business') {
-          // Check last login for business
+        final isSuperAdmin = (user.email ?? '').trim().toLowerCase() == 'admin@huequito.com' ||
+            userModel?.role == 'admin';
+
+        // Por seguridad solo el admin debe volver a iniciar sesión cada 24 horas.
+        // Dueños y encargados quedan con la sesión abierta, como cualquier comensal.
+        if (isSuperAdmin) {
           final prefs = await SharedPreferences.getInstance();
           final lastLogin = prefs.getInt('last_login_time') ?? 0;
           final now = DateTime.now().millisecondsSinceEpoch;
-
           if (now - lastLogin > 24 * 60 * 60 * 1000) {
-            // More than 24 hours, log out
-            await FirebaseAuth.instance.signOut();
+            await ref.read(authRepositoryProvider).signOut();
             if (mounted) {
               setState(() {
                 _isLoading = false;
               });
             }
             return;
-          } else {
-            // Still valid
-            if (mounted) context.go('/business/dashboard');
-            return;
           }
-        } else {
-          // Normal user, persistent
-          if (mounted) context.go('/home');
-          return;
         }
+
+        if (userModel != null && userModel.role == 'business') {
+          if (mounted) context.go('/business/dashboard');
+        } else {
+          if (mounted) context.go('/home');
+        }
+        return;
       }
     } catch (_) {
       // Error fetching user data or headless test mode
