@@ -76,8 +76,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             (sId.isNotEmpty && sId == rawCode)) {
           matchedHueca = h;
           if (s['name'] is Map) {
-            matchedStickerName = s['name'][lang]?.toString() ?? s['name']['es']?.toString() ?? matchedStickerName;
-          } else if (s['name'] != null && s['name'].toString().isNotEmpty) {
+            final n = (s['name'][lang] ?? s['name']['es'] ?? '').toString().trim();
+            if (n.isNotEmpty) matchedStickerName = n; // las huecas nuevas traen el nombre vacío
+          } else if (s['name'] != null && s['name'].toString().trim().isNotEmpty) {
             matchedStickerName = s['name'].toString();
           }
           final sImg = s['image'] ?? s['imageUrl'];
@@ -102,8 +103,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               matchedBranchId = b.id;
               matchedBranchName = b.name;
               if (bs['name'] is Map) {
-                matchedStickerName = bs['name'][lang]?.toString() ?? bs['name']['es']?.toString() ?? matchedStickerName;
-              } else if (bs['name'] != null && bs['name'].toString().isNotEmpty) {
+                final n = (bs['name'][lang] ?? bs['name']['es'] ?? '').toString().trim();
+                if (n.isNotEmpty) matchedStickerName = n; // las huecas nuevas traen el nombre vacío
+              } else if (bs['name'] != null && bs['name'].toString().trim().isNotEmpty) {
                 matchedStickerName = bs['name'].toString();
               }
               final bsImg = bs['image'] ?? bs['imageUrl'];

@@ -35,6 +35,13 @@ class UserModel {
     this.managedBranchId,
   });
 
+  /// Sin foto (o con la imagen genérica de antes) se muestran las iniciales del nombre.
+  static String _avatarOrInitials(String? url, String? name) {
+    if (url != null && url.trim().isNotEmpty && !url.contains('placeholder')) return url;
+    final n = (name == null || name.trim().isEmpty) ? 'Usuario' : name.trim();
+    return 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(n)}&background=random';
+  }
+
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     return UserModel(
@@ -42,7 +49,7 @@ class UserModel {
       name: data['name'] ?? 'Usuario',
       email: data['email'] ?? '',
       role: data['role'] ?? 'user',
-      profilePicUrl: data['profilePicUrl'] ?? 'https://via.placeholder.com/150',
+      profilePicUrl: _avatarOrInitials(data['profilePicUrl']?.toString(), data['name']?.toString()),
       gamification: data['gamification'] ?? {'totalStamps': 0, 'level': 1, 'title': 'Novato'},
       preferences: data['preferences'] ?? {'favoriteDishes': [], 'dietaryRestrictions': []},
       sectorAlbums: [], // Load separately or assume empty for now

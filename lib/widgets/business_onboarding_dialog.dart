@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/theme/theme.dart';
@@ -18,17 +20,27 @@ Future<void> showBusinessOnboardingDialog(
 
   if (!context.mounted) return;
 
+  double monthlyPrice = 9.99;
+  try {
+    monthlyPrice = ProviderScope.containerOf(context, listen: false)
+            .read(subscriptionSettingsProvider)
+            .value
+            ?.monthlyPrice ??
+        monthlyPrice;
+  } catch (_) {} // Sin ProviderScope (tests) se usa el precio por defecto
+
   await showDialog(
     context: context,
     barrierDismissible: true,
-    builder: (ctx) => BusinessOnboardingDialog(hueca: hueca),
+    builder: (ctx) => BusinessOnboardingDialog(hueca: hueca, monthlyPrice: monthlyPrice),
   );
 }
 
 class BusinessOnboardingDialog extends StatefulWidget {
   final Hueca hueca;
+  final double monthlyPrice;
 
-  const BusinessOnboardingDialog({super.key, required this.hueca});
+  const BusinessOnboardingDialog({super.key, required this.hueca, this.monthlyPrice = 9.99});
 
   @override
   State<BusinessOnboardingDialog> createState() => _BusinessOnboardingDialogState();
@@ -649,7 +661,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Mensualidad', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
-                        const Text('\$9.99 / mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        Text('\$${widget.monthlyPrice.toStringAsFixed(2)} / mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
                         const Text('7 días de gracia', style: TextStyle(fontSize: 9.5, color: Colors.orange, fontWeight: FontWeight.w600)),
                       ],
                     ),
@@ -682,7 +694,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 100 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 100 sellos, se activará la suscripción mensual de \$9.99/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
+          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 100 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 100 sellos, se activará la suscripción mensual de \$${widget.monthlyPrice.toStringAsFixed(2)}/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
       actionLabel: 'Ver Plan y Pagos',
       onAction: () {
         Navigator.of(context).pop();

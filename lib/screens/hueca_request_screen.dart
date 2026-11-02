@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hue_quito/models/quito_zones.dart';
@@ -749,6 +750,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
   }
 
   Widget _buildPricingInfoCard({required bool isDark, required bool isEn}) {
+    // Mismo precio que configura el admin en Suscripciones y Pagos
+    final price = '\$${(ref.watch(subscriptionSettingsProvider).value?.monthlyPrice ?? 9.99).toStringAsFixed(2)}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -850,8 +853,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
           _buildPricingBullet(
             icon: Icons.savings_outlined,
             text: isEn
-                ? 'Accessible subscription after: Only after reaching 100 stamps, a \$9.99/month subscription activates with a 7-day grace period.'
-                : 'Suscripción accesible posterior: Solo al alcanzar 100 sellos entregados, se habilitará el plan de \$9.99/mes con 7 días de gracia para continuar.',
+                ? 'Accessible subscription after: Only after reaching 100 stamps, a $price/month subscription activates with a 7-day grace period.'
+                : 'Suscripción accesible posterior: Solo al alcanzar 100 sellos entregados, se habilitará el plan de $price/mes con 7 días de gracia para continuar.',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -886,7 +889,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                 Expanded(
                   child: _buildPricingMiniPill(
                     label: isEn ? 'After 100' : 'Luego de 100',
-                    value: '\$9.99 / mes',
+                    value: '$price / mes',
                     color: AppTheme.primary,
                   ),
                 ),

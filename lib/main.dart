@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'firebase_options.dart';
 
 import 'package:hue_quito/theme/theme.dart';
@@ -32,12 +33,20 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
+  // Pruebas locales: con --dart-define=USE_EMULATORS=true todo va a los emuladores de Firebase
+  const useEmulators = bool.fromEnvironment('USE_EMULATORS');
+  if (useEmulators) {
+    await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    await FirebaseStorage.instance.useStorageEmulator('localhost', 9199);
+  }
+
   // Configurar idioma español para correos y plantillas de Firebase Auth
   await FirebaseAuth.instance.setLanguageCode('es');
   
   // Habilitar caché local (Offline Persistence) para no descargar todo de la nube siempre
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
+  FirebaseFirestore.instance.settings = Settings(
+    persistenceEnabled: !useEmulators,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 

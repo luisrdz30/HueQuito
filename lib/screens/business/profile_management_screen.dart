@@ -1649,7 +1649,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen> {
                     title: 'Mis Locales / Sucursales',
                     subtitle: isBranchManager
                         ? 'Local asignado: $currentBranchName'
-                        : '${hueca.allBranches.length} locales registrados (Matriz y Sucursales)',
+                        : hueca.allBranches.length == 1 ? '1 local registrado (Matriz)' : '${hueca.allBranches.length} locales registrados (Matriz y Sucursales)',
                     onTap: () => GoRouter.of(context).push('/business/branches', extra: hueca.id),
                   ),
                   _buildProfileOption(

@@ -1092,7 +1092,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                     Row(
                                       children: [
                                         Text(
-                                          '\$${dish['price']}',
+                                          '\$${((dish['price'] as num?) ?? 0).toStringAsFixed(2)}',
                                           style: TextStyle(
                                             color: AppTheme.primary,
                                             fontWeight: FontWeight.bold,

@@ -72,7 +72,12 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
     }
     for (final b in hueca.branches) {
       final bs = b.secretSticker;
-      if (bs != null && bs['name'] != null && bs['name'].toString().trim().isNotEmpty) {
+      if (bs == null) continue;
+      // El nombre puede venir como texto o como mapa {es, en} (vacío en las huecas nuevas)
+      if (bs['name'] is Map) {
+        final n = bs['name']['es']?.toString() ?? bs['name']['en']?.toString();
+        if (n != null && n.trim().isNotEmpty) return n.trim();
+      } else if (bs['name'] != null && bs['name'].toString().trim().isNotEmpty) {
         return bs['name'].toString().trim();
       }
     }
