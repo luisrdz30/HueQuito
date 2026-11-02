@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -288,22 +289,28 @@ class MapNavigationHelper {
     required String address,
     required String language,
   }) async {
-    final availableMaps = await MapLauncher.installedMaps;
+    // En web no hay apps instaladas que consultar: se abre Google Maps directo.
+    List<AvailableMap> availableMaps = [];
+    if (!kIsWeb) {
+      try {
+        availableMaps = await MapLauncher.installedMaps;
+      } catch (_) {}
+    }
     if (!context.mounted) return;
 
     if (availableMaps.isEmpty) {
-      final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        if (!context.mounted) return;
+      final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+      bool opened = false;
+      try {
+        opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+      if (!opened && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               language == 'es'
-                  ? 'No hay aplicaciones de mapas instaladas'
-                  : 'No map applications installed',
+                  ? 'No se pudo abrir Google Maps'
+                  : 'Could not open Google Maps',
             ),
           ),
         );
