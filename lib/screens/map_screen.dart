@@ -1,3 +1,4 @@
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -46,9 +47,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   bool _matchSector(String branchSector, String fallbackSector, String targetSector) {
     final target = _cleanStr(targetSector);
-    if (target == 'todos' || target == 'all' || target.contains('todos') || target.contains('all')) return true;
-    final bSec = _cleanStr(branchSector.trim().isNotEmpty ? branchSector : fallbackSector);
-    return bSec == target || bSec.contains(target) || target.contains(bSec);
+    if (target == 'todos' || target == 'all' || target.startsWith('todos') || target.startsWith('all')) return true;
+    final zone = normalizeQuitoZone(branchSector) ?? normalizeQuitoZone(fallbackSector);
+    return zone != null && zone == normalizeQuitoZone(targetSector);
   }
 
   void _centerOnUser() {
@@ -114,7 +115,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       for (var branch in hueca.allBranches) {
         // Sector filter
         final secClean = _cleanStr(_selectedSector);
-        final isAll = secClean == 'todos' || secClean == 'all' || secClean.contains('todos') || secClean.contains('all');
+        final isAll = secClean == 'todos' || secClean == 'all' || secClean.startsWith('todos') || secClean.startsWith('all');
         if (!isAll) {
           if (!_matchSector(branch.sector, hueca.sector, _selectedSector)) continue;
         }
@@ -228,22 +229,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             _selectedHueca = null;
             _selectedBranch = null;
           }
-          final allSectorSet = <String>{};
-          for (var h in huecas) {
-            if (!h.isActive) continue;
-            if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
-            for (var b in h.allBranches) {
-              if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());
-            }
-          }
-          final sortedSectors = allSectorSet.toList()..sort();
+          final sortedSectors = quitoZoneIds;
           final defaultAllSector = lang == 'es' ? 'Todos los sectores' : 'All sectors';
           final sectors = [defaultAllSector, ...sortedSectors];
 
           final isCurrentAll = _cleanStr(_selectedSector) == 'todos' ||
               _cleanStr(_selectedSector) == 'all' ||
-              _cleanStr(_selectedSector).contains('todos') ||
-              _cleanStr(_selectedSector).contains('all');
+              _cleanStr(_selectedSector).startsWith('todos') ||
+              _cleanStr(_selectedSector).startsWith('all');
 
           if (isCurrentAll) {
             _selectedSector = defaultAllSector;

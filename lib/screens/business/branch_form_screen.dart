@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
@@ -28,18 +29,7 @@ class BranchFormScreen extends ConsumerStatefulWidget {
 }
 
 class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
-  final List<String> _sectors = [
-    'Centro Histórico',
-    'La Mariscal',
-    'Floresta',
-    'Norte',
-    'Sur',
-    'Cumbayá',
-    'Tumbaco',
-    'Valle de los Chillos',
-    'Calderón',
-    'Conocoto',
-  ];
+  final List<String> _sectors = List.of(quitoZoneIds);
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _addressCtrl;
@@ -61,9 +51,7 @@ class _BranchFormScreenState extends ConsumerState<BranchFormScreen> {
     _phoneCtrl = TextEditingController(text: branch?.phone ?? '');
     _emailCtrl = TextEditingController(text: branch?.managerEmail ?? '');
 
-    _selectedSector = (branch != null && _sectors.contains(branch.sector))
-        ? branch.sector
-        : _sectors[0];
+    _selectedSector = normalizeQuitoZone(branch?.sector) ?? _sectors[0];
 
     _selectedLocation = branch?.location ?? const GeoPoint(-0.1807, -78.4678); // Quito default
   }

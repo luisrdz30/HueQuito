@@ -204,8 +204,8 @@ void main() {
       expect(find.text('Organizador de Álbum por Sector'), findsOneWidget);
 
       // Verificar que ambos sectores aparecen agrupados
-      expect(find.text('Centro Histórico'), findsWidgets);
-      expect(find.text('La Floresta'), findsWidgets);
+      expect(find.text('Centro'), findsWidgets);
+      expect(find.text('Norte'), findsWidgets);
 
       // Verificar que las huecas aparecen dentro de sus grupos
       expect(find.text('La Tradición Quiteña'), findsOneWidget);
@@ -296,15 +296,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verificar que aparece el sector "Centro Histórico" con su progreso
-      expect(find.text('Centro Histórico'), findsOneWidget);
+      expect(find.text('Centro'), findsOneWidget);
       expect(find.text('¡Completo!'), findsOneWidget);
 
       // Tocar en la tarjeta de sector para abrir el modal de cromos
-      await tester.tap(find.text('Centro Histórico'));
+      await tester.tap(find.text('Centro'));
       await tester.pumpAndSettle();
 
       // Verificar contenido del modal interactivo
-      expect(find.text('Cromos de Centro Histórico'), findsOneWidget);
+      expect(find.text('Cromos de Centro'), findsOneWidget);
       expect(find.text('Cromo Balcón Colonial'), findsOneWidget);
     });
 

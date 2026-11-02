@@ -8,83 +8,7 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/models/gastronomic_profile.dart';
-
-class QuitoZoneOption {
-  final String id;
-  final String nameEs;
-  final String nameEn;
-  final String icon;
-  final String descriptionEs;
-  final String descriptionEn;
-
-  const QuitoZoneOption({
-    required this.id,
-    required this.nameEs,
-    required this.nameEn,
-    required this.icon,
-    required this.descriptionEs,
-    required this.descriptionEn,
-  });
-}
-
-const List<QuitoZoneOption> quitoZoneOptions = [
-  QuitoZoneOption(
-    id: 'Centro Histórico',
-    nameEs: 'Centro Histórico',
-    nameEn: 'Historic Center',
-    icon: '🏛️',
-    descriptionEs: 'La Ronda, San Roque, Plaza Grande, San Blas',
-    descriptionEn: 'La Ronda, San Roque, Plaza Grande, San Blas',
-  ),
-  QuitoZoneOption(
-    id: 'La Floresta / La Mariscal',
-    nameEs: 'La Floresta / La Mariscal',
-    nameEn: 'La Floresta / La Mariscal',
-    icon: '🌳',
-    descriptionEs: 'González Suárez, Guápulo, Plaza Foch',
-    descriptionEn: 'González Suárez, Guápulo, Plaza Foch',
-  ),
-  QuitoZoneOption(
-    id: 'Iñaquito / La Carolina',
-    nameEs: 'Iñaquito / La Carolina',
-    nameEn: 'Iñaquito / La Carolina',
-    icon: '🏢',
-    descriptionEs: 'Bellavista, El Batán, Parque La Carolina',
-    descriptionEn: 'Bellavista, El Batán, Carolina Park',
-  ),
-  QuitoZoneOption(
-    id: 'Norte',
-    nameEs: 'Norte de Quito',
-    nameEn: 'North Quito',
-    icon: '🏔️',
-    descriptionEs: 'Carcelén, Cotocollao, Ponceano, Calderón',
-    descriptionEn: 'Carcelén, Cotocollao, Ponceano, Calderón',
-  ),
-  QuitoZoneOption(
-    id: 'Sur',
-    nameEs: 'Sur de Quito',
-    nameEn: 'South Quito',
-    icon: '🏘️',
-    descriptionEs: 'Solanda, Villaflora, Chillogallo, Magdalena',
-    descriptionEn: 'Solanda, Villaflora, Chillogallo, Magdalena',
-  ),
-  QuitoZoneOption(
-    id: 'Valles',
-    nameEs: 'Valles (Cumbayá / Chillos)',
-    nameEn: 'Valleys (Cumbayá / Chillos)',
-    icon: '🌄',
-    descriptionEs: 'Cumbayá, Tumbaco, Valle de los Chillos, Conocoto',
-    descriptionEn: 'Cumbayá, Tumbaco, Los Chillos, Conocoto',
-  ),
-  QuitoZoneOption(
-    id: 'Todo Quito',
-    nameEs: 'Todo Quito',
-    nameEn: 'All Quito',
-    icon: '🗺️',
-    descriptionEs: 'Explorador de todas las huecas de la ciudad',
-    descriptionEn: 'Explorer across all traditional spots in Quito',
-  ),
-];
+import 'package:hue_quito/models/quito_zones.dart';
 
 class PreferencesScreen extends ConsumerStatefulWidget {
   const PreferencesScreen({super.key});
@@ -109,7 +33,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   };
 
   GastronomicProfile? _resultProfile;
-  String _selectedSector = 'Centro Histórico';
+  String _selectedSector = 'Centro';
 
   bool get _isUserLoggedIn {
     try {
@@ -235,7 +159,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     setState(() {
       _scores.updateAll((key, value) => 0);
       _currentPage = 0;
-      _selectedSector = 'Centro Histórico';
+      _selectedSector = 'Centro';
       _resultProfile = null;
     });
     if (_pageController.hasClients) {
@@ -596,20 +520,10 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     final cardBorder = isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.07);
 
     final huecas = ref.watch(huecasProvider).value ?? [];
-    final dbSectors = huecas
-        .where((h) => h.isActive && h.isSectorConfirmed)
-        .map((h) => h.sector.trim())
-        .where((s) => s.isNotEmpty && s.toLowerCase() != 'todo quito' && s.toLowerCase() != 'all quito')
-        .toSet()
-        .toList()
-      ..sort();
+    final sectors = quitoZoneIds;
 
-    final sectors = dbSectors.isNotEmpty
-        ? dbSectors
-        : ['Centro Histórico', 'La Floresta', 'Conocoto'];
-
-    if (!sectors.contains(_selectedSector) && _selectedSector != 'Todo Quito') {
-      _selectedSector = sectors.first;
+    if (!sectors.contains(_selectedSector) && _selectedSector != allQuitoZone) {
+      _selectedSector = normalizeQuitoZone(_selectedSector) ?? sectors.first;
     }
 
     return SingleChildScrollView(
@@ -643,10 +557,11 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           // Sectores dinámicos basados en la base de datos (sin stickers)
           ...sectors.map((sector) {
             final isSelected = _selectedSector == sector;
-            final count = huecas.where((h) => h.sector.trim().toLowerCase() == sector.toLowerCase()).length;
+            final zone = quitoZoneById(sector)!;
+            final count = huecas.where((h) => h.isActive && normalizeQuitoZone(h.sector) == sector).length;
             final countText = count > 0
-                ? (isEn ? '$count spots available' : '$count huecas registradas')
-                : (isEn ? 'Available zone' : 'Zona disponible');
+                ? '${zone.barrios(isEn)} • ${isEn ? '$count spots' : '$count huecas'}'
+                : zone.barrios(isEn);
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -697,11 +612,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
-                        child: Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                          color: isSelected ? AppTheme.primary : (isDark ? Colors.white70 : AppTheme.textMedium),
-                        ),
+                        child: Text(zone.icon, style: const TextStyle(fontSize: 20)),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -709,7 +620,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              sector,
+                              zone.name(isEn),
                               style: TextStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
@@ -1195,7 +1106,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                       const SizedBox(width: 6),
                       Text(
                         isEn
-                            ? (_selectedSector == 'Todo Quito' ? 'Your Zone: All Quito' : 'Your Zone: $_selectedSector')
+                            ? (_selectedSector == 'Todo Quito' ? 'Your Zone: All Quito' : 'Your Zone: ${quitoZoneById(_selectedSector)?.nameEn ?? _selectedSector}')
                             : (_selectedSector == 'Todo Quito' ? 'Tu Zona: Todo Quito' : 'Tu Zona: $_selectedSector'),
                         style: TextStyle(
                           color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,

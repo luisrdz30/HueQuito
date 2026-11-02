@@ -130,7 +130,7 @@ void main() {
       expect(find.text('Seco de Chivo'), findsOneWidget);
       expect(find.text('Goat Stew'), findsOneWidget);
       expect(find.text('6.5'), findsOneWidget);
-      expect(find.text('Platos Típicos'), findsWidgets);
+      expect(find.text('⭐ Platos Típicos'), findsWidgets);
       expect(find.text('Guardar Cambios'), findsOneWidget);
     });
 

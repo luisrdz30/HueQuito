@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
@@ -26,30 +27,11 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
   final _ownerNameController = TextEditingController();
   final _ownerEmailController = TextEditingController();
 
-  String _selectedSector = 'Centro Histórico';
+  String _selectedSector = 'Centro';
   XFile? _selectedImage;
   bool _isSubmitting = false;
 
-  final List<String> _sectors = [
-    'Centro Histórico',
-    'La Mariscal',
-    'La Floresta',
-    'Guápulo',
-    'Cumbayá',
-    'Tumbaco',
-    'Villaflora',
-    'Chimbacalle',
-    'San Antonio / Mitad del Mundo',
-    'Calderón',
-    'Cotocollao',
-    'El Pintado',
-    'La Magdalena',
-    'Solanda',
-    'Chillogallo',
-    'Norte',
-    'Sur',
-    'Valles',
-  ];
+  final List<String> _sectors = List.of(quitoZoneIds);
 
   @override
   void initState() {

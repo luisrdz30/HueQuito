@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 
 class LocationPickerResult {
   final LatLng location;
@@ -117,12 +118,15 @@ class GeocodingService {
   }
 
   /// Detects the matching Quito sector name from address components or coordinates.
+  /// Siempre devuelve una de las 4 zonas fijas (ver quito_zones.dart).
   static String? detectSector({
     required Map<String, dynamic> addressComponents,
     required double lat,
     required double lng,
   }) {
     final searchPool = [
+      addressComponents['address'],
+      addressComponents['road'],
       addressComponents['neighbourhood'],
       addressComponents['suburb'],
       addressComponents['quarter'],
@@ -132,66 +136,6 @@ class GeocodingService {
       addressComponents['city'],
     ].where((e) => e != null).join(' ').toLowerCase();
 
-    // Specific matches based on Quito zones
-    if (searchPool.contains('cumbaya') || searchPool.contains('cumbayá')) return 'Cumbayá';
-    if (searchPool.contains('tumbaco')) return 'Tumbaco';
-    if (searchPool.contains('chillos') ||
-        searchPool.contains('sangolqui') ||
-        searchPool.contains('sangolquí') ||
-        searchPool.contains('san rafael') ||
-        searchPool.contains('armenia')) {
-      return 'Valle de los Chillos';
-    }
-    if (searchPool.contains('calderon') || searchPool.contains('calderón') || searchPool.contains('carapungo')) {
-      return 'Calderón';
-    }
-    if (searchPool.contains('conocoto')) return 'Conocoto';
-    if (searchPool.contains('floresta')) return 'Floresta';
-    if (searchPool.contains('mariscal')) return 'La Mariscal';
-    if (searchPool.contains('centro historico') ||
-        searchPool.contains('centro histórico') ||
-        searchPool.contains('san marcos') ||
-        searchPool.contains('la ronda') ||
-        searchPool.contains('san roque') ||
-        searchPool.contains('san juan') ||
-        searchPool.contains('san blas') ||
-        searchPool.contains('panecillo')) {
-      return 'Centro Histórico';
-    }
-
-    // South sectors
-    if (searchPool.contains('villaflora') ||
-        searchPool.contains('magdalena') ||
-        searchPool.contains('solanda') ||
-        searchPool.contains('quitumbe') ||
-        searchPool.contains('chimbacalle') ||
-        searchPool.contains('recreo') ||
-        searchPool.contains('guamani') ||
-        searchPool.contains('chillogallo')) {
-      return 'Sur';
-    }
-
-    // North sectors
-    if (searchPool.contains('carolina') ||
-        searchPool.contains('iñaquito') ||
-        searchPool.contains('inaquito') ||
-        searchPool.contains('batan') ||
-        searchPool.contains('batán') ||
-        searchPool.contains('ponceano') ||
-        searchPool.contains('cotocollao') ||
-        searchPool.contains('carcelen') ||
-        searchPool.contains('carcelén') ||
-        searchPool.contains('rumipamba') ||
-        searchPool.contains('kennedy')) {
-      return 'Norte';
-    }
-
-    // Geographic bounding box heuristics for Quito
-    if (lng > -78.46 && lat < -0.15 && lat > -0.25) return 'Cumbayá';
-    if (lat < -0.23) return 'Sur';
-    if (lat > -0.19) return 'Norte';
-    if (lat <= -0.19 && lat >= -0.23) return 'Centro Histórico';
-
-    return null;
+    return normalizeQuitoZone(searchPool) ?? zoneFromCoordinates(lat, lng);
   }
 }

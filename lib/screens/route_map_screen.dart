@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/theme/map_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -101,9 +102,9 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
 
   bool _matchSector(String branchSector, String fallbackSector, String targetSector) {
     final target = _cleanStr(targetSector);
-    if (target == 'todos' || target == 'all' || target.contains('todos') || target.contains('all')) return true;
-    final bSec = _cleanStr(branchSector.trim().isNotEmpty ? branchSector : fallbackSector);
-    return bSec == target || bSec.contains(target) || target.contains(bSec);
+    if (target == 'todos' || target == 'all' || target.startsWith('todos') || target.startsWith('all')) return true;
+    final zone = normalizeQuitoZone(branchSector) ?? normalizeQuitoZone(fallbackSector);
+    return zone != null && zone == normalizeQuitoZone(targetSector);
   }
 
   Future<void> _fitPoints(List<LatLng> points) async {
@@ -174,7 +175,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
   void _zoomToSector(String sector, List<Hueca> huecas) {
     if (_mapController == null) return;
     final s = _cleanStr(sector);
-    if (s == 'todos' || s == 'all' || s.contains('todos') || s.contains('all')) {
+    if (s == 'todos' || s == 'all' || s.startsWith('todos') || s.startsWith('all')) {
       _fitAllMarkers(huecas);
       return;
     }
@@ -236,8 +237,8 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     final currentSecClean = _cleanStr(_selectedSector);
     final isAll = currentSecClean == 'todos' ||
         currentSecClean == 'all' ||
-        currentSecClean.contains('todos') ||
-        currentSecClean.contains('all');
+        currentSecClean.startsWith('todos') ||
+        currentSecClean.startsWith('all');
 
     for (var hueca in huecas) {
       if (!hueca.isActive) continue;
@@ -305,8 +306,8 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
     final defaultAll = lang == 'es' ? 'Todos' : 'All';
     final isCurrentAll = _cleanStr(_selectedSector) == 'todos' ||
         _cleanStr(_selectedSector) == 'all' ||
-        _cleanStr(_selectedSector).contains('todos') ||
-        _cleanStr(_selectedSector).contains('all');
+        _cleanStr(_selectedSector).startsWith('todos') ||
+        _cleanStr(_selectedSector).startsWith('all');
     if (isCurrentAll) {
       _selectedSector = defaultAll;
     }
@@ -326,7 +327,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     final s = _cleanStr(_selectedSector);
-                    if (s != 'todos' && s != 'all' && !s.contains('todos') && !s.contains('all')) {
+                    if (s != 'todos' && s != 'all' && !s.startsWith('todos') && !s.startsWith('all')) {
                       _zoomToSector(_selectedSector, huecas);
                     } else {
                       _fitAllMarkers(huecas);
@@ -412,15 +413,7 @@ class _RouteMapScreenState extends ConsumerState<RouteMapScreen> {
                       _selectedHueca = null;
                       _selectedBranch = null;
                     }
-                    final allSectorSet = <String>{};
-                    for (var h in huecasList) {
-                      if (!h.isActive) continue;
-                      if (h.sector.trim().isNotEmpty) allSectorSet.add(h.sector.trim());
-                      for (var b in h.allBranches) {
-                        if (b.sector.trim().isNotEmpty) allSectorSet.add(b.sector.trim());
-                      }
-                    }
-                    final sortedSectors = allSectorSet.toList()..sort();
+                    final sortedSectors = quitoZoneIds;
                     final sectors = [defaultAll, ...sortedSectors];
 
                     if (isCurrentAll) {

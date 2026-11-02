@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/providers/data_provider.dart';
@@ -15,6 +17,66 @@ class AdminHuecasScreen extends ConsumerStatefulWidget {
 class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
   String _searchQuery = '';
   String _filterStatus = 'all'; // 'all', 'active', 'inactive', 'unassigned'
+
+  /// Reemplaza TODAS las huecas por las del archivo inicial (20 huecas de Quito).
+  Future<void> _importSeedHuecas() async {
+    final List<dynamic> seed = jsonDecode(await rootBundle.loadString('assets/seed/huecas_quito.json'));
+    if (!mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cargar huecas de Quito'),
+        content: Text(
+          'Se borrarán TODAS las huecas actuales (con sus reseñas, sellos y cromos) '
+          'y se cargarán ${seed.length} huecas nuevas, activas y sin dueño. Esto no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Borrar y cargar'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final progress = ValueNotifier<String>('Preparando...');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: ValueListenableBuilder<String>(valueListenable: progress, builder: (_, v, _) => Text(v))),
+          ],
+        ),
+      ),
+    );
+    try {
+      final count = await ref.read(huecaRepositoryProvider).replaceAllHuecasWithSeed(seed, onProgress: (s) => progress.value = s);
+      ref.invalidate(allHuecasStreamProvider);
+      ref.invalidate(huecasProvider);
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ $count huecas cargadas'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar las huecas: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      progress.dispose();
+    }
+  }
 
   Future<void> _toggleHuecaStatus(Hueca hueca, bool newValue) async {
     try {
@@ -324,6 +386,14 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                         backgroundColor: Colors.amber.shade100,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.amber.shade300)),
                         onPressed: () => context.push('/admin/sectors'),
+                      ),
+                      const SizedBox(width: 8),
+                      ActionChip(
+                        avatar: const Icon(Icons.cloud_upload_outlined, size: 15, color: Color(0xFF0F172A)),
+                        label: const Text('Cargar huecas de Quito', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                        backgroundColor: Colors.blue.shade50,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.blue.shade200)),
+                        onPressed: _importSeedHuecas,
                       ),
                     ],
                   ),

@@ -197,10 +197,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // El sector "Centro Histórico" (de la hueca confirmada) debe aparecer
-      expect(find.text('Centro Histórico'), findsOneWidget);
+      expect(find.text('Centro'), findsOneWidget);
 
-      // El sector "La Floresta" (de la hueca no confirmada) NO debe aparecer para nada
-      expect(find.text('La Floresta'), findsNothing);
+      // La zona Norte (La Floresta, de la hueca no confirmada) NO debe aparecer para nada
+      expect(find.text('Norte'), findsNothing);
     });
 
     testWidgets('ProfileScreen visited huecas KPI only counts confirmed huecas', (tester) async {

@@ -1,3 +1,4 @@
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
@@ -1078,12 +1079,11 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
         final Map<String, List<Hueca>> sectorsMap = {};
         for (final h in huecas) {
           if (!h.isSectorConfirmed || !h.isActive) continue;
-          final rawSector = h.sector.trim();
-          final sectorName = rawSector.isNotEmpty && rawSector != 'Todo Quito' ? rawSector : 'Centro Histórico';
+          final sectorName = normalizeQuitoZone(h.sector) ?? normalizeQuitoZone(h.address) ?? 'Centro';
           sectorsMap.putIfAbsent(sectorName, () => []).add(h);
         }
 
-        final sortedSectorNames = sectorsMap.keys.toList()..sort();
+        final sortedSectorNames = quitoZoneIds.where(sectorsMap.containsKey).toList();
 
         if (sortedSectorNames.isEmpty) {
           return LayoutBuilder(

@@ -61,13 +61,15 @@ Para cada comida encontrada, genera un objeto con:
 - "description_en": Traducción al inglés de la descripción.
 - "price": Precio en dólares como número decimal positivo (ej: 4.50, 3.00, 12.50). Si no tiene precio visible o es según el peso, pon 0.0.
 - "category": Clasifica el plato en EXACTAMENTE una de las siguientes categorías oficiales:
+  * "Desayunos"
+  * "Entradas"
+  * "Sopas y Caldos"
   * "Platos Fuertes"
   * "Platos Típicos"
-  * "Sopas y Caldos"
-  * "Entradas y Guarniciones"
-  * "Bebidas"
-  * "Postres"
   * "Especialidades"
+  * "Panadería"
+  * "Postres"
+  * "Bebidas"
   * "Otros"
 
 IMPORTANTE: Responde ÚNICAMENTE en formato JSON con la siguiente estructura exacta:
@@ -86,6 +88,45 @@ IMPORTANTE: Responde ÚNICAMENTE en formato JSON con la siguiente estructura exa
 ''';
 
   /// Extrae todos los platos de una sola página de la carta usando Gemini 1.5 Flash
+  /// Agrupa platos que ya están en el menú: devuelve una categoría por plato,
+  /// en el mismo orden. Solo usa las categorías dadas (las sugeridas y las del dueño).
+  static Future<List<String>> categorizeDishes(List<String> dishes, List<String> categories) async {
+    if (dishes.isEmpty) return [];
+    final prompt = """
+Eres un experto en gastronomía ecuatoriana. Agrupa cada plato del menú de una hueca de Quito
+en EXACTAMENTE una de estas categorías: ${categories.map((c) => '"$c"').join(', ')}.
+Las bebidas (jugos, colas, café, morocho, chicha) van en "Bebidas" y los dulces en "Postres".
+
+Platos:
+${List.generate(dishes.length, (i) => '${i + 1}. ${dishes[i]}').join('\n')}
+
+Responde ÚNICAMENTE en JSON: {"categories": ["categoría del plato 1", "categoría del plato 2", ...]}
+con exactamente ${dishes.length} elementos, en el mismo orden.
+""";
+    dynamic lastError;
+    for (final modelName in _modelsToTry) {
+      try {
+        final model = FirebaseAI.googleAI().generativeModel(
+          model: modelName,
+          generationConfig: GenerationConfig(responseMimeType: 'application/json', temperature: 0.1),
+        );
+        final res = await model.generateContent([Content.text(prompt)]);
+        final decoded = jsonDecode(res.text ?? '');
+        final list = decoded is Map ? decoded['categories'] : decoded;
+        if (list is List && list.length == dishes.length) {
+          return list.map((c) {
+            final cat = c?.toString().trim() ?? '';
+            return categories.contains(cat) ? cat : 'Otros';
+          }).toList();
+        }
+      } catch (err) {
+        lastError = err;
+        debugPrint('[GEMINI_MENU] Modelo $modelName falló al agrupar ($err), intentando siguiente...');
+      }
+    }
+    throw lastError ?? Exception('La IA no devolvió las categorías.');
+  }
+
   static Future<List<Map<String, dynamic>>> extractDishesFromImage(String imagePath) async {
     // XFile funciona igual en Android/iOS (ruta local) y en web (blob del navegador)
     final Uint8List bytes;

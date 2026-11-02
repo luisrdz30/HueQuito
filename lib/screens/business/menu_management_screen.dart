@@ -10,6 +10,8 @@ import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/screens/business/dish_form_screen.dart';
 import 'package:hue_quito/screens/business/menu_review_screen.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
+import 'package:hue_quito/models/menu_categories.dart';
+import 'package:hue_quito/services/gemini_menu_service.dart';
 
 class BusinessMenuScreen extends ConsumerStatefulWidget {
   const BusinessMenuScreen({super.key});
@@ -485,6 +487,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
             huecaId: _currentHueca!.id,
             initialDish: initialDishData,
             initialImageFile: file,
+            menuCategories: menuCategoriesOf(_menuItems),
           ),
         ),
       );
@@ -562,6 +565,44 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
     }
   }
 
+  /// Gemini agrupa los platos en categorías y el menú se guarda ordenado por categoría,
+  /// que es como lo ven los clientes con los filtros.
+  Future<void> _organizeMenuWithAi() async {
+    if (_currentHueca == null || _menuItems.isEmpty) return;
+    setState(() {
+      _isAiProcessing = true;
+      _aiProcessingMessage = 'Organizando tu menú por categorías con IA...';
+    });
+    try {
+      final custom = menuCategoriesOf(_menuItems).where((c) => menuCategoryById(c) == null);
+      final categories = [...defaultMenuCategoryIds, ...custom];
+      final names = _menuItems.map((d) {
+        final n = d['name'];
+        final desc = d['description'];
+        final nameEs = n is Map ? (n['es'] ?? '') : (n ?? '');
+        final descEs = desc is Map ? (desc['es'] ?? '') : (desc ?? '');
+        return descEs.toString().isEmpty ? nameEs.toString() : '$nameEs ($descEs)';
+      }).toList();
+      final result = await GeminiMenuService.categorizeDishes(names, categories);
+      final updated = <dynamic>[];
+      for (var k = 0; k < _menuItems.length; k++) {
+        updated.add({...Map<String, dynamic>.from(_menuItems[k] as Map), 'category': result[k]});
+      }
+      final order = menuCategoriesOf(updated);
+      updated.sort((a, b) => order.indexOf(dishCategory(a)).compareTo(order.indexOf(dishCategory(b))));
+      setState(() => _menuItems = updated);
+      await _saveMenu();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo organizar el menú: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAiProcessing = false);
+    }
+  }
+
   Future<void> _openManualDishForm({Map<String, dynamic>? dish, int? index}) async {
     if (_currentHueca == null) return;
 
@@ -572,6 +613,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
           huecaId: _currentHueca!.id,
           initialDish: dish,
           dishIndex: index,
+          menuCategories: menuCategoriesOf(_menuItems),
         ),
       ),
     );
@@ -701,6 +743,25 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
     );
   }
 
+  /// Título de categoría cuando el plato empieza un grupo nuevo.
+  Widget _withCategoryHeader(int index, Widget tile) {
+    final category = dishCategory(_menuItems[index]);
+    if (index > 0 && dishCategory(_menuItems[index - 1]) == category) return tile;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(
+            menuCategoryLabel(category, false),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primary),
+          ),
+        ),
+        tile,
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final huecaAsync = ref.watch(myHuecaProvider);
@@ -760,6 +821,12 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
         title: Text('Menú Digital', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
         actions: [
           if (isOwner) ...[
+            if (_menuItems.length > 1 && !_isAiProcessing)
+              IconButton(
+                icon: Icon(Icons.auto_awesome, color: AppTheme.primary),
+                tooltip: 'Organizar por categorías con IA',
+                onPressed: _organizeMenuWithAi,
+              ),
             IconButton(
               icon: Icon(Icons.add, color: AppTheme.primary),
               tooltip: 'Añadir plato',
@@ -919,7 +986,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                       : ListView.builder(
                           padding: const EdgeInsets.only(bottom: 100),
                           itemCount: _menuItems.length,
-                          itemBuilder: (context, index) {
+                          itemBuilder: (context, index) => _withCategoryHeader(index, Builder(builder: (context) {
                             final dish = _menuItems[index];
                             final imageUrl = dish['imageUrl']?.toString() ?? dish['image']?.toString() ?? '';
                             final hasImage = imageUrl.isNotEmpty;
@@ -1118,7 +1185,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                                       ),
                               ),
                             );
-                          },
+                          })),
                         ),
             ),
           ],

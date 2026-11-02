@@ -1,6 +1,7 @@
 import 'package:hue_quito/models/notification_model.dart';
 import 'dart:async';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/models/menu_categories.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,6 +156,9 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
   int _selectedBranchIndex = 0;
 
   late Hueca _currentHueca;
+  final TextEditingController _menuSearchController = TextEditingController();
+  String _menuQuery = '';
+  String? _menuCategory; // null = todas
   late final PageController _imagePageController;
   Timer? _autoPlayTimer;
   int _currentImageIndex = 0;
@@ -209,6 +213,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
   void dispose() {
     _autoPlayTimer?.cancel();
     _imagePageController.dispose();
+    _menuSearchController.dispose();
     super.dispose();
   }
 
@@ -1073,35 +1078,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                         : AppTheme.textMedium),
                   ),
                 ),
-              ..._currentHueca.menuItems.map((item) {
-                final nameObj = item['name'];
-                final name = nameObj is Map
-                    ? (nameObj[lang] ?? nameObj['es'] ?? 'Plato')
-                    : (nameObj ?? 'Plato');
-
-                final descObj = item['description'];
-                final desc = descObj is Map
-                    ? (descObj[lang] ?? descObj['es'] ?? '')
-                    : (descObj ?? '');
-
-                final price = item['price'] != null
-                    ? '\$${item['price']}'
-                    : '\$0.00';
-                final img =
-                    item['image'] ??
-                    'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=150&q=80';
-                return Column(
-                  children: [
-                    _buildMenuItem(
-                      name.toString(),
-                      desc.toString(),
-                      price.toString(),
-                      img.toString(),
-                    ),
-                    Divider(),
-                  ],
-                );
-              }),
+              if (_currentHueca.menuItems.isNotEmpty) ..._buildMenuSection(lang),
             ],
           ),
         );
@@ -1586,6 +1563,119 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
     );
   }
 
+  /// Menú con buscador y filtros por categoría, agrupado por categoría.
+  List<Widget> _buildMenuSection(String lang) {
+    final isEn = lang == 'en';
+    final items = _currentHueca.menuItems;
+    final categories = menuCategoriesOf(items);
+    final query = Hueca.normalizeSearchString(_menuQuery);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    bool matches(dynamic item) {
+      if (_menuCategory != null && dishCategory(item) != _menuCategory) return false;
+      if (query.isEmpty || item is! Map) return true;
+      String text(dynamic v) => v is Map ? '${v['es'] ?? ''} ${v['en'] ?? ''}' : (v ?? '').toString();
+      return Hueca.normalizeSearchString('${text(item['name'])} ${text(item['description'])}').contains(query);
+    }
+
+    final visible = items.where(matches).toList();
+    return [
+      if (items.length > 4)
+        TextField(
+          controller: _menuSearchController,
+          onChanged: (v) => setState(() => _menuQuery = v),
+          decoration: InputDecoration(
+            isDense: true,
+            prefixIcon: Icon(Icons.search, size: 20),
+            hintText: isEn ? 'Search the menu' : 'Buscar en el menú',
+            suffixIcon: _menuQuery.isEmpty
+                ? null
+                : IconButton(
+                    icon: Icon(Icons.close, size: 18),
+                    onPressed: () {
+                      _menuSearchController.clear();
+                      setState(() => _menuQuery = '');
+                    },
+                  ),
+            filled: true,
+            fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          ),
+        ),
+      if (categories.length > 1) ...[
+        SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [null, ...categories].map((c) {
+              final selected = _menuCategory == c;
+              final count = c == null ? items.length : items.where((i) => dishCategory(i) == c).length;
+              return Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text('${c == null ? (isEn ? 'All' : 'Todo') : menuCategoryLabel(c, isEn)} ($count)'),
+                  selected: selected,
+                  selectedColor: AppTheme.primary.withValues(alpha: 0.18),
+                  onSelected: (_) => setState(() => _menuCategory = c),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+      SizedBox(height: 8),
+      if (visible.isEmpty)
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            isEn ? 'No dishes match your search.' : 'Ningún plato coincide con tu búsqueda.',
+            style: TextStyle(color: isDark ? Colors.white70 : AppTheme.textMedium),
+          ),
+        ),
+      for (final category in categories)
+        if (visible.any((i) => dishCategory(i) == category)) ...[
+          if (categories.length > 1)
+            Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: Text(
+                menuCategoryLabel(category, isEn),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primary),
+              ),
+            ),
+          ...visible.where((i) => dishCategory(i) == category).map((item) => _buildMenuEntry(item, lang)),
+        ],
+    ];
+  }
+
+  Widget _buildMenuEntry(dynamic item, String lang) {
+    final nameObj = item['name'];
+    final name = nameObj is Map
+        ? (nameObj[lang] ?? nameObj['es'] ?? 'Plato')
+        : (nameObj ?? 'Plato');
+
+    final descObj = item['description'];
+    final desc = descObj is Map
+        ? (descObj[lang] ?? descObj['es'] ?? '')
+        : (descObj ?? '');
+
+    final rawPrice = item['price'];
+    final price = rawPrice is num
+        ? '\$${rawPrice.toStringAsFixed(2)}'
+        : (rawPrice != null ? '\$$rawPrice' : '\$0.00');
+    final img = (item['image']?.toString().isNotEmpty == true ? item['image'] : item['imageUrl']) ?? '';
+    return Column(
+      children: [
+        _buildMenuItem(
+          name.toString(),
+          desc.toString(),
+          price.toString(),
+          img.toString(),
+        ),
+        Divider(),
+      ],
+    );
+  }
+
   Widget _buildMenuItem(
     String title,
     String desc,
@@ -1627,6 +1717,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             ],
           ),
         ),
+        if (imageUrl.isNotEmpty) ...[
         SizedBox(width: 12),
         GestureDetector(
           onTap: () {
@@ -1655,6 +1746,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             ),
           ),
         ),
+        ],
       ],
     );
   }

@@ -314,7 +314,7 @@ void main() {
           lat: -0.2018,
           lng: -78.4312,
         ),
-        equals('Cumbayá'),
+        equals('Valles'),
       );
 
       expect(
@@ -323,7 +323,7 @@ void main() {
           lat: -0.2228,
           lng: -78.5147,
         ),
-        equals('Centro Histórico'),
+        equals('Centro'),
       );
 
       expect(
@@ -332,7 +332,7 @@ void main() {
           lat: -0.2025,
           lng: -78.4912,
         ),
-        equals('La Mariscal'),
+        equals('Norte'),
       );
 
       expect(

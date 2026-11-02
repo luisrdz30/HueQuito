@@ -9,12 +9,15 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:hue_quito/utils/back_navigation.dart';
+import 'package:hue_quito/models/menu_categories.dart';
 
 class DishFormScreen extends ConsumerStatefulWidget {
   final String huecaId;
   final Map<String, dynamic>? initialDish;
   final int? dishIndex;
   final XFile? initialImageFile;
+  /// Categorías que ya usa el menú de la hueca (incluye las propias del dueño).
+  final List<String> menuCategories;
 
   const DishFormScreen({
     super.key,
@@ -22,6 +25,7 @@ class DishFormScreen extends ConsumerStatefulWidget {
     this.initialDish,
     this.dishIndex,
     this.initialImageFile,
+    this.menuCategories = const [],
   });
 
   @override
@@ -47,16 +51,8 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
   bool _isTranslatingAll = false;
   bool _isSaving = false;
 
-  final List<String> _categories = [
-    'Platos Fuertes',
-    'Platos Típicos',
-    'Entradas y Guarniciones',
-    'Sopas y Caldos',
-    'Bebidas',
-    'Postres',
-    'Especialidades',
-    'Otros',
-  ];
+  late final List<String> _categories = {...defaultMenuCategoryIds, ...widget.menuCategories}.toList();
+  static const String _newCategoryValue = '__nueva__';
 
   @override
   void initState() {
@@ -101,11 +97,9 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
       _localImageFile = widget.initialImageFile;
     }
 
-    final cat = dish?['category']?.toString();
-    if (cat != null && _categories.contains(cat)) {
-      _selectedCategory = cat;
-    } else if (cat != null && cat.isNotEmpty) {
-      _categories.insert(0, cat);
+    if (dish?['category']?.toString().isNotEmpty == true) {
+      final cat = dishCategory(dish);
+      if (!_categories.contains(cat)) _categories.add(cat);
       _selectedCategory = cat;
     }
   }
@@ -365,6 +359,30 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: borderColor)),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
     );
+  }
+
+  /// Pide el nombre de una categoría propia (ej: "Combos", "Menú del día").
+  Future<String?> _askNewCategory() async {
+    final ctrl = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Nueva categoría'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(hintText: 'Ej: Combos, Menú del día'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: const Text('Crear')),
+        ],
+      ),
+    );
+    final clean = name?.trim() ?? '';
+    return clean.isEmpty ? null : clean;
   }
 
   @override
@@ -648,23 +666,35 @@ class _DishFormScreenState extends ConsumerState<DishFormScreen> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
+                          key: ValueKey('cat_${_selectedCategory}_${_categories.length}'),
                           initialValue: _selectedCategory,
+                          isExpanded: true,
                           dropdownColor: isDark ? const Color(0xFF282828) : Colors.white,
                           style: TextStyle(color: textColor, fontSize: 14),
                           decoration: _buildInputDecoration(
                             context: context,
                             labelText: 'Categoría',
                           ),
-                          items: _categories
-                              .map(
-                                (c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(c, style: TextStyle(color: textColor, fontSize: 13)),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
+                          items: [
+                            ..._categories.map(
+                              (c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(menuCategoryLabel(c, false), overflow: TextOverflow.ellipsis, style: TextStyle(color: textColor, fontSize: 13)),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: _newCategoryValue,
+                              child: Text('➕ Nueva categoría', style: TextStyle(color: AppTheme.primary, fontSize: 13, fontWeight: FontWeight.w600)),
+                            ),
+                          ],
+                          onChanged: (val) async {
+                            if (val == _newCategoryValue) {
+                              final created = await _askNewCategory();
+                              setState(() {
+                                if (created != null && !_categories.contains(created)) _categories.add(created);
+                                if (created != null) _selectedCategory = created;
+                              });
+                            } else if (val != null) {
                               setState(() => _selectedCategory = val);
                             }
                           },

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/geocoding_service.dart';
@@ -20,30 +21,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
   String _filter = 'all'; // 'all', 'pending_confirm', 'missing_sticker'
   bool _isProcessingBatch = false;
 
-  static const List<String> quitoSectors = [
-    'Centro Histórico',
-    'La Mariscal',
-    'La Floresta',
-    'Guápulo',
-    'Cumbayá',
-    'Tumbaco',
-    'Villaflora',
-    'Chimbacalle',
-    'San Antonio / Mitad del Mundo',
-    'Calderón',
-    'Cotocollao',
-    'El Pintado',
-    'La Magdalena',
-    'Solanda',
-    'Chillogallo',
-    'Conocoto',
-    'Valle de los Chillos',
-    'Iñaquito / La Carolina',
-    'Carcelén',
-    'Norte',
-    'Sur',
-    'Valles',
-  ];
+  static final List<String> quitoSectors = quitoZoneIds;
 
   @override
   void dispose() {
@@ -53,9 +31,8 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
 
   /// Infiere o sugiere automáticamente el sector a partir de la dirección y coordenadas
   String _suggestSector(Hueca hueca) {
-    if (hueca.sector.trim().isNotEmpty && hueca.sector.trim() != 'Todo Quito') {
-      return hueca.sector.trim();
-    }
+    final known = normalizeQuitoZone(hueca.sector) ?? normalizeQuitoZone(hueca.address);
+    if (known != null) return known;
     final detected = GeocodingService.detectSector(
       addressComponents: {'address': hueca.address},
       lat: hueca.location.latitude,
@@ -64,11 +41,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
     if (detected != null && detected.isNotEmpty) {
       return detected;
     }
-    // Heurística básica por latitud si no se detectó por texto
-    final lat = hueca.location.latitude;
-    if (lat < -0.23) return 'Sur';
-    if (lat > -0.19) return 'Norte';
-    return 'Centro Histórico';
+    return zoneFromCoordinates(hueca.location.latitude, hueca.location.longitude);
   }
 
   bool _hasSecretSticker(Hueca hueca) {
@@ -155,7 +128,7 @@ class _AdminSectorsScreenState extends ConsumerState<AdminSectorsScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
-          final allSectors = {...quitoSectors, hueca.sector}.where((s) => s.trim().isNotEmpty).toList();
+          final allSectors = quitoSectors;
           allSectors.sort();
 
           final filtered = allSectors.where((s) {

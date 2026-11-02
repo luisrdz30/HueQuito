@@ -542,6 +542,29 @@ class HuecaRepository {
     await _db.collection('huecas').doc(id).set(huecaData);
   }
 
+  /// ADMIN: borra todas las huecas (con su información relacionada, igual que al eliminar
+  /// una a una) y carga las huecas del archivo inicial (assets/seed/huecas_quito.json).
+  Future<int> replaceAllHuecasWithSeed(List<dynamic> seed, {void Function(String step)? onProgress}) async {
+    final existing = await _db.collection('huecas').get();
+    for (final doc in existing.docs) {
+      onProgress?.call('Borrando ${doc.data()['name'] ?? doc.id}...');
+      await deleteHueca(doc.id);
+    }
+    var count = 0;
+    for (final raw in seed) {
+      final data = Map<String, dynamic>.from(raw as Map);
+      final loc = data['location'];
+      if (loc is Map) {
+        data['location'] = GeoPoint((loc['latitude'] as num).toDouble(), (loc['longitude'] as num).toDouble());
+      }
+      data['createdAt'] = FieldValue.serverTimestamp();
+      onProgress?.call('Cargando ${data['name']}...');
+      await addHueca(data);
+      count++;
+    }
+    return count;
+  }
+
   /// Registra (o actualiza) la reseña del usuario. Cada usuario tiene UNA reseña por hueca:
   /// el ID del documento es su UID, así una segunda opinión reemplaza a la anterior.
   Future<void> addReview(

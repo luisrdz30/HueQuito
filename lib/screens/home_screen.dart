@@ -1,3 +1,4 @@
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (mounted) {
         setState(() {
           if (!_userManuallyChangedLocation && savedSector != null && savedSector.isNotEmpty && savedSector != 'Todo Quito') {
-            _selectedLocation = savedSector;
+            _selectedLocation = normalizeQuitoZone(savedSector) ?? _selectedLocation;
           }
           if (!_userManuallyChangedFilter && savedPersona != null && savedPersona.isNotEmpty) {
             _applyPersonaToFilter(savedPersona);
@@ -92,56 +93,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   bool _matchesLocation(Hueca h, String loc) {
     if (loc == 'Todo Quito' || loc == 'All Quito') return true;
-    final locLower = loc.toLowerCase().trim();
-    final hSector = h.sector.toLowerCase().trim();
-    final hAddr = h.address.toLowerCase().trim();
-
-    if (hSector.contains(locLower) || locLower.contains(hSector) || hAddr.contains(locLower)) {
-      return true;
-    }
-
-    if (locLower.contains('centro')) {
-      return hSector.contains('centro') || hSector.contains('san roque') || hSector.contains('la ronda') ||
-             hSector.contains('san blas') || hSector.contains('san juan') || hSector.contains('la tola') ||
-             hSector.contains('el tejar') || hSector.contains('san marcos') || hSector.contains('panecillo') ||
-             hAddr.contains('centro') || hAddr.contains('san roque') || hAddr.contains('la ronda') || hAddr.contains('san juan');
-    }
-    if (locLower.contains('floresta') || locLower.contains('mariscal')) {
-      return hSector.contains('floresta') || hSector.contains('mariscal') || hSector.contains('guapulo') ||
-             hSector.contains('guápulo') || hSector.contains('gonzalez') || hSector.contains('gonzález') ||
-             hSector.contains('vicentina') || hSector.contains('pradera') || hSector.contains('foch') ||
-             hAddr.contains('floresta') || hAddr.contains('mariscal') || hAddr.contains('guapulo') || hAddr.contains('guápulo');
-    }
-    if (locLower.contains('carolina') || locLower.contains('iñaquito') || locLower.contains('inaquito')) {
-      return hSector.contains('carolina') || hSector.contains('iñaquito') || hSector.contains('inaquito') ||
-             hSector.contains('bellavista') || hSector.contains('batán') || hSector.contains('batan') ||
-             hSector.contains('granda centeno') || hSector.contains('salvador') ||
-             hAddr.contains('carolina') || hAddr.contains('iñaquito') || hAddr.contains('inaquito') || hAddr.contains('bellavista');
-    }
-    if (locLower.contains('norte')) {
-      return hSector.contains('norte') || hSector.contains('carcelen') || hSector.contains('carcelén') ||
-             hSector.contains('cotocollao') || hSector.contains('calderon') || hSector.contains('calderón') ||
-             hSector.contains('ponceano') || hSector.contains('san carlos') || hSector.contains('inca') ||
-             hSector.contains('monteserr') || hSector.contains('kennedy') || hSector.contains('pomasqui') ||
-             hSector.contains('comité') || hSector.contains('comite') ||
-             hAddr.contains('norte') || hAddr.contains('carcelen') || hAddr.contains('cotocollao') || hAddr.contains('calderon');
-    }
-    if (locLower.contains('sur')) {
-      return hSector.contains('sur') || hSector.contains('solanda') || hSector.contains('villaflora') ||
-             hSector.contains('chillogallo') || hSector.contains('magdalena') || hSector.contains('chimbacalle') ||
-             hSector.contains('pintado') || hSector.contains('recreo') || hSector.contains('guamani') ||
-             hSector.contains('guamaní') || hSector.contains('quitumbe') || hSector.contains('san bartolo') ||
-             hSector.contains('la mena') || hSector.contains('santa rita') || hSector.contains('ferroviaria') ||
-             hAddr.contains('sur') || hAddr.contains('solanda') || hAddr.contains('villaflora') || hAddr.contains('chillogallo');
-    }
-    if (locLower.contains('valle') || locLower.contains('cumbay') || locLower.contains('tumbaco') || locLower.contains('chillos')) {
-      return hSector.contains('valle') || hSector.contains('cumbay') || hSector.contains('tumbaco') ||
-             hSector.contains('chillos') || hSector.contains('conocoto') || hSector.contains('sangolqu') ||
-             hSector.contains('san rafael') || hSector.contains('puembo') || hSector.contains('pifo') ||
-             hAddr.contains('valle') || hAddr.contains('cumbay') || hAddr.contains('tumbaco') || hAddr.contains('chillos') || hAddr.contains('conocoto');
-    }
-
-    return false;
+    final zone = normalizeQuitoZone(h.sector) ?? normalizeQuitoZone(h.address);
+    return zone == loc;
   }
 
   @override
@@ -174,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (mounted) {
           setState(() {
             if (!_userManuallyChangedLocation && savedSector != null && savedSector.isNotEmpty && savedSector != 'Todo Quito') {
-              _selectedLocation = savedSector;
+              _selectedLocation = normalizeQuitoZone(savedSector) ?? _selectedLocation;
             }
             if (!_userManuallyChangedFilter && savedPersona != null && savedPersona.isNotEmpty) {
               _applyPersonaToFilter(savedPersona);
@@ -188,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final huecasAsync = ref.watch(huecasProvider);
     final lang = ref.watch(settingsProvider).language;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    List<String> locations = lang == 'es' ? ['Todo Quito'] : ['All Quito'];
+    List<String> locations = [lang == 'es' ? 'Todo Quito' : 'All Quito', ...quitoZoneIds];
 
     final isEn = lang == 'en';
     final allChip = isEn ? '🍽️ All' : '🍽️ Todos';
@@ -211,17 +164,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (huecasAsync.value != null && huecasAsync.value!.isNotEmpty) {
       final huecas = huecasAsync.value!;
-      final dbSectors = huecas
-          .where((h) => h.isActive && h.isSectorConfirmed)
-          .map((h) => h.sector.trim())
-          .where((s) => s.isNotEmpty && s.toLowerCase() != 'todo quito' && s.toLowerCase() != 'all quito')
-          .toSet()
-          .toList()
-        ..sort();
-
-      for (final s in dbSectors) {
-        if (!locations.contains(s)) locations.add(s);
-      }
 
       Map<String, int> tagCounts = {};
       for (var h in huecas) {
@@ -315,7 +257,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(
-                      value,
+                      quitoZoneById(value)?.name(isEn) ?? value,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

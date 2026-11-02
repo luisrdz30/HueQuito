@@ -1,6 +1,6 @@
-# Guía rápida de pruebas (fases 1 a 7)
+# Guía rápida de pruebas (fases 1 a 8)
 
-Necesitas: la app nueva instalada (rama `fase7-navegacion`, que ya incluye todas las fases), las reglas desplegadas y tres cuentas: **comensal**, **dueño** de una hueca y **admin**. Lo ideal son dos teléfonos (uno muestra el QR y el otro escanea).
+Necesitas: la app nueva instalada (rama `fase8-zonas-menu`, que ya incluye todas las fases), las reglas desplegadas y tres cuentas: **comensal**, **dueño** de una hueca y **admin**. Lo ideal son dos teléfonos (uno muestra el QR y el otro escanea).
 
 Marca cada punto. Si algo falla, anota la pantalla y el mensaje.
 
@@ -40,6 +40,14 @@ Marca cada punto. Si algo falla, anota la pantalla y el mensaje.
 - [ ] Admin convierte en dueño a una cuenta que ya era comensal: conserva sus favoritos, sellos y álbum.
 - [ ] Dueño: cierra y vuelve a abrir la app al día siguiente: sigue con la sesión abierta. Solo el **admin** debe volver a iniciar sesión pasadas 24 horas.
 
+## 4b. Zonas y menú (fase 8)
+- [ ] Admin → Huecas → **Cargar huecas de Quito**: confirma y espera. Quedan solo las 20 huecas nuevas (5 por zona), activas y sin dueño.
+- [ ] Quiz inicial: el primer paso muestra solo **Centro, Norte, Sur y Valles** (más "Otro sector").
+- [ ] Inicio y mapa: el filtro de zona tiene esas 4 opciones; al elegir **Valles** salen Conocoto, Sangolquí y Cumbayá juntas.
+- [ ] Álbum → Cromos por sector: aparecen las 4 zonas.
+- [ ] Detalle de una hueca con varios platos (ej. El Pretil): en Menú hay **lupa** para buscar y chips por categoría (Desayunos, Bebidas…).
+- [ ] Dueño → Menú: el botón ✨ **Organizar por categorías con IA** agrupa los platos y los guarda en orden. Al crear un plato se puede elegir **➕ Nueva categoría**.
+
 ## 5. Suscripción vencida (opcional, usa una hueca de prueba)
 Para simularlo, en la consola de Firebase, en la hueca de prueba: `metrics.stampsGiven` = 100 y `subscription.gracePeriodStartDate` = una fecha de hace 8 días.
 - [ ] Panel del dueño: "Cuenta suspendida por pago pendiente".
@@ -60,4 +68,4 @@ Si prefieres Netlify (ya está `netlify.toml`), arrastra la carpeta `build/web` 
 - [ ] **Google Cloud → Credenciales**: revoca o elimina la clave vieja de Gemini que estaba en el código.
 - [ ] **Google Cloud → Credenciales → clave de Maps**: restríngela por referente HTTP (`huequito-b091a.web.app/*`, `huequito-b091a.firebaseapp.com/*`, `localhost/*` y tu dominio de Netlify si lo usas) y por app Android.
 - [ ] Panel admin → Suscripciones: meta de sellos gratis en **100** (punto 0).
-- [ ] Cuando termines de probar: unir `fase7-navegacion` a `main` (me dices y lo hago).
+- [ ] Cuando termines de probar: unir `fase8-zonas-menu` a `main` (me dices y lo hago).

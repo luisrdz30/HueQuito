@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hue_quito/models/menu_categories.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/services/translation_service.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
@@ -29,16 +30,7 @@ class MenuReviewScreen extends ConsumerStatefulWidget {
 class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
   late List<Map<String, dynamic>> _dishes;
   bool _isSaving = false;
-  final List<String> _categories = [
-    'Platos Fuertes',
-    'Platos Típicos',
-    'Entradas y Guarniciones',
-    'Sopas y Caldos',
-    'Bebidas',
-    'Postres',
-    'Especialidades',
-    'Otros',
-  ];
+  final List<String> _categories = defaultMenuCategoryIds;
 
   @override
   void initState() {
@@ -487,7 +479,6 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
                             final descEs = descObj is Map ? (descObj['es'] ?? '') : '';
                             final descEn = descObj is Map ? (descObj['en'] ?? '') : '';
                             final price = dish['price']?.toString() ?? '0.00';
-                            final category = dish['category']?.toString() ?? 'Platos Fuertes';
                             final localPath = dish['_localImagePath'] as String?;
                             final imageUrl = dish['imageUrl']?.toString() ?? '';
 
@@ -640,7 +631,7 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
 
                                     // Categoría
                                     DropdownButtonFormField<String>(
-                                      initialValue: _categories.contains(category) ? category : 'Platos Fuertes',
+                                      initialValue: _categories.contains(dishCategory(dish)) ? dishCategory(dish) : 'Otros',
                                       dropdownColor: isDark ? const Color(0xFF282828) : Colors.white,
                                       style: TextStyle(color: textColor, fontSize: 14),
                                       decoration: _buildInputDecoration(

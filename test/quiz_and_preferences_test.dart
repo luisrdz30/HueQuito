@@ -157,7 +157,7 @@ void main() {
       // Check Step 1: Sector selection step
       expect(find.text('Paso 1 de 5 • Tu Sector'), findsOneWidget);
       expect(find.text('¿De qué sector de Quito eres?'), findsOneWidget);
-      expect(find.text('Centro Histórico'), findsOneWidget);
+      expect(find.text('Centro'), findsOneWidget);
       expect(find.text('Otro sector'), findsOneWidget);
 
       // Advance to food questions
@@ -205,7 +205,7 @@ void main() {
 
       // Check that the completion screen offers login to continue and guest option
       expect(find.text('¡Quiz Completado!'), findsOneWidget);
-      expect(find.text('Tu Zona: Centro Histórico'), findsOneWidget);
+      expect(find.text('Tu Zona: Centro'), findsOneWidget);
       expect(find.text('Iniciar Sesión / Registrarme'), findsOneWidget);
       expect(find.text('O continuar como invitado'), findsOneWidget);
       expect(find.text('Repetir Quiz'), findsOneWidget);

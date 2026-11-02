@@ -1,0 +1,2902 @@
+[
+ {
+  "id": "hueca_centro_corvinas_de_maria_paz",
+  "name": "Corvinas de María Paz",
+  "sector": "Centro",
+  "address": "Mercado Central, planta alta, local 11 (Av. Pichincha y Manabí)",
+  "location": {
+   "latitude": -0.2198785,
+   "longitude": -78.506973
+  },
+  "description": {
+   "es": "Puesto de María Paz, 46 años en el Mercado Central y 52 vendiendo comida (empezó en el Estadio Olímpico). Corvina frita con papas, ceviche de camarón y concha y arroz amarillo con arvejas.",
+   "en": "María Paz's stall, 46 years at the Central Market: fried corvina with fries, shrimp and conch ceviche and yellow rice."
+  },
+  "mainDish": {
+   "emoji": "🐟",
+   "name": {
+    "es": "Corvina con arroz, papas y ceviche",
+    "en": "Corvina with rice, fries and ceviche"
+   },
+   "price": 3.5,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "08:00 - 16:00",
+   "tuesday": "08:00 - 16:00",
+   "wednesday": "08:00 - 16:00",
+   "thursday": "08:00 - 16:00",
+   "friday": "08:00 - 16:00",
+   "saturday": "08:00 - 16:00",
+   "sunday": "08:00 - 16:00"
+  },
+  "tags": [
+   "Mariscos",
+   "Ceviches",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "corvinas_de_maria_paz_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_corvinas_de_maria_paz",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "corvinas_de_maria_paz_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Corvina con arroz, papas y ceviche de camarón y concha",
+     "en": "Corvina with rice, fries and shrimp & conch ceviche"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Corvina con papas y ceviche (sin arroz)",
+     "en": "Corvina with fries and ceviche (no rice)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Gaseosa o cerveza",
+     "en": "Soda or beer"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.5,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_corvinas_de_maria_paz/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.elcomercio.com/actualidad/quito/son-huecas-antojos-criollos-centro/",
+   "owner": "María Paz (con tres ayudantes)",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Maps marca 07:00–16:00 y domingo hasta las 14:00 (el mercado cierra a esa hora). La nota no tiene fecha clara: los precios pueden haber subido."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_centro_los_caldos_de_edelmira_morales",
+  "name": "Los Caldos de Edelmira Morales",
+  "sector": "Centro",
+  "address": "Montúfar N7-13 y Olmedo",
+  "location": {
+   "latitude": -0.220245,
+   "longitude": -78.5081767
+  },
+  "description": {
+   "es": "Caldos desde 1920, cuarta generación. Lo fundó Mercedes Mena y lo bautizó con el nombre de su hija. Famoso por el caldo de gallina con huevera, con gallinas de Latacunga. Se acaba temprano.",
+   "en": "Hen broth since 1920, fourth generation, famous for broth with unlaid eggs. Sells out early."
+  },
+  "mainDish": {
+   "emoji": "🍲",
+   "name": {
+    "es": "Caldo de gallina con dos presas o huevera",
+    "en": "Hen broth with two pieces or unlaid eggs"
+   },
+   "price": 3.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "07:00 - 15:00",
+   "tuesday": "07:00 - 15:00",
+   "wednesday": "07:00 - 15:00",
+   "thursday": "07:00 - 15:00",
+   "friday": "07:00 - 15:00",
+   "saturday": "07:00 - 15:00",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Tradicional",
+   "Desayunos",
+   "Comida Típica"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "los_caldos_de_edelmira_morales_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_los_caldos_de_edelmira_morales",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "los_caldos_de_edelmira_morales_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Caldo de gallina con dos presas o huevera",
+     "en": "Hen broth with two pieces or unlaid eggs"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Caldo con una presa y huevo duro",
+     "en": "Broth with one piece and boiled egg"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Morocho",
+     "en": "Morocho (corn drink)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.8,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Tamal",
+     "en": "Tamal"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.7,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_los_caldos_de_edelmira_morales/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.elcomercio.com/actualidad/quito/son-huecas-antojos-criollos-centro/",
+   "owner": "Ximena Tello (33 años en el negocio)",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Llegar temprano: los sábados el menú se agota antes de las 13:30."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_centro_tradiciones_quitenas",
+  "name": "Tradiciones Quiteñas",
+  "sector": "Centro",
+  "address": "Rocafuerte Oe3-15, sector Santo Domingo",
+  "location": {
+   "latitude": -0.2237439,
+   "longitude": -78.5135518
+  },
+  "description": {
+   "es": "Andrea Rojas lleva 16 años con los postres quiteños: pristiños y buñuelos con miel, dulces de piña, mora e higos (el de higos también en sánduche) y rosero. Todo a $2 el plato.",
+   "en": "Andrea Rojas has made Quito desserts for 16 years: pristiños and buñuelos with syrup, fruit preserves and rosero, $2 a plate."
+  },
+  "mainDish": {
+   "emoji": "🍯",
+   "name": {
+    "es": "Pristiños con miel",
+    "en": "Pristiños with syrup"
+   },
+   "price": 2.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "08:00 - 19:00",
+   "tuesday": "08:00 - 19:00",
+   "wednesday": "08:00 - 19:00",
+   "thursday": "08:00 - 19:00",
+   "friday": "08:00 - 19:00",
+   "saturday": "08:00 - 19:00",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Dulces",
+   "Cafetería",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "tradiciones_quitenas_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_tradiciones_quitenas",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "tradiciones_quitenas_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Pristiños con miel",
+     "en": "Pristiños with syrup"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Buñuelos con miel",
+     "en": "Buñuelos with syrup"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Dulce de higos (regular o sánduche)",
+     "en": "Fig preserve (plain or sandwich)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Dulce de piña o mora",
+     "en": "Pineapple or blackberry preserve"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Rosero",
+     "en": "Rosero (fruit drink)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_tradiciones_quitenas/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.elcomercio.com/sabores/comida-huecas-layapa-mercados-picanterias/",
+   "owner": "Andrea Rojas",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "La nota no da dirección: la tomé de Maps (mismo nombre en el Centro). El horario también es de Maps. Pichincha es Turismo describe un 'Tradiciones Quiteñas' de morocho con 80 años: puede ser el mismo negocio familiar u otro, confirmar."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_centro_el_pretil",
+  "name": "El Pretil",
+  "sector": "Centro",
+  "address": "Sucre y García Moreno, en los locales bajo la Catedral (Plaza de la Independencia)",
+  "location": {
+   "latitude": -0.2205,
+   "longitude": -78.5123
+  },
+  "description": {
+   "es": "Local pequeño y siempre lleno, abierto hace 59 años por Laura Landázuri y hoy en manos de su hija Eulalia Guevara. Famoso por las mistelas (gomitas rellenas de licor) y los dulces tradicionales, con café de esencia, humitas y sánduches de pernil.",
+   "en": "Tiny, busy spot under the Cathedral, open 59 years, famous for mistelas (liquor-filled candies) and traditional sweets."
+  },
+  "mainDish": {
+   "emoji": "☕",
+   "name": {
+    "es": "Café de esencia con humita",
+    "en": "Coffee with humita"
+   },
+   "price": 1.3,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "08:00 - 18:00",
+   "tuesday": "08:00 - 18:00",
+   "wednesday": "08:00 - 18:00",
+   "thursday": "08:00 - 18:00",
+   "friday": "08:00 - 18:00",
+   "saturday": "08:00 - 18:00",
+   "sunday": "08:00 - 18:00"
+  },
+  "tags": [
+   "Cafetería",
+   "Dulces",
+   "Desayunos"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "el_pretil_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_el_pretil",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "el_pretil_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Café de esencia con humita",
+     "en": "Coffee with humita"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.3,
+    "category": "Desayunos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Café solo",
+     "en": "Coffee"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.5,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Chocolate",
+     "en": "Hot chocolate"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Caja de mistelas",
+     "en": "Box of mistelas"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Caja de dulces tradicionales",
+     "en": "Box of traditional sweets"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.5,
+    "category": "Postres",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_6",
+    "name": {
+     "es": "Sánduche de pernil",
+     "en": "Roast pork sandwich"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.3,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_06.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_06.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_7",
+    "name": {
+     "es": "Tamal",
+     "en": "Tamal"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_07.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_07.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_8",
+    "name": {
+     "es": "Humita, quimbolito o bolón",
+     "en": "Humita, quimbolito or bolón"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.8,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_08.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_el_pretil/dish_08.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "horario"
+   ],
+   "source": "https://www.elcomercio.com/actualidad/quito/aroma-del-cafe-enamora-centro/",
+   "owner": "Eulalia Guevara (hija de la fundadora Laura Landázuri)",
+   "scheduleNote": "Estimado: la dueña abre según la clientela; el local vecino de Maps abre 07:00–19:00",
+   "locationNote": "Aproximada: locales bajo la Catedral, Plaza Grande.",
+   "pending": "No tiene horario fijo: abre según el flujo de gente. Confirmar si el local de Maps es el mismo antes de usar sus coordenadas."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_centro_empanadas_de_mercedes_pando",
+  "name": "Empanadas de Mercedes Pando",
+  "sector": "Centro",
+  "address": "Calle La Ronda (Juan de Dios Morales), Centro Histórico",
+  "location": {
+   "latitude": -0.2238068,
+   "longitude": -78.5150771
+  },
+  "description": {
+   "es": "Empanadas de viento hechas al momento, de masa ligera, con abundante queso y azúcar espolvoreada. Hay tamaño normal y gigante. Las visitan turistas y gente del barrio.",
+   "en": "Made-to-order empanadas de viento with plenty of cheese and a sprinkle of sugar, regular or giant."
+  },
+  "mainDish": {
+   "emoji": "🥟",
+   "name": {
+    "es": "Empanada de viento gigante",
+    "en": "Giant cheese empanada"
+   },
+   "price": 5.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "15:00 - 21:00",
+   "tuesday": "15:00 - 21:00",
+   "wednesday": "15:00 - 21:00",
+   "thursday": "15:00 - 21:00",
+   "friday": "15:00 - 21:00",
+   "saturday": "15:00 - 21:00",
+   "sunday": "15:00 - 21:00"
+  },
+  "tags": [
+   "Empanadas",
+   "Cafetería",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_centro_empanadas_de_mercedes_pando/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "empanadas_de_mercedes_pando_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_empanadas_de_mercedes_pando",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "empanadas_de_mercedes_pando_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Empanada de viento normal",
+     "en": "Regular cheese empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_empanadas_de_mercedes_pando/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_empanadas_de_mercedes_pando/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Empanada de viento gigante",
+     "en": "Giant cheese empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 5.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_centro_empanadas_de_mercedes_pando/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_centro_empanadas_de_mercedes_pando/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "horario"
+   ],
+   "source": "https://www.expreso.ec/quito/empanadas-viento-morocho-gourmet-probar-deliciosas-quito-250263.html",
+   "owner": "Mercedes Pando",
+   "scheduleNote": "Estimado: los locales de La Ronda abren alrededor de las 15:00 (Primicias 2023)",
+   "locationNote": "Aproximada: punto de la calle La Ronda. Falta el número del local.",
+   "pending": "Sin horario publicado. Según Primicias (2023), los locales de La Ronda abren alrededor de las 15:00. Falta el número del local."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_norte_fritada_de_la_amazonas",
+  "name": "Fritada de la Amazonas",
+  "sector": "Norte",
+  "address": "Parterre de la Av. Amazonas y 18 de Septiembre (carrito con carpa roja y vitrina)",
+  "location": {
+   "latitude": -0.2067,
+   "longitude": -78.4963
+  },
+  "description": {
+   "es": "Carrito con carpa roja de María Agustina Manzano, de Angamarca (Cotopaxi), con tres años en el parterre. Fritada con ají de maní, aguacate, cebolla y lechuga; porciones desde $1,50. La clientela incluye oficinistas de la zona.",
+   "en": "Red-tent cart run by María Agustina Manzano from Angamarca for three years. Fritada with peanut chili, avocado, onion and lettuce, from $1.50."
+  },
+  "mainDish": {
+   "emoji": "🐖",
+   "name": {
+    "es": "Fritada (desde)",
+    "en": "Fritada (from)"
+   },
+   "price": 1.5,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "09:00 - 16:00",
+   "tuesday": "09:00 - 16:00",
+   "wednesday": "09:00 - 16:00",
+   "thursday": "09:00 - 16:00",
+   "friday": "09:00 - 16:00",
+   "saturday": "09:00 - 16:00",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Fritada",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "fritada_de_la_amazonas_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_fritada_de_la_amazonas",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "fritada_de_la_amazonas_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Porción pequeña de fritada",
+     "en": "Small fritada portion"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Plato de fritada",
+     "en": "Fritada plate"
+    },
+    "description": {
+     "es": "Tamaño de $2; la fuente no detalla qué incluye",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Plato de fritada mediano",
+     "en": "Medium fritada plate"
+    },
+    "description": {
+     "es": "Tamaño de $2,50; la fuente no detalla qué incluye",
+     "en": ""
+    },
+    "price": 2.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Plato de fritada grande",
+     "en": "Large fritada plate"
+    },
+    "description": {
+     "es": "Tamaño de $3; la fuente no detalla qué incluye",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_fritada_de_la_amazonas/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.extra.ec/noticia/quito/fritada-quito-huequita-avenida-amazonas-conquista-platos-1-50-164559.html",
+   "owner": "María Agustina Manzano Usha (le ayuda su esposo Javier)",
+   "scheduleNote": "",
+   "locationNote": "Aproximada (esquina Amazonas y 18 de Septiembre). Confirmar el punto del carrito.",
+   "pending": "Cierra entre 16:00 y 16:30. Los tamaños de $2, $2,50 y $3 no se describen en la fuente."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_norte_las_tradicionales_fritadas_de_la_corea",
+  "name": "Las Tradicionales Fritadas de la Corea",
+  "sector": "Norte",
+  "address": "Corea y Núñez de Vela, Iñaquito",
+  "location": {
+   "latitude": -0.1771693,
+   "longitude": -78.4871103
+  },
+  "description": {
+   "es": "Puesto de Rosa Chimba con 15 años. Vende unos 400 platos de lunes a sábado: fritada con mote, choclo, maduro, aguacate y mapahuira, con ají de maní y de tomate de árbol.",
+   "en": "Rosa Chimba's stand, 15 years running, selling around 400 plates a week of fritada with mote, corn, plantain and avocado."
+  },
+  "mainDish": {
+   "emoji": "🐖",
+   "name": {
+    "es": "Fritada con mote y mapahuira",
+    "en": "Fritada with mote"
+   },
+   "price": 2.5,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "09:00 - 17:00",
+   "tuesday": "09:00 - 17:00",
+   "wednesday": "09:00 - 17:00",
+   "thursday": "09:00 - 17:00",
+   "friday": "09:00 - 17:00",
+   "saturday": "09:00 - 17:00",
+   "sunday": "09:00 - 17:00"
+  },
+  "tags": [
+   "Fritada",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_norte_las_tradicionales_fritadas_de_la_corea/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "las_tradicionales_fritadas_de_la_corea_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_las_tradicionales_fritadas_de_la_corea",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "las_tradicionales_fritadas_de_la_corea_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Fritada con mote, choclo, maduro y aguacate (desde)",
+     "en": "Fritada with mote, corn, plantain and avocado (from)"
+    },
+    "description": {
+     "es": "La fuente da un rango de $2,50 a $3,00",
+     "en": ""
+    },
+    "price": 2.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_las_tradicionales_fritadas_de_la_corea/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_las_tradicionales_fritadas_de_la_corea/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Fritada completa (hasta)",
+     "en": "Full fritada (up to)"
+    },
+    "description": {
+     "es": "Precio máximo del rango publicado",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_las_tradicionales_fritadas_de_la_corea/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_las_tradicionales_fritadas_de_la_corea/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.expreso.ec/quito/mejores-motes-ruta-cuatro-emprendedoras-debes-conocer-209608.html",
+   "owner": "Rosa Chimba (los domingos atiende su hijo)",
+   "scheduleNote": "Lunes a sábado según Expreso; domingo tomado de Google Maps",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "El domingo abre su hijo, pero la fuente no da el horario. Precios de 2024: pueden haber subido."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_norte_hornados_dona_lolita",
+  "name": "Hornados Doña Lolita",
+  "sector": "Norte",
+  "address": "Mercado Iñaquito (La Carolina), Iñaquito y Juan José Villalengua – patio de comidas",
+  "location": {
+   "latitude": -0.1721101,
+   "longitude": -78.4863942
+  },
+  "description": {
+   "es": "Puesto de hornado con más de 40 años en el Mercado de La Carolina. Hoy atiende Gabriela Guayasamín, hija de Lolita. Los platos se arman al gusto del cliente.",
+   "en": "Hornado stall with 40+ years at La Carolina market, now run by Lolita's daughter Gabriela Guayasamín. Plates are built to order."
+  },
+  "mainDish": {
+   "emoji": "🐷",
+   "name": {
+    "es": "Plato de hornado",
+    "en": "Roast pork plate"
+   },
+   "price": 4.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "07:00 - 16:00",
+   "tuesday": "07:00 - 16:00",
+   "wednesday": "07:00 - 16:00",
+   "thursday": "07:00 - 16:00",
+   "friday": "07:00 - 16:00",
+   "saturday": "07:00 - 16:00",
+   "sunday": "07:00 - 16:00"
+  },
+  "tags": [
+   "Hornado",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_norte_hornados_dona_lolita/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "hornados_dona_lolita_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_hornados_dona_lolita",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "hornados_dona_lolita_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Plato de hornado",
+     "en": "Roast pork plate"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 4.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_hornados_dona_lolita/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_hornados_dona_lolita/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Plato de hornado grande",
+     "en": "Large roast pork plate"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 5.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_hornados_dona_lolita/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_hornados_dona_lolita/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.primicias.ec/noticias/entretenimiento/gastronomia/hornado-pastuzo-quito-comida-tipica/",
+   "owner": "Familia de Doña Lolita; atiende Gabriela Guayasamín",
+   "scheduleNote": "",
+   "locationNote": "Coordenadas del Mercado Iñaquito; falta el número de puesto.",
+   "pending": "La fuente da el horario sin días; puse todos los días porque el mercado abre a diario (domingo cierra a las 15:00). Falta el número de puesto. Precios de 2023."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_norte_chaulafan_chonly",
+  "name": "Chaulafán Chonly",
+  "sector": "Norte",
+  "address": "De los Arupos y Av. Galo Plaza Lasso",
+  "location": {
+   "latitude": -0.1116064,
+   "longitude": -78.4787323
+  },
+  "description": {
+   "es": "Huequita de chaulafán que nació del emprendimiento de Víctor. Platos desde $1,25 en el norte de Quito.",
+   "en": "Small chaulafán (Ecuadorian fried rice) spot started by Víctor. Plates from $1.25."
+  },
+  "mainDish": {
+   "emoji": "🍚",
+   "name": {
+    "es": "Chaulafán (desde)",
+    "en": "Chaulafán (from)"
+   },
+   "price": 1.25,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "11:00 - 19:00",
+   "tuesday": "11:00 - 19:00",
+   "wednesday": "11:00 - 19:00",
+   "thursday": "11:00 - 19:00",
+   "friday": "11:00 - 19:00",
+   "saturday": "11:00 - 19:00",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Almuerzos",
+   "Comida Típica"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_norte_chaulafan_chonly/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "chaulafan_chonly_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_chaulafan_chonly",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "chaulafan_chonly_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Chaulafán (porción más económica)",
+     "en": "Chaulafán (smallest portion)"
+    },
+    "description": {
+     "es": "Precio 'desde' según la fuente",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_chaulafan_chonly/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_chaulafan_chonly/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "horario"
+   ],
+   "source": "https://www.tiktok.com/@michelle_gastroviajes/video/7504092549339024646",
+   "owner": "Víctor (sin apellido en la fuente)",
+   "scheduleNote": "Estimado: horario típico de huequita de almuerzo; no hay horario publicado",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Solo hay un precio de referencia y no hay horario publicado. El nombre 'Chaulafán Chonly' sale de Maps en la misma esquina; confirmar que sea el de Víctor."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_norte_emparicas",
+  "name": "Emparicas",
+  "sector": "Norte",
+  "address": "Av. de los Shyris N35-70 y Portugal",
+  "location": {
+   "latitude": -0.18075,
+   "longitude": -78.4814914
+  },
+  "description": {
+   "es": "Puesto pequeño de Pablo y Paola: el nombre une 'em' de empanadas, 'pa' de sus nombres y 'ricas'. Empanadas a $1 con sabores creativos y 10 salsas caseras. Según el chef, no llevan aceite. No hay mesas, se come de pie.",
+   "en": "Tiny stand by Pablo and Paola selling $1 empanadas with creative fillings and 10 homemade sauces."
+  },
+  "mainDish": {
+   "emoji": "🥟",
+   "name": {
+    "es": "Empanada Cheese Burger",
+    "en": "Cheese Burger empanada"
+   },
+   "price": 1.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "08:00 - 19:00",
+   "tuesday": "08:00 - 19:00",
+   "wednesday": "08:00 - 19:00",
+   "thursday": "08:00 - 19:00",
+   "friday": "08:00 - 19:00",
+   "saturday": "08:00 - 12:00",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Empanadas"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "emparicas_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_emparicas",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "emparicas_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Empanada Cheese Burger",
+     "en": "Cheese Burger empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Empanada Ranchera",
+     "en": "Ranchera empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Empanada de tocino",
+     "en": "Bacon empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Empanada de jamón y queso",
+     "en": "Ham and cheese empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_norte_emparicas/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.expreso.ec/quito/empanadas-viento-morocho-gourmet-probar-deliciosas-quito-250263.html",
+   "owner": "Pablo y Paola",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Maps marca cierre a las 20:00 entre semana y a las 13:00 el sábado; la fuente dice 19:00 y 12:00."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_sur_rey_zar",
+  "name": "Rey Zar",
+  "sector": "Sur",
+  "address": "Av. Juan de Alcázar, Las 5 Esquinas",
+  "location": {
+   "latitude": -0.2466843,
+   "longitude": -78.5135421
+  },
+  "description": {
+   "es": "Hueca nocturna de Las 5 Esquinas con más de 20 años, de Delia Rivera. Lo más pedido son las tortillas con fritada, desde $1. También morocho con empanada, guatita, papipollo y secos de gallina.",
+   "en": "Late-night spot at Las 5 Esquinas for 20+ years. Known for potato patties with fritada from $1."
+  },
+  "mainDish": {
+   "emoji": "🥔",
+   "name": {
+    "es": "Tortillas con fritada",
+    "en": "Potato patties with fritada"
+   },
+   "price": 1.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "19:00 - 00:00",
+   "tuesday": "19:00 - 00:00",
+   "wednesday": "19:00 - 00:00",
+   "thursday": "19:00 - 00:00",
+   "friday": "19:00 - 00:00",
+   "saturday": "19:00 - 00:00",
+   "sunday": "19:00 - 00:00"
+  },
+  "tags": [
+   "Fritada",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "rey_zar_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_rey_zar",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "rey_zar_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Tortillas con fritada (desde)",
+     "en": "Potato patties with fritada (from)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Morocho con empanada",
+     "en": "Morocho with empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Morocho: Edelmira Morales $0,80 (El Comercio); Estación de las Humitas $1,75 y Tripitas Mishky morocho+empanada $2,75 (apps)"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Guatita",
+     "en": "Guatita"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Guatita: Agachaditos de Carapungo $3,50; Tripitas Mishky $4,25; Agachaditos de Charito $4,75 (Uber Eats)"
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Papipollo",
+     "en": "Chicken with fries"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Papipollo: Agachaditos de la Occidental $3,00; Agachaditos de Charito $4,75 (Uber Eats)"
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Seco de gallina",
+     "en": "Hen stew"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_rey_zar/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Seco de gallina: Tres Chivos de David $5,50 (Uber Eats); tope de $3 en las 5 Esquinas (El Comercio)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios"
+   ],
+   "source": "https://www.elcomercio.com/sabores/huecas-sur-quito-comida-restaurantes/",
+   "owner": "Delia Rivera",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Solo hay precio publicado de las tortillas con fritada."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_sur_las_empanadas_de_barrio_nuevo",
+  "name": "Las Empanadas de Barrio Nuevo",
+  "sector": "Sur",
+  "address": "Barrio Nuevo, entre Serapio Japerabi y Gina Barrera; segundo local en la Av. Ajaví",
+  "location": {
+   "latitude": -0.2606565,
+   "longitude": -78.5387073
+  },
+  "description": {
+   "es": "Negocio familiar de Mayra Mora y su esposo, con unos cuatro años. Siete tipos de empanadas crocantes al día (queso, carne mechada, pollo, napolitana, hawaiana, entre otras), con receta de la suegra. También morocho, colada morada, chocolate y café lojano.",
+   "en": "Family business making seven kinds of crispy empanadas daily, plus morocho, colada morada and Loja coffee."
+  },
+  "mainDish": {
+   "emoji": "🥟",
+   "name": {
+    "es": "Empanada de queso",
+    "en": "Cheese empanada"
+   },
+   "price": 2.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "Cerrado",
+   "tuesday": "15:30 - 22:00",
+   "wednesday": "15:30 - 22:00",
+   "thursday": "15:30 - 22:00",
+   "friday": "15:30 - 22:00",
+   "saturday": "15:30 - 22:00",
+   "sunday": "15:30 - 22:00"
+  },
+  "tags": [
+   "Empanadas",
+   "Cafetería",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "las_empanadas_de_barrio_nuevo_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_las_empanadas_de_barrio_nuevo",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "las_empanadas_de_barrio_nuevo_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Empanada (queso, carne mechada, pollo, napolitana, hawaiana…)",
+     "en": "Empanada (cheese, beef, chicken, napolitana, hawaiian…)"
+    },
+    "description": {
+     "es": "Precio 'desde $2' según la fuente",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Morocho",
+     "en": "Morocho"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Morocho: Edelmira Morales $0,80 (El Comercio); Estación de las Humitas $1,75 y Tripitas Mishky morocho+empanada $2,75 (apps)"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Colada morada",
+     "en": "Colada morada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.5,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Colada morada: $1,50 el vaso (guía Pichincha es Turismo); Estación de las Humitas $2,00 (Rappi)"
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Chocolate caliente",
+     "en": "Hot chocolate"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Chocolate: Chapineros $0,90, Caribe $1,10 (El Comercio); Estación de las Humitas $1,75 (Rappi)"
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Café lojano",
+     "en": "Loja coffee"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_las_empanadas_de_barrio_nuevo/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Café: Chapineros $0,80 (El Comercio); café zarumeño $1,20 en Estación de las Humitas (Rappi)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios"
+   ],
+   "source": "https://www.expreso.ec/quito/empanadas-viento-morocho-gourmet-probar-deliciosas-quito-250263.html",
+   "owner": "Mayra Mora y su esposo",
+   "scheduleNote": "",
+   "locationNote": "Coordenadas del local de la Av. Ajaví (ficha de Maps). El local de Barrio Nuevo no tiene coordenadas confirmadas.",
+   "pending": "La nota dice 'desde $2', pero una reseña en Maps menciona empanadas de $1. Confirmar el precio actual."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_sur_super_morocho",
+  "name": "Súper Morocho",
+  "sector": "Sur",
+  "address": "Las 5 Esquinas, calle Pedro Cepero",
+  "location": {
+   "latitude": -0.2469482,
+   "longitude": -78.5133655
+  },
+  "description": {
+   "es": "Casi 60 años en Las 5 Esquinas. Lo fundó Maruja Huertas y hoy lo dirige su sobrina Margot. Morocho con empanadas, caldos de menudencia con huevo y de gallina, guatita y secos de costilla, pollo y chivo. Ningún plato pasa de $3.",
+   "en": "Nearly 60 years at Las 5 Esquinas: morocho with empanadas, broths, guatita and stews, nothing over $3."
+  },
+  "mainDish": {
+   "emoji": "🥣",
+   "name": {
+    "es": "Morocho con empanadas",
+    "en": "Morocho with empanadas"
+   },
+   "price": 1.25,
+   "isPriceEstimated": true
+  },
+  "schedule": {
+   "monday": "16:30 - 22:30",
+   "tuesday": "16:30 - 22:30",
+   "wednesday": "16:30 - 22:30",
+   "thursday": "16:30 - 22:30",
+   "friday": "16:30 - 22:30",
+   "saturday": "16:30 - 22:30",
+   "sunday": "16:30 - 22:30"
+  },
+  "tags": [
+   "Comida Típica",
+   "Secos",
+   "Empanadas",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "super_morocho_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_super_morocho",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "super_morocho_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Morocho con empanadas",
+     "en": "Morocho with empanadas"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Morocho: Edelmira Morales $0,80 (El Comercio); Estación de las Humitas $1,75 y Tripitas Mishky morocho+empanada $2,75 (apps)"
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Caldo de menudencia con huevo",
+     "en": "Giblet broth with egg"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.5,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Caldo de menudencia: igual que caldo de gallina de hueca ($2–3) y tope de $3 del local"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Caldo de gallina",
+     "en": "Hen broth"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.75,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Caldo de gallina: Edelmira Morales $2–3 (El Comercio); Tres Chivos de David JR $2,99 (Uber Eats)"
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Guatita",
+     "en": "Guatita"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Guatita: Agachaditos de Carapungo $3,50; Tripitas Mishky $4,25; Agachaditos de Charito $4,75 (Uber Eats)"
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Seco de costilla, pollo o chivo",
+     "en": "Rib, chicken or goat stew"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_super_morocho/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Secos: Agachaditos de Carapungo seco de pollo/costilla/chivo $3,00 (Uber Eats); Originales Morochos seco de chivo $3 (El Comercio)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios"
+   ],
+   "source": "https://www.elcomercio.com/sabores/huecas-sur-quito-comida-restaurantes/",
+   "owner": "Margot Huertas (sobrina de la fundadora, Maruja Huertas)",
+   "scheduleNote": "",
+   "locationNote": "De la ficha 'Super Morochos de las 5 Esquinas' en Maps; confirmar que sea el mismo.",
+   "pending": "La fuente solo dice que ningún plato pasa de $3; no hay precios por plato. Hay dos fichas parecidas en Maps ('Super Morochos de las 5 Esquinas' y 'Super Morocho', Pedro Cobo 58-29): confirmar cuál es."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_sur_los_originales_morochos_de_las_5_esquinas",
+  "name": "Los Originales Morochos de Las 5 Esquinas",
+  "sector": "Sur",
+  "address": "Calle Pedro Cepero, Las 5 Esquinas",
+  "location": {
+   "latitude": -0.2471,
+   "longitude": -78.5138
+  },
+  "description": {
+   "es": "Funciona desde la década de 1950, hoy con Gladys Ortiz. Morocho con empanadas de viento rellenas de queso, papas con cuero y seco de chivo, su plato más caro.",
+   "en": "Running since the 1950s: morocho with cheese empanadas, potatoes with pork rind and goat stew."
+  },
+  "mainDish": {
+   "emoji": "🐐",
+   "name": {
+    "es": "Seco de chivo",
+    "en": "Goat stew"
+   },
+   "price": 3.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "16:00 - 21:30",
+   "tuesday": "16:00 - 21:30",
+   "wednesday": "16:00 - 21:30",
+   "thursday": "16:00 - 21:30",
+   "friday": "16:00 - 21:30",
+   "saturday": "16:00 - 21:30",
+   "sunday": "16:00 - 21:30"
+  },
+  "tags": [
+   "Secos",
+   "Empanadas",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "los_originales_morochos_de_las_5_esquinas_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_los_originales_morochos_de_las_5_esquinas",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "los_originales_morochos_de_las_5_esquinas_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Seco de chivo",
+     "en": "Goat stew"
+    },
+    "description": {
+     "es": "Es el plato más caro",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Morocho con empanadas de viento",
+     "en": "Morocho with cheese empanadas"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.25,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Morocho: Edelmira Morales $0,80 (El Comercio); Estación de las Humitas $1,75 y Tripitas Mishky morocho+empanada $2,75 (apps)"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Papas con cuero",
+     "en": "Potatoes with pork rind"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_los_originales_morochos_de_las_5_esquinas/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Papas con cuero: $1,50–3,00 en huecas (Pichincha es Turismo); Tres Chivos de David y Tripitas Mishky $4,25 (Uber Eats)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios"
+   ],
+   "source": "https://www.elcomercio.com/sabores/huecas-sur-quito-comida-restaurantes/",
+   "owner": "Gladys Ortiz",
+   "scheduleNote": "",
+   "locationNote": "Aproximada: calle Pedro Cepero.",
+   "pending": "Solo hay precio del seco de chivo ($3), que es el tope. Confirmar ubicación exacta."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_sur_el_andino_de_don_policarpo",
+  "name": "El Andino de Don Policarpo",
+  "sector": "Sur",
+  "address": "Minipatio de comidas de la Villaflora (tres puestos, dos en autos Andino)",
+  "location": {
+   "latitude": -0.244596,
+   "longitude": -78.5189786
+  },
+  "description": {
+   "es": "Policarpo Bohórquez, de 66 años, vende desde un Andino (auto ecuatoriano de los 70 y 80) en un minipatio de comidas con unos 20 años en la Villaflora. Guatas con huevo duro, seco de chivo o de gallina, papas con cuero y 'bajativos' de avena. Si hay ventas, se queda hasta las 05:00.",
+   "en": "Policarpo Bohórquez sells from a vintage Andino car in a 20-year-old night food patio: guatita, goat or hen stew, potatoes with pork rind."
+  },
+  "mainDish": {
+   "emoji": "🚗",
+   "name": {
+    "es": "Guata con huevo duro",
+    "en": "Guatita with boiled egg"
+   },
+   "price": 3.0,
+   "isPriceEstimated": true
+  },
+  "schedule": {
+   "monday": "17:00 - 02:00",
+   "tuesday": "17:00 - 02:00",
+   "wednesday": "17:00 - 02:00",
+   "thursday": "17:00 - 02:00",
+   "friday": "17:00 - 02:00",
+   "saturday": "17:00 - 02:00",
+   "sunday": "17:00 - 02:00"
+  },
+  "tags": [
+   "Comida Típica",
+   "Secos",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "el_andino_de_don_policarpo_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_el_andino_de_don_policarpo",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "el_andino_de_don_policarpo_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Guata con huevo duro",
+     "en": "Guatita with boiled egg"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Guatita: Agachaditos de Carapungo $3,50; Tripitas Mishky $4,25; Agachaditos de Charito $4,75 (Uber Eats)"
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Seco de chivo",
+     "en": "Goat stew"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Secos: Agachaditos de Carapungo seco de pollo/costilla/chivo $3,00 (Uber Eats); Originales Morochos seco de chivo $3 (El Comercio)"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Seco de gallina",
+     "en": "Hen stew"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Seco de gallina: Tres Chivos de David $5,50 (Uber Eats); tope de $3 en las 5 Esquinas (El Comercio)"
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Papas con cuero",
+     "en": "Potatoes with pork rind"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 2.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Papas con cuero: $1,50–3,00 en huecas (Pichincha es Turismo); Tres Chivos de David y Tripitas Mishky $4,25 (Uber Eats)"
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Bajativo de avena",
+     "en": "Oat drink"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.75,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_sur_el_andino_de_don_policarpo/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Avena/quaker: Tres Chivos de David $1,25 (Uber Eats); puesto de calle más barato"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios",
+    "horario",
+    "ubicación"
+   ],
+   "source": "https://www.expreso.ec/quito/recorrido-nocturno-huecas-sur-170272.html",
+   "owner": "Policarpo Bohórquez",
+   "scheduleNote": "Estimado: abre a las 17:00 y, si hay venta, se queda hasta las 05:00 (Expreso)",
+   "locationNote": "Aproximada: centro de la Villaflora (parada del Trole). Ubicar el minipatio exacto.",
+   "pending": "Sin precios ni dirección publicados. Más movimiento desde las 20:00 de viernes a domingo. Al lado están los puestos de Miriam Enríquez y Mariana Castillo, que también se pueden cargar."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_valles_el_mote_sabroson",
+  "name": "El Mote Sabrosón",
+  "sector": "Valles",
+  "address": "Mercado de Conocoto, García Moreno y Juan Montalvo",
+  "location": {
+   "latitude": -0.2975476,
+   "longitude": -78.4801859
+  },
+  "description": {
+   "es": "Graciela Morales sigue el negocio de su madre, que trabajó 60 años en él. Mote cocinado a leña con choclo, alverja, fréjol, hierbitas, chicharrón y tostado, con ají hecho en tiesto de barro (picante de medio a fuerte).",
+   "en": "Wood-fired mote with pork crackling at Conocoto market, a family stall carried on from the owner's mother."
+  },
+  "mainDish": {
+   "emoji": "🌽",
+   "name": {
+    "es": "Mote con chicharrón",
+    "en": "Mote with pork crackling"
+   },
+   "price": 2.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "07:00 - 14:00",
+   "tuesday": "07:00 - 14:00",
+   "wednesday": "07:00 - 14:00",
+   "thursday": "07:00 - 14:00",
+   "friday": "07:00 - 14:00",
+   "saturday": "07:00 - 14:00",
+   "sunday": "07:00 - 14:00"
+  },
+  "tags": [
+   "Desayunos",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_valles_el_mote_sabroson/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "el_mote_sabroson_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_el_mote_sabroson",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "el_mote_sabroson_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Mote con chicharrón y tostado",
+     "en": "Mote with pork crackling"
+    },
+    "description": {
+     "es": "Precio máximo del rango ($0,50–2,00)",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_el_mote_sabroson/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_el_mote_sabroson/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Porción pequeña de mote",
+     "en": "Small mote portion"
+    },
+    "description": {
+     "es": "Precio mínimo del rango",
+     "en": ""
+    },
+    "price": 0.5,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_el_mote_sabroson/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_el_mote_sabroson/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [],
+   "source": "https://www.expreso.ec/quito/mejores-motes-ruta-cuatro-emprendedoras-debes-conocer-209608.html",
+   "owner": "Graciela Morales",
+   "scheduleNote": "",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "La fuente da un rango de $0,50 a $2,00 sin detallar cada plato. Precios de 2024."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_valles_caldo_de_cabeza_de_borrego_de_mariana_cando",
+  "name": "Caldo de Cabeza de Borrego de Mariana Cando",
+  "sector": "Valles",
+  "address": "Plaza César Chiriboga, Sangolquí",
+  "location": {
+   "latitude": -0.328443,
+   "longitude": -78.4470703
+  },
+  "description": {
+   "es": "Mariana Cando lleva 22 años con el caldo de cabeza de borrego. Cocina desde las 18:00 hasta las 03:00 y abre a las 05:00. Se sirve con mote, cebolla, culantro, limón y ají.",
+   "en": "Lamb head broth with mote, onion, cilantro and lime. Mariana Cando has made it for 22 years; opens at 5 am."
+  },
+  "mainDish": {
+   "emoji": "🍲",
+   "name": {
+    "es": "Caldo de cabeza de borrego",
+    "en": "Lamb head broth"
+   },
+   "price": 2.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "Cerrado",
+   "tuesday": "05:00 - 12:00",
+   "wednesday": "Cerrado",
+   "thursday": "05:00 - 12:00",
+   "friday": "Cerrado",
+   "saturday": "Cerrado",
+   "sunday": "05:00 - 12:00"
+  },
+  "tags": [
+   "Desayunos",
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_valles_caldo_de_cabeza_de_borrego_de_mariana_cando/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "caldo_de_cabeza_de_borrego_de_mariana_cando_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_caldo_de_cabeza_de_borrego_de_mariana_cando",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "caldo_de_cabeza_de_borrego_de_mariana_cando_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Caldo de cabeza de borrego (desde)",
+     "en": "Lamb head broth (from)"
+    },
+    "description": {
+     "es": "Entre $2 y $3 según cómo se pida",
+     "en": ""
+    },
+    "price": 2.0,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_caldo_de_cabeza_de_borrego_de_mariana_cando/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_caldo_de_cabeza_de_borrego_de_mariana_cando/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "horario"
+   ],
+   "source": "https://www.extra.ec/noticia/ecuador/comida-exotica-guia-quito-platos-raros-127605.html",
+   "owner": "Mariana Cando",
+   "scheduleNote": "Estimado: abre a las 05:00 en días de feria (martes, jueves y domingo); hora de cierre estimada",
+   "locationNote": "Coordenadas de la plaza; falta el punto exacto del puesto.",
+   "pending": "Martes y jueves son seguros. La nota dice además domingo en el texto y viernes en una foto: confirmar el tercer día."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_valles_panes_de_marcia_ona",
+  "name": "Panes de Marcia Oña",
+  "sector": "Valles",
+  "address": "Ascázubi y Av. General Enríquez, junto al parque Turismo, Sangolquí (feria)",
+  "location": {
+   "latitude": -0.3265127,
+   "longitude": -78.45181
+  },
+  "description": {
+   "es": "Puesto tradicional de la feria de Sangolquí: cholas, empanadas dulces y de sal, pan de trigo y pan tipo Pinllo. Los domingos vende unos 3.000 panes y los jueves cerca de la mitad.",
+   "en": "Traditional bread stall at the Sangolquí fair, selling cholas, empanadas and wheat bread, five for $1."
+  },
+  "mainDish": {
+   "emoji": "🍞",
+   "name": {
+    "es": "Funda de 5 panes",
+    "en": "Bag of 5 breads"
+   },
+   "price": 1.0,
+   "isPriceEstimated": false
+  },
+  "schedule": {
+   "monday": "Cerrado",
+   "tuesday": "Cerrado",
+   "wednesday": "Cerrado",
+   "thursday": "06:00 - 13:00",
+   "friday": "Cerrado",
+   "saturday": "Cerrado",
+   "sunday": "06:00 - 13:00"
+  },
+  "tags": [
+   "Desayunos",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "panes_de_marcia_ona_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_panes_de_marcia_ona",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "panes_de_marcia_ona_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Funda de 5 panes",
+     "en": "Bag of 5 breads"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Panadería",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Cholas",
+     "en": "Cholas (filled bread)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.25,
+    "category": "Panadería",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Pan de feria: funda de 5 panes por $1 del mismo puesto (El Comercio)"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Empanadas de sal o de dulce",
+     "en": "Savory or sweet empanadas"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.5,
+    "category": "Panadería",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_panes_de_marcia_ona/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Empanadas de feria: empanada de viento desde $0,50 (Pichincha es Turismo); 5 panes por $1 del mismo puesto"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios",
+    "horario"
+   ],
+   "source": "https://www.elcomercio.com/actualidad/quito/feria-sangolqui-atrae-clientes-valles/",
+   "owner": "Marcia Oña",
+   "scheduleNote": "Estimado: jueves y domingo de feria; horas estimadas",
+   "locationNote": "Aproximada: parque El Turismo. Falta el punto exacto del puesto.",
+   "pending": "Solo atiende jueves y domingo (días de feria); la fuente no da horas."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_valles_morochos_en_el_triangulo",
+  "name": "Morochos en el Triángulo",
+  "sector": "Valles",
+  "address": "Pasando el semáforo de la antigua estación del tren, Cumbayá",
+  "location": {
+   "latitude": -0.2020574,
+   "longitude": -78.4304204
+  },
+  "description": {
+   "es": "María José lleva 27 años con el morocho tradicional acompañado de empanadas de viento.",
+   "en": "María José has served traditional morocho with cheese empanadas for 27 years."
+  },
+  "mainDish": {
+   "emoji": "🥣",
+   "name": {
+    "es": "Morocho con empanada de viento",
+    "en": "Morocho with cheese empanada"
+   },
+   "price": 1.0,
+   "isPriceEstimated": true
+  },
+  "schedule": {
+   "monday": "15:30 - 20:30",
+   "tuesday": "15:30 - 20:30",
+   "wednesday": "15:30 - 20:30",
+   "thursday": "15:30 - 20:30",
+   "friday": "15:30 - 20:30",
+   "saturday": "15:30 - 20:30",
+   "sunday": "15:30 - 20:30"
+  },
+  "tags": [
+   "Empanadas",
+   "Cafetería",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_valles_morochos_en_el_triangulo/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "morochos_en_el_triangulo_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_morochos_en_el_triangulo",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "morochos_en_el_triangulo_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Empanada de viento",
+     "en": "Cheese empanada"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 0.75,
+    "category": "Entradas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_morochos_en_el_triangulo/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_morochos_en_el_triangulo/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": false
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Morocho",
+     "en": "Morocho"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 1.0,
+    "category": "Bebidas",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_morochos_en_el_triangulo/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_morochos_en_el_triangulo/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Morocho: Edelmira Morales $0,80 (El Comercio); Estación de las Humitas $1,75 y Tripitas Mishky morocho+empanada $2,75 (apps)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios",
+    "horario"
+   ],
+   "source": "https://pichinchaesturismo.com/es-ec/pichincha/quito/rutas-gastronomicas/top-6-mejores-huecas-cumbaya-a8tzygoxp",
+   "owner": "María José",
+   "scheduleNote": "Estimado: horario típico de las morocherías (p. ej. 5 Esquinas 16:00–21:30)",
+   "locationNote": "Aproximada: ficha de Maps 'Los exquisitos morochos de Cumbayá' en esa zona; confirmar.",
+   "pending": "Teléfono publicado: 096137540 (parece que le falta un dígito). Sin horario publicado."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ },
+ {
+  "id": "hueca_valles_picanteria_marthita",
+  "name": "Picantería Marthita",
+  "sector": "Valles",
+  "address": "Vía del Ferrocarril (antigua vía a Cumbayá)",
+  "location": {
+   "latitude": -0.2012737,
+   "longitude": -78.4319052
+  },
+  "description": {
+   "es": "Picantería con 25 años. Su plato estrella es la tripa mishqui con un ají fuerte. También patas de chancho, papas con cuero, borrego asado y caldo de 31.",
+   "en": "A 25-year-old picantería famous for tripa mishqui with fiery chili; also pork trotters, potatoes with rind and roast lamb."
+  },
+  "mainDish": {
+   "emoji": "🔥",
+   "name": {
+    "es": "Tripa mishqui",
+    "en": "Grilled tripe"
+   },
+   "price": 4.0,
+   "isPriceEstimated": true
+  },
+  "schedule": {
+   "monday": "16:00 - 21:00",
+   "tuesday": "16:00 - 21:15",
+   "wednesday": "16:00 - 21:15",
+   "thursday": "16:00 - 21:30",
+   "friday": "16:00 - 22:00",
+   "saturday": "16:00 - 21:30",
+   "sunday": "Cerrado"
+  },
+  "tags": [
+   "Comida Típica",
+   "Tradicional"
+  ],
+  "priceLevel": "$",
+  "rating": 0.0,
+  "reviewCount": 0,
+  "images": [
+   "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/portada.jpg"
+  ],
+  "isActive": true,
+  "loyaltyCard": {
+   "maxStamps": 5,
+   "qrSecret": "picanteria_marthita_sello",
+   "rewardText": {
+    "es": "Premio sorpresa al completar tu tarjeta",
+    "en": "Surprise reward when you complete your card"
+   }
+  },
+  "secretSticker": {
+   "id": "cromo_picanteria_marthita",
+   "imageUrl": "",
+   "name": {
+    "es": "",
+    "en": ""
+   },
+   "qrSecret": "picanteria_marthita_secreto"
+  },
+  "menuItems": [
+   {
+    "id": "dish_1",
+    "name": {
+     "es": "Tripa mishqui",
+     "en": "Grilled tripe"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 4.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_01.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_01.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Tripa mishqui: $1,50–6,00 (Pichincha es Turismo); Parque de las Tripas $4 (Expreso 2025); Tripitas Mishky $4,65 (Uber Eats)"
+   },
+   {
+    "id": "dish_2",
+    "name": {
+     "es": "Patas de chancho",
+     "en": "Pork trotters"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 4.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_02.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_02.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Patas de chancho: plato de patitas/molleja $3,30 en Agachaditos de la Occidental (Uber Eats); Cumbayá algo más caro"
+   },
+   {
+    "id": "dish_3",
+    "name": {
+     "es": "Papas con cuero",
+     "en": "Potatoes with pork rind"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.5,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_03.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_03.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Papas con cuero: $1,50–3,00 en huecas (Pichincha es Turismo); Tres Chivos de David y Tripitas Mishky $4,25 (Uber Eats)"
+   },
+   {
+    "id": "dish_4",
+    "name": {
+     "es": "Borrego asado",
+     "en": "Roast lamb"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 6.0,
+    "category": "Platos Fuertes",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_04.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_04.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Borrego asado: Olga Asimbaya $3 en Mercado de Cotocollao (El Comercio); Agachaditos del Veci $12 (Uber Eats)"
+   },
+   {
+    "id": "dish_5",
+    "name": {
+     "es": "Caldo de 31",
+     "en": "Caldo de 31 (offal soup)"
+    },
+    "description": {
+     "es": "",
+     "en": ""
+    },
+    "price": 3.5,
+    "category": "Sopas y Caldos",
+    "imageUrl": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_05.jpg",
+    "image": "https://huequito-b091a.web.app/seed/hueca_valles_picanteria_marthita/dish_05.jpg",
+    "isAvailable": true,
+    "isPriceEstimated": true,
+    "priceReference": "Caldo de 31: caldos de hueca $2–3 (El Comercio); Tres Chivos de David caldo $5,50 (Uber Eats)"
+   }
+  ],
+  "dataNotes": {
+   "estimated": [
+    "precios"
+   ],
+   "source": "https://pichinchaesturismo.com/es-ec/pichincha/quito/rutas-gastronomicas/top-6-mejores-huecas-cumbaya-a8tzygoxp",
+   "owner": "Marthita (teléfono publicado 0984587815)",
+   "scheduleNote": "Tomado de su ficha en Google Maps",
+   "locationNote": "De la ficha de Maps.",
+   "pending": "Sin precios publicados; es la más conocida de las Valles, la incluí porque hay pocas huecas del valle con datos en línea. Llamar al número para completar precios y horario."
+  },
+  "isSectorConfirmed": true,
+  "ownerId": "",
+  "phone": "",
+  "metrics": {
+   "viewCount": 0,
+   "favoriteCount": 0,
+   "routeAdditions": 0,
+   "stampsGiven": 0
+  },
+  "branches": [],
+  "subscription": {}
+ }
+]

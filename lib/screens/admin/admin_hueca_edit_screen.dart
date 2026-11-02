@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hue_quito/models/quito_zones.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
@@ -35,7 +36,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
   late TextEditingController _lngController;
   late TextEditingController _imageUrlController;
 
-  String _selectedSector = 'Centro Histórico';
+  String _selectedSector = 'Centro';
   String _priceLevel = '\$';
   bool _isActive = true;
   bool _isSaving = false;
@@ -57,23 +58,7 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
     'Domingo',
   ];
 
-  final List<String> _sectors = [
-    'Centro Histórico',
-    'La Floresta',
-    'La Mariscal',
-    'Iñaquito',
-    'La Carolina',
-    'Cumbayá',
-    'Tumbaco',
-    'Chimbacalle',
-    'Villaflora',
-    'San Roque',
-    'Cotocollao',
-    'Carcelén',
-    'Norte',
-    'Sur',
-    'Valles',
-  ];
+  final List<String> _sectors = List.of(quitoZoneIds);
 
   @override
   void initState() {
@@ -125,11 +110,10 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
 
     _imageUrlController = TextEditingController(text: (h != null && h.images.isNotEmpty) ? h.images.first : '');
 
-    if (h != null && _sectors.contains(h.sector)) {
-      _selectedSector = h.sector;
-    } else if (h != null && h.sector.isNotEmpty) {
-      _sectors.insert(0, h.sector);
-      _selectedSector = h.sector;
+    if (h != null) {
+      _selectedSector = normalizeQuitoZone(h.sector) ??
+          normalizeQuitoZone(h.address) ??
+          zoneFromCoordinates(h.location.latitude, h.location.longitude);
     }
 
     _priceLevel = h?.priceLevel.isNotEmpty == true ? h!.priceLevel : '\$';
