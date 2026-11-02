@@ -217,7 +217,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
         result |= (b & 0x1f) << shift;
         shift += 5;
       } while (b >= 0x20);
-      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      int dlat = ((result & 1) != 0 ? -(result >> 1) - 1 : (result >> 1)); // sin ~: en web da un número sin signo
       lat += dlat;
 
       shift = 0;
@@ -227,7 +227,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
         result |= (b & 0x1f) << shift;
         shift += 5;
       } while (b >= 0x20);
-      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      int dlng = ((result & 1) != 0 ? -(result >> 1) - 1 : (result >> 1)); // sin ~: en web da un número sin signo
       lng += dlng;
 
       poly.add(LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble()));
