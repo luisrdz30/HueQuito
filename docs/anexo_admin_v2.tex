@@ -1,0 +1,153 @@
+% --- PANTALLA 25: Acceso y Centro de Control ---
+\pantalladoble
+  {Pantalla 25: Acceso al Panel y Centro de Control}
+  {lib/screens/admin/admin_dashboard_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a00_perfil_admin.png}
+  {capturas/a01_dashboard.png}
+  {14cm}
+  {
+    \proposito{Tablero maestro para monitorear el estado global de la plataforma y entrar a cada bandeja de gestión.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Acceso (izquierda):} la tarjeta \textit{Panel de Administración} aparece en el perfil únicamente para la cuenta de superadministrador.
+      \item \textbf{Métricas clave (derecha):} \textit{Huecas} (20, todas activas), \textit{Usuarios}, \textit{Avisos Pendientes}, \textit{Sectores y Cromos} (4 zonas), \textit{Solicitudes Huecas}, \textit{Bandeja Soporte}, \textit{Suscripciones} y \textit{Quiz y ADN}; cada tarjeta abre su pantalla.
+      \item Barra superior con distintivo \textbf{SUPERADMIN} y salida rápida; barra inferior: \textit{Dashboard, Huecas, Avisos, Pagos y Usuarios}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 26: Directorio de huecas + edición ---
+\pantalladoble
+  {Pantalla 26: Directorio y Edición de Huecas}
+  {lib/screens/admin/admin_huecas_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a02_huecas.png}
+  {capturas/a03_editar_hueca.png}
+  {14cm}
+  {
+    \proposito{Gestión centralizada de las huecas: visibilidad, datos, ubicación y dueño asignado.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Directorio (izquierda):} buscador por nombre, plato, menú o zona; filtros \textit{Todas, Activas, Pausadas, Sin Dueño}; acceso a \textit{Sectores y Cromos}.
+      \item Tarjetas con foto, zona, calificación, estado del dueño (\textit{Dueño Asignado} o \textit{Sin Dueño}), número de sucursales, interruptor de visibilidad y acciones \textit{Locales, Dueño, Editar y Eliminar}.
+      \item \textbf{Editar Hueca (derecha):} estado, nombre, zona (Centro, Norte, Sur o Valles), rango de precio, teléfono, dirección con selector en mapa y coordenadas, y cuenta de negocio vinculada con buscador para cambiar de dueño.
+      \item Regla visible: cada cuenta de negocio solo puede estar asignada a una hueca.
+    \end{itemize}
+  }
+
+% --- PANTALLA 27: Sectores y cromos ---
+\pantallashowcase
+  {Pantalla 27: Sectores y Cromos del Álbum}
+  {lib/screens/admin/admin_sectors_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a04_sectores.png}
+  {17.5cm}
+  {
+    \proposito{Organiza las huecas en las cuatro zonas del álbum coleccionable y valida que cada una tenga su cromo secreto.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Resumen: 4 sectores, huecas con zona confirmada (20/20) y huecas con cromo (20/20).
+      \item Buscador, botón \textit{Confirmar Todo} y filtros \textit{Todos, Por Confirmar, Sin Cromo Secreto}.
+      \item Grupos por zona con estado \textit{Validado} y número de cromos listos.
+      \item Por hueca: zona confirmada con opción \textit{Cambiar}, nombre del cromo (por defecto \textit{Cromo de} y el nombre de la hueca), QR listo para escanear y \textit{Editar Cromo}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 28: Moderación de avisos ---
+\pantallashowcase
+  {Pantalla 28: Moderación de Avisos y Notificaciones}
+  {lib/screens/admin/admin_notifications_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a05_avisos.png}
+  {17.5cm}
+  {
+    \proposito{Control editorial de las promociones que envían los dueños antes de que lleguen a los comensales.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Pestañas \textit{Pendientes} (con contador) e \textit{Historial Completo}.
+      \item Accesos a otras bandejas: \textit{Solicitudes} de huecas nuevas y \textit{Soporte} de negocios.
+      \item Tarjeta del aviso con hueca emisora, categoría, etiqueta (\textit{2×1}) y tipo de emisión.
+      \item Simulación de cómo saldrá la notificación en Android.
+      \item Botones \textit{Rechazar} y \textit{Aprobar y Emitir}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 29: Solicitudes de huecas ---
+\pantallashowcase
+  {Pantalla 29: Solicitudes de Nuevas Huecas}
+  {lib/screens/admin/admin_solicitudes_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a06_solicitudes.png}
+  {17.5cm}
+  {
+    \proposito{Revisión de las solicitudes enviadas desde \textit{¿Tienes una hueca? Sé parte de HueQuito}.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Pestañas \textit{Pendientes, Aprobadas, Rechazadas y Todas}, con buscador por nombre, zona o dueño.
+      \item Tarjeta con nombre de la hueca, zona, fecha, dueño, correo, teléfono, dirección, plato estrella e historia.
+      \item \textit{Aprobar} crea la hueca y la cuenta de negocio; \textit{Rechazar} registra el motivo.
+    \end{itemize}
+  }
+
+% --- PANTALLA 30: Suscripciones y pagos ---
+\pantallashowcase
+  {Pantalla 30: Suscripciones y Pagos}
+  {lib/screens/admin/admin_subscriptions_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a07_pagos.png}
+  {17.5cm}
+  {
+    \proposito{Seguimiento del modelo de negocio: 100 sellos gratuitos por hueca y luego una mensualidad.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Gráfica \textit{Próximos a Cobro} con la meta (100 sellos) y el cobro mensual configurado.
+      \item Contadores \textit{Cerca a Cobro, Meta Alcanzada y En Prueba}, y avance de cada hueca hacia los 100 sellos.
+      \item \textit{Tarifas y Datos Bancarios}: precio mensual, meta de sellos, días de gracia y cuenta para transferencias; este precio es el que ven los dueños en la solicitud y en su guía.
+      \item Pestañas de comprobantes: \textit{Por Validar, Al Día y En Gracia / Corte}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 31: Usuarios + alta de negocio ---
+\pantalladoble
+  {Pantalla 31: Usuarios y Alta Segura de Negocios}
+  {lib/screens/admin/admin_users_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a08_usuarios.png}
+  {capturas/a10_crear_cuenta.png}
+  {14cm}
+  {
+    \proposito{Administración de cuentas de comensales, negocios y administración.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Directorio (izquierda):} buscador por nombre, correo, hueca o sucursal; filtros \textit{Todos, Con Hueca / Local, Sucursales, Sin Asignar}; insignias \texttt{ADMIN} y \texttt{NEGOCIO} con la hueca vinculada; avatar con iniciales si la cuenta no tiene foto.
+      \item Acciones por usuario: editar rol, eliminar y \textit{Reenviar enlace de contraseña}.
+      \item \textbf{Crear Cuenta de Negocio (derecha):} nombre y correo del dueño; no se escribe ninguna contraseña: el dueño recibe un correo para definirla. Selector de hueca con la regla de una hueca por cuenta.
+    \end{itemize}
+  }
+
+% --- PANTALLA 32: Quiz ---
+\pantallashowcase
+  {Pantalla 32: Configuración del Quiz Gastronómico}
+  {lib/screens/admin/admin_quiz_screen.dart}
+  {SUPERADMIN}
+  {adminNavy}
+  {capturas/a09_quiz.png}
+  {17.5cm}
+  {
+    \proposito{Editor de las preguntas del cuestionario inicial y de su relación con los perfiles gastronómicos.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Explicación de la asignación automática: cada opción suma un punto a un perfil (\textit{Sopero, Carnívoro, Callejero, Dulcero, Picador, Aventurero}) y gana el de mayor puntaje.
+      \item Lista de preguntas (4) con texto en español e inglés, fotografía y opciones con su perfil asignado.
+      \item Botones para crear, editar y eliminar preguntas.
+    \end{itemize}
+  }

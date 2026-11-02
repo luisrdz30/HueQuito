@@ -1,0 +1,132 @@
+% --- PANTALLA 18: Guía del negocio + Dashboard ---
+\pantalladoble
+  {Pantalla 18: Guía de Inicio y Dashboard del Negocio}
+  {lib/screens/business/dashboard_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d00_guia_negocio.png}
+  {capturas/d01_dashboard.png}
+  {14cm}
+  {
+    \proposito{Panel de control con el que el dueño de la hueca (ejemplo: \textit{El Pretil}) mide el impacto de su local en la plataforma.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Guía de tu Negocio (izquierda):} tutorial de 7 pasos que se abre la primera vez y resume las pestañas Perfil, Menú, Mi QR, Avisos y Dashboard, además del plan gratuito de 100 sellos.
+      \item \textbf{Resumen de Impacto (derecha):} vistas totales del perfil en tiempo real vía Firestore.
+      \item Tarjetas de métricas: \textit{Favoritos}, \textit{En Rutas} (tours de comensales que incluyen la hueca), \textit{Sellos Dados} y \textit{Reseñas}.
+      \item Barra \textit{Fase Gratuita de Prueba} (avance hacia los 100 sellos) y barra inferior: \textit{Dashboard, Menú, Avisos, Mi QR, Perfil y Ver app}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 19: Menú digital por categorías ---
+\pantalladoble
+  {Pantalla 19: Menú Digital por Categorías y Asistente de IA}
+  {lib/screens/business/menu_management_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d02_menu.png}
+  {capturas/d03_menu_anadir.png}
+  {14cm}
+  {
+    \proposito{Gestión de los platos de la hueca, agrupados por categoría tal como los verá el comensal.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Lista agrupada (izquierda):} encabezados por categoría (Desayunos, Bebidas, Postres, Platos Fuertes\dots), foto, nombre en español e inglés (badge \texttt{EN}), precio con dos decimales y botones de editar y eliminar.
+      \item \textbf{Botón \faIcon{magic}\ ``Organizar por categorías con IA'':} Gemini clasifica todos los platos en las categorías del menú y los guarda ordenados.
+      \item \textbf{Añadir al Menú (derecha):} \textit{Escanear Carta con Gemini IA (1 a 10 páginas)}, \textit{Escanear 1 Plato por Foto}, \textit{Subir Múltiples Fotos de Platos} o \textit{Añadir Plato Manualmente}.
+      \item Las funciones de IA usan Gemini a través de Firebase AI Logic, sin claves de API dentro de la aplicación.
+    \end{itemize}
+  }
+
+% --- PANTALLA 20: Formulario de plato y categorías ---
+\pantalladoble
+  {Pantalla 20: Formulario de Plato y Categorías Propias}
+  {lib/screens/business/dish\_form\_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d05_plato_categorias.png}
+  {capturas/d06_nueva_categoria.png}
+  {14cm}
+  {
+    \proposito{Alta y edición de cada plato, con la categoría que alimenta los filtros del menú del comensal.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Foto del plato, nombre y descripción en español e inglés con botón de \textit{Traducción Bilingüe Automática}, precio y disponibilidad en la carta.
+      \item \textbf{Categorías sugeridas (izquierda):} Desayunos, Entradas, Sopas y Caldos, Platos Fuertes, Platos Típicos, Especialidades, Panadería, Postres, Bebidas y Otros.
+      \item \textbf{\textit{+ Nueva categoría} (derecha):} el dueño crea sus propios grupos (por ejemplo \textit{Combos}), que aparecen como un chip más en el menú público.
+    \end{itemize}
+  }
+
+% --- PANTALLA 21: Avisos ---
+\pantalladoble
+  {Pantalla 21: Promociones y Redactor con IA}
+  {lib/screens/business/notification\_management\_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d07_avisos.png}
+  {capturas/d08_avisos_form.png}
+  {14cm}
+  {
+    \proposito{Campañas y avisos que llegan al celular de los comensales suscritos a la hueca, previa aprobación del administrador.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Menú del Día:} publica la sopa y el segundo del día de inmediato o programado.
+      \item Avisos sobre el tiempo de aprobación (2 horas a 1 día) y el alcance de las notificaciones.
+      \item Categorías: \textit{Menú del Día, Promoción, Noticia, Nuevo Plato y Evento}; sucursal destino.
+      \item Título, mensaje con botón \textit{Ayuda con IA}, etiqueta opcional (\textit{2×1}) y salida \textit{Inmediata} o \textit{Programada}.
+      \item \textbf{Vista previa en el celular (derecha):} muestra la notificación tal como la recibirá el cliente, y el botón \textit{Solicitar Autorización de Notificación}.
+    \end{itemize}
+  }
+
+% --- PANTALLA 22: QR ---
+\pantallashowcase
+  {Pantalla 22: Emisor de QR Dinámico Antifraude}
+  {lib/screens/business/qr_generator_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d09_qr.png}
+  {17.5cm}
+  {
+    \proposito{Entrega presencial de sellos de consumo con un código QR que no puede reutilizarse ni compartirse.}
+
+    \textbf{Componentes Clave:}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item Sucursal activa (\textit{Matriz Principal}) y nombre de la hueca.
+      \item Código QR generado en pantalla con el paquete \texttt{qr\_flutter}.
+      \item \textbf{1 Solo Uso:} al escanearse, el código se desactiva y se regenera automáticamente.
+      \item Selector \texttt{-} / \texttt{+} para indicar cuántos sellos se entregan según el consumo.
+      \item Botones para regenerar el código y ver el historial de sellos emitidos.
+    \end{itemize}
+  }
+
+% --- PANTALLA 23: Perfil del negocio ---
+\pantalladoble
+  {Pantalla 23: Perfil de la Hueca}
+  {lib/screens/business/profile_management_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d10_perfil.png}
+  {capturas/d11_perfil_b.png}
+  {14cm}
+  {
+    \proposito{Administración de los datos comerciales de la hueca que ven los comensales.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Información General (izquierda):} portada, fotos de la hueca (máximo 5), locales y sucursales, nombre, descripción bilingüe, dirección escrita y punto exacto en el mapa (GPS).
+      \item \textbf{Más opciones (derecha):} etiquetas, horario de atención, plato insignia (nombre, descripción e imagen).
+      \item \textbf{Fidelización y Premios:} número de sellos necesarios para llenar la cartilla y premio por cartilla llena.
+    \end{itemize}
+  }
+
+% --- PANTALLA 24: Sucursales ---
+\pantalladoble
+  {Pantalla 24: Locales y Sucursales}
+  {lib/screens/business/branch\_management\_screen.dart}
+  {DUEÑO / ENCARGADO}
+  {huecaOrangeDark}
+  {capturas/d12_sucursales.png}
+  {capturas/d13_nuevo_local.png}
+  {14cm}
+  {
+    \proposito{Red de locales de una misma hueca, cada uno con su ubicación y, opcionalmente, su encargado.}
+    \begin{itemize}[leftmargin=*, itemsep=2pt]
+      \item \textbf{Lista de locales (izquierda):} \textit{Matriz Principal} con dirección, zona y coordenadas GPS; indicador de \textit{Dueño General (Acceso Total)}.
+      \item \textbf{Nuevo Local (derecha):} nombre, zona de Quito (Centro, Norte, Sur o Valles), dirección, punto en el mapa y teléfono.
+      \item Encargado opcional por correo: esa persona recibe un enlace y administra solo su local.
+    \end{itemize}
+  }

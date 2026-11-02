@@ -1434,6 +1434,8 @@ class _AdminHuecaEditScreenState extends ConsumerState<AdminHuecaEditScreen> {
                                     DropdownMenuItem(value: '\$\$', child: Text('\$\$ (Medio)')),
                                     DropdownMenuItem(value: '\$\$\$', child: Text('\$\$\$ (Premium)')),
                                   ],
+                                  // Cerrado solo muestra los signos: el campo es angosto y el texto se cortaba
+                                  selectedItemBuilder: (_) => const [Text('\$'), Text('\$\$'), Text('\$\$\$')],
                                   onChanged: (val) {
                                     if (val != null) setState(() => _priceLevel = val);
                                   },
