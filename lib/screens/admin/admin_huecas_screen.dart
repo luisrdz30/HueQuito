@@ -387,15 +387,23 @@ class _AdminHuecasScreenState extends ConsumerState<AdminHuecasScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.amber.shade300)),
                         onPressed: () => context.push('/admin/sectors'),
                       ),
-                      const SizedBox(width: 8),
-                      ActionChip(
-                        avatar: const Icon(Icons.cloud_upload_outlined, size: 15, color: Color(0xFF0F172A)),
-                        label: const Text('Cargar huecas de Quito', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
-                        backgroundColor: Colors.blue.shade50,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.blue.shade200)),
-                        onPressed: _importSeedHuecas,
-                      ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Fuera de la fila deslizable para que se vea también en el celular
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.cloud_upload_outlined, size: 18),
+                    label: const Text('Cargar huecas de Quito', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0F172A),
+                      backgroundColor: Colors.blue.shade50,
+                      side: BorderSide(color: Colors.blue.shade200),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: _importSeedHuecas,
                   ),
                 ),
               ],
