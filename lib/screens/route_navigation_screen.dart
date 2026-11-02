@@ -36,27 +36,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   }
 
   Future<void> _initNavigation() async {
-    Position? position;
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (serviceEnabled) {
-        LocationPermission permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-        if (permission != LocationPermission.denied && permission != LocationPermission.deniedForever) {
-          try {
-            position = await Geolocator.getCurrentPosition(
-              timeLimit: const Duration(seconds: 4),
-            );
-          } catch (_) {
-            try {
-              position = await Geolocator.getLastKnownPosition();
-            } catch (_) {}
-          }
-        }
-      }
-    } catch (_) {}
+    // En web el permiso de ubicación puede quedarse esperando: se corta a los 6 s
+    Position? position = await _readPosition().timeout(const Duration(seconds: 6), onTimeout: () => null);
 
     // Fallback: si el GPS tarda o no está disponible, usamos la primera parada como origen
     if (position == null && widget.routeStops.isNotEmpty) {
@@ -79,6 +60,31 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
       setState(() => _currentPosition = position);
       await _fetchRoute();
     }
+  }
+
+  Future<Position?> _readPosition() async {
+    Position? position;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission != LocationPermission.denied && permission != LocationPermission.deniedForever) {
+          try {
+            position = await Geolocator.getCurrentPosition(
+              timeLimit: const Duration(seconds: 4),
+            );
+          } catch (_) {
+            try {
+              position = await Geolocator.getLastKnownPosition();
+            } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
+    return position;
   }
 
   Future<void> _fetchRoute() async {
