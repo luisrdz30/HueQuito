@@ -1,4 +1,5 @@
 import 'package:hue_quito/widgets/brand_logo.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -53,6 +54,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'account': 'Gestión de Cuenta',
       'join_huequito': '¿Tienes una hueca? Sé parte de HueQuito',
       'connected': 'Conectada con Google',
+      'connected_email': 'Sesión con correo',
+      'guest_mode': 'Modo invitado',
+      'guest_hint': 'Inicia sesión para guardar tu progreso',
       'support': 'Ayuda y Soporte Quiteño',
       'terms': 'Términos y Privacidad Patrimonial',
       'invite': 'Invitar a otros comensales',
@@ -89,6 +93,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       'account': 'Account Management',
       'join_huequito': 'Own a food spot? Join HueQuito',
       'connected': 'Connected with Google',
+      'connected_email': 'Signed in with email',
+      'guest_mode': 'Guest mode',
+      'guest_hint': 'Sign in to save your progress',
       'support': 'Quito Help & Support',
       'terms': 'Terms & Privacy',
       'invite': 'Invite other diners',
@@ -202,6 +209,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         error: (e, s) => Center(child: Text('Error: $e')),
         data: (user) {
           final isGuest = user == null;
+          final isGoogle = () {
+            try {
+              return FirebaseAuth.instance.currentUser?.providerData.any((p) => p.providerId == 'google.com') ?? false;
+            } catch (_) {
+              return false; // Sin Firebase (por ejemplo en los tests)
+            }
+          }();
           final huecasList = ref.watch(huecasProvider).value ?? [];
           final displayUser = user ?? UserModel(
             uid: 'guest',
@@ -610,20 +624,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           Container(
                             padding: EdgeInsets.all(4), 
                             decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle), 
-                            child: Icon(Icons.g_mobiledata, size: 32, color: Colors.blue)
+                            child: Icon(isGuest ? Icons.person_outline : (isGoogle ? Icons.g_mobiledata : Icons.email_outlined), size: isGuest || !isGoogle ? 24 : 32, color: Colors.blue)
                           ),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start, 
                               children: [
-                                Text(lang['connected']!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), 
-                                Text(displayUser.email, style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis)
+                                Text(isGuest ? lang['guest_mode']! : (isGoogle ? lang['connected']! : lang['connected_email']!), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), 
+                                Text(isGuest ? (lang['guest_hint'] ?? '') : displayUser.email, style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis)
                               ]
                             )
                           ),
                           SizedBox(width: 8),
-                          Icon(Icons.check_circle_outline, color: Colors.green),
+                          if (!isGuest) Icon(Icons.check_circle_outline, color: Colors.green),
                         ],
                       )
                     ),

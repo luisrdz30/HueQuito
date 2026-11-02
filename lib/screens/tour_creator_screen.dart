@@ -138,6 +138,8 @@ class _TourCreatorScreenState extends ConsumerState<TourCreatorScreen> {
 
       final routeRepo = ref.read(routeRepositoryProvider);
       await routeRepo.saveUserTour(customTour, userId: uid);
+      // Los tours del invitado se leen una sola vez: hay que recargar la lista
+      ref.invalidate(userToursStreamProvider);
 
       if (!mounted) return;
 

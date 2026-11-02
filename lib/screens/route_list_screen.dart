@@ -54,6 +54,7 @@ class _RouteListScreenState extends ConsumerState<RouteListScreen> {
       final user = ref.read(currentUserProvider).value;
       final uid = user?.uid ?? 'guest';
       await ref.read(routeRepositoryProvider).deleteUserTour(tour.id, userId: uid);
+      ref.invalidate(userToursStreamProvider);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -885,7 +885,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                 Container(height: 22, width: 1, color: Colors.blueGrey.shade200),
                 Expanded(
                   child: _buildPricingMiniPill(
-                    label: isEn ? 'After 50' : 'Luego de 50',
+                    label: isEn ? 'After 100' : 'Luego de 100',
                     value: '\$9.99 / mes',
                     color: AppTheme.primary,
                   ),
