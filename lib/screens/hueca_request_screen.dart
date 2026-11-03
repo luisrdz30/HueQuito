@@ -230,8 +230,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                   Expanded(
                     child: Text(
                       isEn
-                          ? 'Reminder: Registration and your first 50 loyalty stamps are 100% free!'
-                          : 'Recuerda: ¡Tu registro y tus primeros 100 sellos de fidelidad son 100% gratuitos!',
+                          ? 'Reminder: Registration and your first ${ref.watch(subscriptionSettingsProvider).value?.freeTierMaxStamps ?? 100} loyalty stamps are 100% free!'
+                          : 'Recuerda: ¡Tu registro y tus primeros ${ref.watch(subscriptionSettingsProvider).value?.freeTierMaxStamps ?? 100} sellos de fidelidad son 100% gratuitos!',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green.shade900),
                     ),
                   ),
@@ -751,7 +751,10 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
 
   Widget _buildPricingInfoCard({required bool isDark, required bool isEn}) {
     // Mismo precio que configura el admin en Suscripciones y Pagos
-    final price = '\$${(ref.watch(subscriptionSettingsProvider).value?.monthlyPrice ?? 9.99).toStringAsFixed(2)}';
+    final plan = ref.watch(subscriptionSettingsProvider).value ?? const SubscriptionSettings();
+    final price = '\$${plan.monthlyPrice.toStringAsFixed(2)}';
+    final free = plan.freeTierMaxStamps;
+    final grace = plan.gracePeriodDays;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -837,8 +840,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
           _buildPricingBullet(
             icon: Icons.card_giftcard,
             text: isEn
-                ? 'First 50 loyalty stamps free: Deliver stamps and points to diners without paying a single cent.'
-                : 'Primeros 100 sellos de cortesía: Otorga sellos y puntos de fidelidad sin pagar ni un solo centavo.',
+                ? 'First $free loyalty stamps free: Deliver stamps and points to diners without paying a single cent.'
+                : 'Primeros $free sellos de cortesía: Otorga sellos y puntos de fidelidad sin pagar ni un solo centavo.',
             isDark: isDark,
           ),
           const SizedBox(height: 6),
@@ -853,8 +856,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
           _buildPricingBullet(
             icon: Icons.savings_outlined,
             text: isEn
-                ? 'Accessible subscription after: Only after reaching 100 stamps, a $price/month subscription activates with a 7-day grace period.'
-                : 'Suscripción accesible posterior: Solo al alcanzar 100 sellos entregados, se habilitará el plan de $price/mes con 7 días de gracia para continuar.',
+                ? 'Accessible subscription after: Only after reaching $free stamps, a $price/month subscription activates with a $grace-day grace period.'
+                : 'Suscripción accesible posterior: Solo al alcanzar $free sellos entregados, se habilitará el plan de $price/mes con $grace días de gracia para continuar.',
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -881,7 +884,7 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
                 Expanded(
                   child: _buildPricingMiniPill(
                     label: isEn ? 'Courtesy' : 'Cortesía',
-                    value: isEn ? '100 stamps' : '100 sellos',
+                    value: isEn ? '$free stamps' : '$free sellos',
                     color: Colors.teal,
                   ),
                 ),

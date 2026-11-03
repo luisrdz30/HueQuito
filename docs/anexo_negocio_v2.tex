@@ -31,7 +31,7 @@
     \begin{itemize}[leftmargin=*, itemsep=2pt]
       \item \textbf{Lista agrupada (izquierda):} encabezados por categoría (Desayunos, Bebidas, Postres, Platos Fuertes\dots), foto, nombre en español e inglés (badge \texttt{EN}), precio con dos decimales y botones de editar y eliminar.
       \item \textbf{Botón \faIcon{magic}\ ``Organizar por categorías con IA'':} Gemini clasifica todos los platos en las categorías del menú y los guarda ordenados.
-      \item \textbf{Añadir al Menú (derecha):} \textit{Escanear Carta con Gemini IA (1 a 10 páginas)}, \textit{Escanear 1 Plato por Foto}, \textit{Subir Múltiples Fotos de Platos} o \textit{Añadir Plato Manualmente}.
+      \item \textbf{Añadir al Menú (derecha):} dos opciones, \textit{Escanear con IA} (fotos de la carta, hasta 10, de las que la IA saca los platos y precios y los traduce al inglés) o \textit{Añadir Plato Manualmente}.
       \item Las funciones de IA usan Gemini a través de Firebase AI Logic, sin claves de API dentro de la aplicación.
     \end{itemize}
   }
@@ -56,21 +56,20 @@
 
 % --- PANTALLA 21: Avisos ---
 \pantalladoble
-  {Pantalla 21: Promociones y Redactor con IA}
+  {Pantalla 21: Avisos y Notificaciones Push}
   {lib/screens/business/notification\_management\_screen.dart}
   {DUEÑO / ENCARGADO}
   {huecaOrangeDark}
   {capturas/d07_avisos.png}
-  {capturas/d08_avisos_form.png}
+  {capturas/d08b_programar.png}
   {14cm}
   {
-    \proposito{Campañas y avisos que llegan al celular de los comensales suscritos a la hueca, previa aprobación del administrador.}
+    \proposito{Avisos que llegan como notificación push al celular o al navegador de los comensales que siguen la hueca, sin esperar aprobación.}
     \begin{itemize}[leftmargin=*, itemsep=2pt]
-      \item \textbf{Menú del Día:} publica la sopa y el segundo del día de inmediato o programado.
-      \item Avisos sobre el tiempo de aprobación (2 horas a 1 día) y el alcance de las notificaciones.
-      \item Categorías: \textit{Menú del Día, Promoción, Noticia, Nuevo Plato y Evento}; sucursal destino.
-      \item Título, mensaje con botón \textit{Ayuda con IA}, etiqueta opcional (\textit{2×1}) y salida \textit{Inmediata} o \textit{Programada}.
-      \item \textbf{Vista previa en el celular (derecha):} muestra la notificación tal como la recibirá el cliente, y el botón \textit{Solicitar Autorización de Notificación}.
+      \item \textbf{Izquierda:} avisos que le quedan hoy a la hueca (máximo 2) y el tipo de aviso: \textit{Menú del Día, Promoción, Noticia, Nuevo Plato} o \textit{Evento}.
+      \item \textbf{Derecha:} el menú del día se arma con la sopa y el segundo, y se programa con día y hora. Un aviso programado cuenta para el día en que sale.
+      \item En las demás categorías: título, mensaje con \textit{Ayuda con IA}, etiqueta (\textit{2x1}) y sucursal.
+      \item El botón dice qué pasará (\textit{Programar para el mié 04/11 a las 11:30}) y \textit{Mis avisos} muestra si cada aviso se publicó.
     \end{itemize}
   }
 

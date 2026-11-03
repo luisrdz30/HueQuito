@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/models/notification_model.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/repositories/notification_repository.dart';
 import 'package:hue_quito/screens/business/notification_management_screen.dart';
 import 'package:hue_quito/screens/admin/admin_notifications_screen.dart';
 import 'package:hue_quito/screens/hueca_detail_screen.dart';
@@ -98,6 +99,30 @@ void main() {
     });
   });
 
+  group('Límite de avisos por día de publicación', () {
+    test('un aviso programado cuenta para el día en que sale, no para hoy', () {
+      final now = DateTime.now();
+      final hoy = NotificationRepository.dayInQuito(now);
+      final manana = now.add(const Duration(days: 1));
+      final used = NotificationRepository.usedByDay({'days': {hoy: 2}});
+
+      expect(NotificationRepository.remainingFor(used, null), 0); // hoy está lleno
+      expect(NotificationRepository.remainingFor(used, manana), 2); // mañana sigue libre
+    });
+
+    test('lee el formato anterior del contador {day, count}', () {
+      final hoy = NotificationRepository.todayInQuito();
+      final used = NotificationRepository.usedByDay({'day': hoy, 'count': 1});
+      expect(NotificationRepository.remainingFor(used, null), 1);
+    });
+
+    test('el mensaje del límite indica el día afectado', () {
+      final hoy = NotificationRepository.todayInQuito();
+      expect(DailyNoticeLimitException(hoy).toString(), contains('hoy'));
+      expect(DailyNoticeLimitException('2030-01-05').toString(), contains('05/01/2030'));
+    });
+  });
+
   group('Notification System - UI Widget Tests', () {
     final testHueca = Hueca(
       id: 'h1',
@@ -148,24 +173,34 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Notificaciones'), findsOneWidget);
-      expect(find.text('Solicitar Notificación'), findsOneWidget);
-      expect(find.text('Historial y Estados'), findsOneWidget);
-      expect(find.text('Tiempo de Aprobación: 2 horas a 1 día'), findsOneWidget);
-      expect(find.text('Categoría del Anuncio'), findsOneWidget);
-      expect(find.text('🏷️ Promoción'), findsOneWidget);
-      expect(find.text('📢 Noticia'), findsOneWidget);
-      expect(find.text('🍲 Nuevo Plato'), findsOneWidget);
-      expect(find.text('📅 Evento'), findsOneWidget);
+      expect(find.text('Avisos'), findsOneWidget);
+      expect(find.text('Nuevo aviso'), findsOneWidget);
+      expect(find.text('Mis avisos'), findsOneWidget);
+      expect(find.text('Te quedan 2 de 2 avisos hoy'), findsOneWidget);
+      expect(find.text('¿Qué quieres avisar?'), findsOneWidget);
+      expect(find.text('Menú del Día'), findsOneWidget);
+      expect(find.text('Promoción'), findsOneWidget);
+      expect(find.text('Noticia'), findsOneWidget);
+      expect(find.text('Nuevo Plato'), findsOneWidget);
+      expect(find.text('Evento'), findsOneWidget);
+      // El menú del día se escribe con la sopa y el segundo
+      expect(find.text('🍲 Sopa'), findsOneWidget);
+      expect(find.text('🍛 Segundo'), findsOneWidget);
+      expect(find.text('¿Cuándo sale?'), findsOneWidget);
+      expect(find.text('Ahora'), findsOneWidget);
+      expect(find.text('Programar'), findsOneWidget);
+      expect(find.text('Así lo verán tus clientes'), findsOneWidget);
+      expect(find.text('Publicar ahora'), findsOneWidget);
+
+      // Las demás categorías usan título, mensaje y la ayuda con IA
+      await tester.tap(find.text('Promoción'));
+      await tester.pumpAndSettle();
+      expect(find.text('Título'), findsOneWidget);
       expect(find.text('Ayuda con IA ✨'), findsOneWidget);
-      expect(find.text('¿Cuándo quieres que salga la notificación?'), findsOneWidget);
-      expect(find.text('Inmediata'), findsOneWidget);
-      expect(find.text('Programada'), findsOneWidget);
-      expect(find.text('Vista Previa en el Celular'), findsOneWidget);
-      expect(find.text('Solicitar Autorización de Notificación'), findsOneWidget);
     });
 
-    testWidgets('BusinessNotificationScreen opens Menu del Dia modal with scheduling controls', (tester) async {
+    testWidgets('BusinessNotificationScreen programa un aviso eligiendo día y hora', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(450, 1600));
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -177,21 +212,17 @@ void main() {
           ),
         ),
       );
-
       await tester.pumpAndSettle();
 
-      final openBtn = find.text('Armar o Programar Menú del Día');
-      expect(openBtn, findsOneWidget);
-      await tester.tap(openBtn);
+      await tester.tap(find.text('Programar'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Menú del Día'), findsWidgets);
-      expect(find.text('🍲 Sopa'), findsOneWidget);
-      expect(find.text('🍛 Segundo (Plato Fuerte)'), findsOneWidget);
-      expect(find.text('⏰ ¿Cuándo deseas publicar este menú?'), findsOneWidget);
-      expect(find.text('Inmediato'), findsOneWidget);
-      expect(find.text('Programar'), findsOneWidget);
-      expect(find.text('Confirmar y Ver Vista Previa'), findsOneWidget);
+      expect(find.text('Día'), findsOneWidget);
+      expect(find.text('Hora'), findsOneWidget);
+      expect(find.text('Elegir'), findsNWidgets(2));
+      // Sin fecha no se puede enviar todavía
+      expect(find.text('Elige el día y la hora'), findsOneWidget);
+      await tester.binding.setSurfaceSize(null);
     });
 
     testWidgets('AdminNotificationsScreen renders moderation panel and empty state', (tester) async {
@@ -420,6 +451,45 @@ void main() {
 
       expect(find.text('AVISOS ACTIVOS / MENÚ DEL DÍA'), findsNothing);
       expect(find.text('Menú del Día de Doña Tina'), findsNothing);
+    });
+
+    testWidgets('BusinessNotificationScreen bloquea los avisos de una hueca suspendida por falta de pago', (tester) async {
+      final suspendida = Hueca(
+        id: 'h_susp',
+        name: 'Hueca Suspendida',
+        description: {'es': 'Prueba'},
+        address: 'Centro',
+        sector: 'Centro Histórico',
+        location: const GeoPoint(-0.2195, -78.5085),
+        phone: '0991234567',
+        schedule: {'Lunes': '08:00 - 17:00'},
+        mainDish: {'name': 'Locro', 'price': 3.0, 'emoji': '🍲'},
+        loyaltyCard: {},
+        metrics: {'stampsGiven': 150},
+        secretSticker: {},
+        menuItems: [],
+        tags: ['Sopas'],
+        priceLevel: '\$',
+        rating: 4.5,
+        reviewCount: 10,
+        images: [],
+        ownerId: 'owner_1',
+        isActive: true,
+        subscription: {'status': 'suspended'},
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            myHuecaProvider.overrideWith((ref) => Future.value(suspendida)),
+            currentManagedBranchProvider.overrideWith((ref) => Future.value(null)),
+          ],
+          child: const MaterialApp(home: BusinessNotificationScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Avisos pausados'), findsOneWidget);
+      expect(find.text('Publicar Aviso'), findsNothing);
     });
   });
 }

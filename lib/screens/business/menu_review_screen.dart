@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/models/menu_categories.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/services/translation_service.dart';
-import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/utils/image_picker_helper.dart';
@@ -233,98 +232,6 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
     }
   }
 
-  void _showRawTextModal() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final textColor = isDark ? Colors.white : AppTheme.textDark;
-    final subtextColor = isDark ? Colors.grey[400] : AppTheme.textMedium;
-    final boxBg = isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF7F8F9);
-    final boxBorder = isDark ? Colors.grey[700]! : Colors.grey[300]!;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: sheetBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.text_snippet_outlined, color: AppTheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Texto Reconocido por la IA',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Este es el texto en bruto que ML Kit reconoció en la imagen tomada:',
-              style: TextStyle(color: subtextColor, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: boxBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: boxBorder),
-                ),
-                child: SingleChildScrollView(
-                  child: SelectableText(
-                    widget.rawOcrText.isNotEmpty ? widget.rawOcrText : '(No se detectó texto en la imagen)',
-                    style: TextStyle(fontFamily: 'monospace', fontSize: 13, color: textColor),
-                  ),
-                ),
-              ),
-            ),
-            if (widget.rawOcrText.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.auto_awesome),
-                  label: const Text('Re-analizar Texto con IA'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    setState(() => _isSaving = true);
-                    final reDishes = await MenuOcrService.parseRawTextToDishes(widget.rawOcrText);
-                    if (mounted) {
-                      setState(() {
-                        _isSaving = false;
-                        if (reDishes.isNotEmpty) {
-                          _dishes = reDishes;
-                        }
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Se re-analizó el texto: ${reDishes.length} platos detectados')),
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   InputDecoration _buildInputDecoration({
     required BuildContext context,
     required String labelText,
@@ -377,14 +284,6 @@ class _MenuReviewScreenState extends ConsumerState<MenuReviewScreen> {
           tooltip: 'Volver',
           onPressed: () => goBack(context, fallback: '/business/menu'),
         ),
-        actions: [
-          if (widget.rawOcrText.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.description_outlined, color: textColor),
-              tooltip: 'Ver texto en bruto OCR',
-              onPressed: _showRawTextModal,
-            ),
-        ],
       ),
       body: _isSaving
           ? Center(

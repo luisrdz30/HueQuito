@@ -1,7 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hue_quito/models/notification_model.dart';
 
+/// Se lanza cuando la hueca ya tiene sus avisos del día en que saldría el nuevo.
+class DailyNoticeLimitException implements Exception {
+  final String day; // yyyy-MM-dd (hora de Quito)
+  DailyNoticeLimitException(this.day);
+
+  @override
+  String toString() {
+    if (day == NotificationRepository.todayInQuito()) {
+      return 'Ya publicaste ${NotificationRepository.maxNoticesPerDay} avisos hoy. Podrás publicar otro mañana.';
+    }
+    final p = day.split('-');
+    return 'Ya tienes ${NotificationRepository.maxNoticesPerDay} avisos para el ${p[2]}/${p[1]}/${p[0]}. Elige otro día.';
+  }
+}
+
 class NotificationRepository {
+  /// Avisos que una hueca puede publicar por día (lo controla la Cloud Function `publicarAviso`).
+  /// Un aviso programado cuenta para el día en que sale, no para el día en que se creó.
+  static const int maxNoticesPerDay = 2;
+
+  /// Día calendario en Quito (UTC-5, sin horario de verano), igual que en la Cloud Function
+  static String dayInQuito(DateTime moment) =>
+      moment.toUtc().subtract(const Duration(hours: 5)).toIso8601String().substring(0, 10);
+
+  static String todayInQuito() => dayInQuito(DateTime.now());
+
+  /// Avisos ya usados por día ({'2026-11-04': 1}); acepta el formato anterior {day, count}
+  static Map<String, int> usedByDay(Map<String, dynamic>? data) {
+    final days = <String, int>{};
+    if (data == null) return days;
+    final raw = data['days'];
+    if (raw is Map) {
+      raw.forEach((k, v) => days[k.toString()] = (v as num?)?.toInt() ?? 0);
+    }
+    final oldDay = data['day']?.toString();
+    if (oldDay != null && !days.containsKey(oldDay)) {
+      days[oldDay] = (data['count'] as num?)?.toInt() ?? 0;
+    }
+    return days;
+  }
+
+  /// Avisos que le quedan a la hueca para el día en que saldría [publishAt] (hoy si es null)
+  static int remainingFor(Map<String, int> used, DateTime? publishAt) {
+    final day = dayInQuito(publishAt ?? DateTime.now());
+    return (maxNoticesPerDay - (used[day] ?? 0)).clamp(0, maxNoticesPerDay);
+  }
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _notificationsCol =>
@@ -19,8 +65,12 @@ class NotificationRepository {
     String? discountTag,
     DateTime? scheduledFor,
     required String createdBy,
-    bool autoApprove = false,
   }) async {
+    final publishAt = scheduledFor != null && scheduledFor.isAfter(DateTime.now()) ? scheduledFor : null;
+    if (remainingFor(await usedNoticesByDay(huecaId), publishAt) <= 0) {
+      throw DailyNoticeLimitException(dayInQuito(publishAt ?? DateTime.now()));
+    }
+    // Se crea 'pending': la Cloud Function lo publica si ese día no pasó del límite
     final docRef = await _notificationsCol.add({
       'huecaId': huecaId,
       'huecaName': huecaName,
@@ -31,15 +81,29 @@ class NotificationRepository {
       'message': message,
       'discountTag': discountTag,
       'scheduledFor': scheduledFor != null ? Timestamp.fromDate(scheduledFor) : null,
-      'status': autoApprove ? 'approved' : 'pending',
+      'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
-      'approvedAt': autoApprove ? Timestamp.now() : null,
+      'approvedAt': null,
       'rejectedAt': null,
       'rejectionReason': null,
       'createdBy': createdBy,
-      'reviewedBy': autoApprove ? 'auto_business' : null,
+      'reviewedBy': null,
     });
     return docRef.id;
+  }
+
+  // Business: avisos ya usados por día de la hueca
+  Future<Map<String, int>> usedNoticesByDay(String huecaId) async {
+    try {
+      final doc = await _firestore.collection('noticeQuota').doc(huecaId).get();
+      return usedByDay(doc.data());
+    } catch (_) {
+      return {}; // Si no se puede leer, decide la Cloud Function
+    }
+  }
+
+  Stream<Map<String, int>> streamUsedNoticesByDay(String huecaId) {
+    return _firestore.collection('noticeQuota').doc(huecaId).snapshots().map((d) => usedByDay(d.data()));
   }
 
   // User & Diner: Stream active approved notifications for a specific hueca

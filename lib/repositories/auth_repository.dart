@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hue_quito/services/push_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
@@ -17,6 +18,7 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
+    await PushService.instance.unregister();
     try {
       await GoogleSignIn().signOut();
     } catch (e) {

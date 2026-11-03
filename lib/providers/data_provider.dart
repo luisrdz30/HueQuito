@@ -96,6 +96,15 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepository();
 });
 
+/// Avisos ya usados por día de una hueca (máximo 2 por día de publicación)
+final usedNoticesByDayProvider = StreamProvider.family<Map<String, int>, String>((ref, huecaId) {
+  try {
+    return ref.watch(notificationRepositoryProvider).streamUsedNoticesByDay(huecaId);
+  } catch (_) {
+    return Stream.value(const <String, int>{});
+  }
+});
+
 final pendingNotificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
   final repo = ref.watch(notificationRepositoryProvider);
   return repo.streamPendingNotifications();

@@ -20,27 +20,28 @@ Future<void> showBusinessOnboardingDialog(
 
   if (!context.mounted) return;
 
-  double monthlyPrice = 9.99;
+  // Sellos gratis, precio, días de gracia y banco salen de lo que configuró el admin
+  SubscriptionSettings settings = const SubscriptionSettings();
   try {
-    monthlyPrice = ProviderScope.containerOf(context, listen: false)
-            .read(subscriptionSettingsProvider)
-            .value
-            ?.monthlyPrice ??
-        monthlyPrice;
-  } catch (_) {} // Sin ProviderScope (tests) se usa el precio por defecto
+    final container = ProviderScope.containerOf(context, listen: false);
+    settings = container.read(subscriptionSettingsProvider).value ??
+        await container.read(subscriptionSettingsProvider.future).timeout(const Duration(seconds: 3));
+  } catch (_) {} // Sin ProviderScope (tests) o sin conexión se usan los valores por defecto
+
+  if (!context.mounted) return;
 
   await showDialog(
     context: context,
     barrierDismissible: true,
-    builder: (ctx) => BusinessOnboardingDialog(hueca: hueca, monthlyPrice: monthlyPrice),
+    builder: (ctx) => BusinessOnboardingDialog(hueca: hueca, settings: settings),
   );
 }
 
 class BusinessOnboardingDialog extends StatefulWidget {
   final Hueca hueca;
-  final double monthlyPrice;
+  final SubscriptionSettings settings;
 
-  const BusinessOnboardingDialog({super.key, required this.hueca, this.monthlyPrice = 9.99});
+  const BusinessOnboardingDialog({super.key, required this.hueca, this.settings = const SubscriptionSettings()});
 
   @override
   State<BusinessOnboardingDialog> createState() => _BusinessOnboardingDialogState();
@@ -302,7 +303,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
           _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, fotos reales y Sticker Secreto imprimible'),
           _buildFeatureCheckItem(Icons.restaurant_menu, 'Pestaña Menú: Digitalización asistida por IA'),
           _buildFeatureCheckItem(Icons.qr_code, 'Pestaña Mi QR: Otorga puntos y sellos con QR dinámico antifraude'),
-          _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros 100 sellos entregados son 100% gratis'),
+          _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros ${widget.settings.freeTierMaxStamps} sellos entregados son 100% gratis'),
           _buildFeatureCheckItem(Icons.campaign, 'Pestaña Avisos: Envía promociones a tus clientes'),
           _buildFeatureCheckItem(Icons.bar_chart, 'Pestaña Dashboard: Vistas y favoritos en tiempo real'),
         ],
@@ -577,7 +578,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros 100 sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
+          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros ${widget.settings.freeTierMaxStamps} sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
       actionLabel: 'Ver Mi QR',
       onAction: () {
         Navigator.of(context).pop();
@@ -616,7 +617,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Tus primeros 100 sellos son 100% GRATIS',
+                      'Tus primeros ${widget.settings.freeTierMaxStamps} sellos son 100% GRATIS',
                       style: TextStyle(
                         color: Colors.green.shade900,
                         fontWeight: FontWeight.bold,
@@ -642,7 +643,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Meta Gratuita', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
-                        const Text('50 Sellos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        Text('${widget.settings.freeTierMaxStamps} Sellos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
                         Text('Sin costo inicial', style: TextStyle(fontSize: 9.5, color: Colors.green.shade700, fontWeight: FontWeight.w600)),
                       ],
                     ),
@@ -661,8 +662,8 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Mensualidad', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
-                        Text('\$${widget.monthlyPrice.toStringAsFixed(2)} / mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
-                        const Text('7 días de gracia', style: TextStyle(fontSize: 9.5, color: Colors.orange, fontWeight: FontWeight.w600)),
+                        Text('\$${widget.settings.monthlyPrice.toStringAsFixed(2)} / mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        Text('${widget.settings.gracePeriodDays} días de gracia', style: TextStyle(fontSize: 9.5, color: Colors.orange, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -681,9 +682,9 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                 children: [
                   Icon(Icons.account_balance, color: Colors.amber.shade900, size: 14),
                   const SizedBox(width: 6),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Transferencia (Banco Pichincha) con foto de comprobante',
+                      'Transferencia (${widget.settings.bankName}) con foto de comprobante',
                       style: TextStyle(color: Color(0xFF78350F), fontSize: 10, fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -694,7 +695,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros 100 sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los 100 sellos, se activará la suscripción mensual de \$${widget.monthlyPrice.toStringAsFixed(2)}/mes con 7 días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de Banco Pichincha y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
+          '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros ${widget.settings.freeTierMaxStamps} sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los ${widget.settings.freeTierMaxStamps} sellos, se activará la suscripción mensual de \$${widget.settings.monthlyPrice.toStringAsFixed(2)}/mes con ${widget.settings.gracePeriodDays} días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de ${widget.settings.bankName} y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
       actionLabel: 'Ver Plan y Pagos',
       onAction: () {
         Navigator.of(context).pop();

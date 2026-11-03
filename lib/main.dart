@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,6 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:hue_quito/providers/settings_provider.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/services/notification_service.dart';
+import 'package:hue_quito/services/push_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hue_quito/models/notification_model.dart';
 import 'package:hue_quito/repositories/user_repository.dart';
 
@@ -60,6 +63,9 @@ void main() async {
   );
 }
 
+/// Permite mostrar avisos en pantalla (web) desde fuera de un Scaffold
+final GlobalKey<ScaffoldMessengerState> appMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class HueQuitoApp extends ConsumerWidget {
   const HueQuitoApp({super.key});
 
@@ -87,6 +93,15 @@ class HueQuitoApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
+      scaffoldMessengerKey: appMessengerKey,
+      // Calendarios, relojes y textos del sistema en el idioma elegido por el usuario
+      locale: Locale(settings.language == 'en' ? 'en' : 'es'),
+      supportedLocales: const [Locale('es'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       title: 'Hue-Quito',
       debugShowCheckedModeBanner: false,
       theme: activeTheme,
@@ -168,12 +183,35 @@ class _NotificationWatcherState extends ConsumerState<NotificationWatcher> {
       // notificación histórica y se marca como procesada silenciosamente para
       // que no suene ni interrumpa al usuario "a cada rato" al abrir la app.
       final ageInMinutes = now.difference(publishedAt).inMinutes;
-      if (ageInMinutes <= 45) {
-        NotificationService().showPromotionNotification(notification: n);
+      // Con la app en segundo plano el aviso lo muestra el push (FCM), no se repite aquí
+      final inForeground = kIsWeb ||
+          WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+      if (ageInMinutes <= 45 && inForeground) {
+        if (kIsWeb) {
+          _showInAppNotice(n);
+        } else {
+          NotificationService().showPromotionNotification(notification: n);
+        }
       } else {
         NotificationService().markAsSilentlyProcessed(n.id);
       }
     }
+  }
+
+  /// En web, con la página abierta, el aviso se muestra dentro de la app
+  void _showInAppNotice(NotificationModel n) {
+    NotificationService().markAsSilentlyProcessed(n.id);
+    appMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text('🔔 ${n.title}\n${n.message}', maxLines: 4, overflow: TextOverflow.ellipsis),
+        duration: const Duration(seconds: 6),
+        action: SnackBarAction(
+          label: 'Ver',
+          onPressed: () => NotificationService().onNotificationTapped?.call(n.huecaId),
+        ),
+      ),
+    );
   }
 
   @override
@@ -196,6 +234,10 @@ class _NotificationWatcherState extends ConsumerState<NotificationWatcher> {
       currentUserProvider,
       (previous, next) {
         next.whenData((user) {
+          // Mantiene registrado este dispositivo para el push si ya dio permiso
+          if (user != null && user.uid != previous?.value?.uid && user.subscribedHuecas.isNotEmpty) {
+            PushService.instance.register(user.uid);
+          }
           final approvedList = ref.read(approvedNotificationsProvider).value ?? [];
           if (approvedList.isNotEmpty) {
             _processNotifications(approvedList);

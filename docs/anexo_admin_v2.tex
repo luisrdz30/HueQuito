@@ -55,24 +55,24 @@
     \end{itemize}
   }
 
-% --- PANTALLA 28: Moderación de avisos ---
+% --- PANTALLA 28: Supervisión de avisos ---
 \pantallashowcase
-  {Pantalla 28: Moderación de Avisos y Notificaciones}
+  {Pantalla 28: Supervisión de Avisos y Notificaciones}
   {lib/screens/admin/admin_notifications_screen.dart}
   {SUPERADMIN}
   {adminNavy}
   {capturas/a05_avisos.png}
   {17.5cm}
   {
-    \proposito{Control editorial de las promociones que envían los dueños antes de que lleguen a los comensales.}
+    \proposito{Supervisión de los avisos de las huecas. Los avisos se publican solos (hasta 2 por día por hueca); el administrador revisa el historial, puede retirarlos y atiende los que el sistema no alcanzó a publicar.}
 
     \textbf{Componentes Clave:}
     \begin{itemize}[leftmargin=*, itemsep=2pt]
-      \item Pestañas \textit{Pendientes} (con contador) e \textit{Historial Completo}.
+      \item Pestañas \textit{Pendientes} (solo los avisos que la función automática no alcanzó a publicar) e \textit{Historial Completo}.
       \item Accesos a otras bandejas: \textit{Solicitudes} de huecas nuevas y \textit{Soporte} de negocios.
       \item Tarjeta del aviso con hueca emisora, categoría, etiqueta (\textit{2×1}) y tipo de emisión.
       \item Simulación de cómo saldrá la notificación en Android.
-      \item Botones \textit{Rechazar} y \textit{Aprobar y Emitir}.
+      \item Botones \textit{Rechazar} y \textit{Aprobar y Emitir} como respaldo manual.
     \end{itemize}
   }
 

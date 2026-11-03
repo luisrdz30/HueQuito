@@ -9,7 +9,6 @@ import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/services/menu_ocr_service.dart';
 import 'package:hue_quito/screens/business/dish_form_screen.dart';
 import 'package:hue_quito/screens/business/menu_review_screen.dart';
-import 'package:hue_quito/utils/image_picker_helper.dart';
 import 'package:hue_quito/models/menu_categories.dart';
 import 'package:hue_quito/services/gemini_menu_service.dart';
 
@@ -165,11 +164,11 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                     child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
                   ),
                   title: Text(
-                    'Escanear Carta con Gemini IA (1 a 10 páginas)',
+                    'Escanear con IA',
                     style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 14),
                   ),
                   subtitle: Text(
-                    'Sube fotos de páginas de tu carta física. Extrae platos, precios y traduce al instante.',
+                    'Sube o toma fotos de tu carta (hasta 10). La IA saca los platos y precios y los traduce al inglés.',
                     style: TextStyle(fontSize: 11, color: subtextColor),
                   ),
                   onTap: () {
@@ -179,71 +178,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // 2. Opción Escanear 1 Plato por Foto (IA)
-                ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.amber.withValues(alpha: 0.4)),
-                  ),
-                  tileColor: isDark ? Colors.amber.withValues(alpha: 0.12) : Colors.amber.withValues(alpha: 0.06),
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.camera_enhance, color: Colors.amber, size: 22),
-                  ),
-                  title: Text(
-                    'Escanear 1 Plato por Foto (IA)',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    'Toma o sube foto de 1 plato. La IA detecta datos y adjunta la foto.',
-                    style: TextStyle(fontSize: 11, color: subtextColor),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _startSingleDishScan();
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // 3. Opción Subir Múltiples Fotos de Platos
-                ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: Colors.green.withValues(alpha: 0.4)),
-                  ),
-                  tileColor: isDark ? Colors.green.withValues(alpha: 0.12) : Colors.green.withValues(alpha: 0.06),
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.photo_library_outlined, color: Colors.green, size: 22),
-                  ),
-                  title: Text(
-                    'Subir Múltiples Fotos de Platos',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    'Selecciona fotos de la galería (1 por plato). Se crearán en lote.',
-                    style: TextStyle(fontSize: 11, color: subtextColor),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _startMultiDishUpload();
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // 4. Opción Manual
+                // 2. Opción Manual
                 ListTile(
                   dense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -265,7 +200,7 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 14),
                   ),
                   subtitle: Text(
-                    'Formulario detallado para ingresar foto, nombre y precio paso a paso.',
+                    'Ingresa la foto, el nombre y el precio de un plato.',
                     style: TextStyle(fontSize: 11, color: subtextColor),
                   ),
                   onTap: () {
@@ -449,118 +384,6 @@ class _BusinessMenuScreenState extends ConsumerState<BusinessMenuScreen> {
           content: Text('No se pudo digitalizar con IA: Revisa tu conexión a internet o intenta con una foto más nítida.'),
           backgroundColor: Colors.redAccent,
         ),
-      );
-    }
-  }
-
-  /// Escanea un solo plato a partir de una foto y prellena el formulario con la imagen vinculada
-  Future<void> _startSingleDishScan() async {
-    if (_currentHueca == null) return;
-
-    final file = await ImagePickerHelper.showImageSourceDialog(
-      context: context,
-      title: 'Escanear Plato Individual (IA)',
-      subtitle: 'Toma una foto o elígela de tu galería o Google Fotos',
-      imageQuality: 85,
-      maxWidth: 1600,
-    );
-
-    if (file == null) return;
-
-    setState(() => _isAiProcessing = true);
-
-    try {
-      final ocrResult = await MenuOcrService.extractDishesFromImage(file.path);
-
-      if (!mounted) return;
-      setState(() => _isAiProcessing = false);
-
-      Map<String, dynamic>? initialDishData;
-      if (ocrResult.dishes.isNotEmpty) {
-        initialDishData = ocrResult.dishes.first;
-      }
-
-      final result = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DishFormScreen(
-            huecaId: _currentHueca!.id,
-            initialDish: initialDishData,
-            initialImageFile: file,
-            menuCategories: menuCategoriesOf(_menuItems),
-          ),
-        ),
-      );
-
-      if (result == true) {
-        _loadHueca();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isAiProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al procesar el plato: $e')),
-      );
-    }
-  }
-
-  /// Permite subir múltiples fotos de platos a la vez, asignando cada foto a un plato individual
-  Future<void> _startMultiDishUpload() async {
-    if (_currentHueca == null) return;
-
-    final picker = ImagePicker();
-    final List<XFile> pickedImages = await picker.pickMultiImage(imageQuality: 85);
-    if (pickedImages.isEmpty) return;
-
-    setState(() => _isAiProcessing = true);
-
-    try {
-      final List<Map<String, dynamic>> extractedDishes = [];
-
-      for (int i = 0; i < pickedImages.length; i++) {
-        final img = pickedImages[i];
-        final ocr = await MenuOcrService.extractDishesFromImage(img.path);
-
-        Map<String, dynamic> dish;
-        if (ocr.dishes.isNotEmpty) {
-          dish = Map<String, dynamic>.from(ocr.dishes.first);
-        } else {
-          dish = {
-            'id': 'dish_${DateTime.now().millisecondsSinceEpoch}_$i',
-            'name': {'es': '', 'en': ''},
-            'description': {'es': '', 'en': ''},
-            'price': 0.0,
-            'category': 'Platos Fuertes',
-          };
-        }
-        dish['_localImagePath'] = img.path;
-        dish['imageUrl'] = '';
-        dish['isAvailable'] = true;
-        extractedDishes.add(dish);
-      }
-
-      if (!mounted) return;
-      setState(() => _isAiProcessing = false);
-
-      final result = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MenuReviewScreen(
-            huecaId: _currentHueca!.id,
-            initialDishes: extractedDishes,
-            rawOcrText: 'Fotos individuales de platos (${extractedDishes.length} fotos seleccionadas)',
-          ),
-        ),
-      );
-
-      if (result == true) {
-        _loadHueca();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isAiProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al procesar las fotos: $e')),
       );
     }
   }

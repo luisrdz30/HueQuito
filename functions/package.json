@@ -1,0 +1,14 @@
+{
+  "name": "huequito-functions",
+  "description": "Publicación de avisos con límite diario y envío de notificaciones push (FCM)",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}

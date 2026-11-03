@@ -230,8 +230,10 @@ service cloud.firestore {
 
       allow delete: if isOwner(userId) || isAdmin();
 
-      // Subcolecciones privadas (sector_albums, custom_tours)
-      match /{allChildren=**} {
+      // Subcolecciones privadas (sector_albums, custom_tours).
+      // Ojo: {x=**} solo también coincide con el propio documento del usuario y le
+      // dejaría cambiar su 'role'; por eso se exige al menos un segmento de subcolección.
+      match /{subcollection}/{allChildren=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
     }
@@ -262,12 +264,12 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       allow read: if true;
 
-      // El negocio crea avisos 'pending'; el menú del día se publica directo
+      // El negocio crea avisos 'pending'; la Cloud Function publicarAviso los aprueba
+      // al instante si la hueca no pasó del límite de 2 avisos por día
       allow create: if isAdmin() || (
         isHuecaStaff(request.resource.data.huecaId) &&
         request.resource.data.createdBy == request.auth.uid &&
-        (request.resource.data.status == 'pending' ||
-         (request.resource.data.status == 'approved' && request.resource.data.category == 'menu_del_dia'))
+        request.resource.data.status == 'pending'
       );
 
       allow update: if isAdmin();
@@ -280,6 +282,12 @@ service cloud.firestore {
             resource.data.approvedAt < request.time - duration.value(5, 'h') &&
             (resource.data.get('scheduledFor', null) == null ||
              resource.data.scheduledFor < request.time - duration.value(5, 'h')));
+    }
+
+    // Contador diario de avisos por hueca: solo lo escribe la Cloud Function
+    match /noticeQuota/{huecaId} {
+      allow read: if isHuecaStaff(huecaId) || isAdmin();
+      allow write: if false;
     }
 
     // =====================================================================

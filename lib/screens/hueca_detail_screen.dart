@@ -15,6 +15,8 @@ import 'package:hue_quito/utils/map_navigation_helper.dart';
 import 'package:hue_quito/widgets/delete_hueca_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/utils/back_navigation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hue_quito/services/push_service.dart';
 
 class HuecaDetailScreen extends ConsumerStatefulWidget {
   final Object? hueca;
@@ -342,6 +344,9 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
       if (confirm == true) {
         await ref.read(userRepositoryProvider).toggleNotificationSubscription(_currentHueca.id);
         ref.invalidate(currentUserProvider);
+        // Pide el permiso del sistema y registra este dispositivo para recibir los avisos push
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) await PushService.instance.register(uid, askPermission: true);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

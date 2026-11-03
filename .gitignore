@@ -68,3 +68,6 @@ __pycache__/
 *.out
 *.toc
 *.synctex.gz
+
+# Caché de despliegue de Firebase
+.firebase/

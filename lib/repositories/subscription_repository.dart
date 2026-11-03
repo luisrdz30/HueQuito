@@ -62,7 +62,7 @@ enum HuecaSubscriptionState {
   gracePeriod,  // Llegó a la meta de sellos gratis, dentro de los días de gracia para pagar
   underReview,  // Comprobante de transferencia subido, esperando validación
   active,       // Pago aprobado, suscripción vigente (30 días)
-  suspended,    // Gracia vencida sin pagar: no puede entregar sellos
+  suspended,    // Gracia vencida sin pagar: no entrega sellos ni envía avisos (sigue visible)
 }
 
 class HuecaSubscriptionInfo {
@@ -446,11 +446,11 @@ class SubscriptionRepository {
     }
   }
 
-  /// Suspende una hueca si su plazo venció sin pago
+  /// Suspende una hueca si su plazo venció sin pago: no entrega sellos ni envía avisos,
+  /// pero sigue visible para los comensales (no se toca isActive)
   Future<void> suspendHueca(String huecaId) async {
     await firestore.collection('huecas').doc(huecaId).update({
       'subscription.status': 'suspended',
-      'isActive': false,
     });
   }
 

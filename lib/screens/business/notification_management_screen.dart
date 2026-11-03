@@ -5,6 +5,8 @@ import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/models/notification_model.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
+import 'package:hue_quito/repositories/notification_repository.dart';
+import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:hue_quito/services/ai_generation_service.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
 
@@ -23,8 +25,10 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
   final _tagController = TextEditingController();
+  final _sopaController = TextEditingController();
+  final _segundoController = TextEditingController();
 
-  String _selectedCategory = 'promocion';
+  String _selectedCategory = 'menu_del_dia';
   String? _selectedBranchId; // null means 'Todas'
   bool _isSubmitting = false;
 
@@ -34,10 +38,10 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
   String _historyTimeFilter = 'recent'; // 'recent', 'month', 'older', 'all'
 
   final List<Map<String, String>> _categories = [
-    {'id': 'menu_del_dia', 'label': 'Menú del Día', 'emoji': '🍛', 'desc': 'Almuerzos diarios (sopa, segundo y bebida)'},
+    {'id': 'menu_del_dia', 'label': 'Menú del Día', 'emoji': '🍛', 'desc': 'Avisa a tus clientes qué hay hoy de almuerzo'},
     {'id': 'promocion', 'label': 'Promoción', 'emoji': '🏷️', 'desc': 'Descuentos, 2x1 y combos'},
-    {'id': 'noticia', 'label': 'Noticia', 'emoji': '📢', 'desc': 'Novedades y avisos'},
-    {'id': 'nuevo_plato', 'label': 'Nuevo Plato', 'emoji': '🍲', 'desc': 'Lanzamiento de platillos'},
+    {'id': 'noticia', 'label': 'Noticia', 'emoji': '📢', 'desc': 'Horarios, cierres o novedades'},
+    {'id': 'nuevo_plato', 'label': 'Nuevo Plato', 'emoji': '🍲', 'desc': 'Un plato que estrenas'},
     {'id': 'evento', 'label': 'Evento', 'emoji': '📅', 'desc': 'Música o fechas especiales'},
   ];
 
@@ -53,62 +57,11 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     _titleController.dispose();
     _messageController.dispose();
     _tagController.dispose();
+    _sopaController.dispose();
+    _segundoController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickScheduleDateTime() async {
-    final now = DateTime.now();
-    final initialDate = _scheduledDateTime ?? now.add(const Duration(hours: 2));
-
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate.isAfter(now) ? initialDate : now,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 90)),
-      helpText: 'SELECCIONA EL DÍA DE PUBLICACIÓN',
-      confirmText: 'SIGUIENTE: HORA',
-      cancelText: 'CANCELAR',
-    );
-
-    if (pickedDate == null || !mounted) return;
-
-    final initialTime = _scheduledDateTime != null
-        ? TimeOfDay.fromDateTime(_scheduledDateTime!)
-        : TimeOfDay(hour: (now.hour + 2) % 24, minute: 0);
-
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-      helpText: 'SELECCIONA LA HORA DE PUBLICACIÓN',
-      confirmText: 'ESTABLECER',
-      cancelText: 'CANCELAR',
-    );
-
-    if (pickedTime == null || !mounted) return;
-
-    final combined = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-
-    if (combined.isBefore(DateTime.now())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ La fecha y hora programada debe ser en el futuro.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _scheduledDateTime = combined;
-      _isScheduled = true;
-    });
-  }
 
   void _openAiAssistant(Hueca hueca, HuecaBranch? managedBranch) {
     final title = _titleController.text.trim();
@@ -290,902 +243,86 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     );
   }
 
-  void _openMenuDelDiaDialog(Hueca hueca, HuecaBranch? managedBranch) {
-    final sopaCtrl = TextEditingController();
-    final segundoCtrl = TextEditingController();
-    bool isReviewStep = false;
-    bool isPublishing = false;
-    bool isScheduled = false;
-    DateTime? scheduledDateTime;
 
-    // Extraer datos si ya había un menú del día escrito previamente
-    if (_titleController.text.contains(':')) {
-      final parts = _titleController.text.split(':');
-      if (parts.length > 1) {
-        final subparts = parts[1].split('+');
-        if (subparts.isNotEmpty) sopaCtrl.text = subparts[0].trim();
-        if (subparts.length > 1) segundoCtrl.text = subparts[1].trim();
-      }
-    }
+  // ---------------------------------------------------------------------------
+  // Fecha y hora de un aviso programado
+  // ---------------------------------------------------------------------------
 
-    showModalBottomSheet(
+  static const _weekdays = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  /// Ej.: "jue 05/11"
+  String _formatDay(DateTime d) => '${_weekdays[d.weekday - 1]} ${_two(d.day)}/${_two(d.month)}';
+
+  String _formatTime(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
+
+  bool get _isMenu => _selectedCategory == 'menu_del_dia';
+
+  /// Momento en que saldría el aviso (null = ahora)
+  DateTime? get _publishAt => _isScheduled ? _scheduledDateTime : null;
+
+  Future<void> _pickScheduleDay() async {
+    final now = DateTime.now();
+    final current = _scheduledDateTime ?? now.add(const Duration(hours: 1));
+    final picked = await showDatePicker(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return StatefulBuilder(
-          builder: (modalCtx, setModalState) {
-            Future<void> pickMenuScheduleDateTime() async {
-              final now = DateTime.now();
-              final initialDate = scheduledDateTime ?? now.add(const Duration(hours: 1));
-
-              final pickedDate = await showDatePicker(
-                context: modalCtx,
-                initialDate: initialDate.isAfter(now) ? initialDate : now,
-                firstDate: now,
-                lastDate: now.add(const Duration(days: 90)),
-                helpText: 'SELECCIONA EL DÍA DE PUBLICACIÓN',
-                confirmText: 'SIGUIENTE: HORA',
-                cancelText: 'CANCELAR',
-              );
-
-              if (pickedDate == null) return;
-
-              final initialTime = scheduledDateTime != null
-                  ? TimeOfDay.fromDateTime(scheduledDateTime!)
-                  : TimeOfDay(hour: (now.hour + 1) % 24, minute: 0);
-
-              if (!modalCtx.mounted) return;
-              final pickedTime = await showTimePicker(
-                context: modalCtx,
-                initialTime: initialTime,
-                helpText: 'SELECCIONA LA HORA DE PUBLICACIÓN',
-                confirmText: 'ESTABLECER',
-                cancelText: 'CANCELAR',
-              );
-
-              if (pickedTime == null) return;
-
-              final combined = DateTime(
-                pickedDate.year,
-                pickedDate.month,
-                pickedDate.day,
-                pickedTime.hour,
-                pickedTime.minute,
-              );
-
-              if (combined.isBefore(DateTime.now())) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('⚠️ La fecha y hora programada debe ser en el futuro.'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                }
-                return;
-              }
-
-              setModalState(() {
-                scheduledDateTime = combined;
-                isScheduled = true;
-              });
-            }
-
-            return Container(
-              height: MediaQuery.of(ctx).size.height * 0.88,
-              decoration: BoxDecoration(
-                color: Theme.of(ctx).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                20,
-                16,
-                20,
-                MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [AppTheme.primary, Color(0xFFE3A82C)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          isReviewStep ? Icons.visibility_rounded : Icons.lunch_dining,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isReviewStep ? 'Vista Previa del Aviso' : 'Menú del Día',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              isReviewStep
-                                  ? 'Revisa cómo se verá la notificación en el celular'
-                                  : 'Ingresa las opciones del almuerzo y elige cuándo publicarlo',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.white60 : AppTheme.textMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 20),
-                  Expanded(
-                    child: isReviewStep
-                        ? _buildMenuReviewStep(
-                            hueca: hueca,
-                            managedBranch: managedBranch,
-                            sopa: sopaCtrl.text.trim(),
-                            segundo: segundoCtrl.text.trim(),
-                            isScheduled: isScheduled,
-                            scheduledDateTime: scheduledDateTime,
-                            isDark: isDark,
-                            isPublishing: isPublishing,
-                            onEdit: () {
-                              setModalState(() => isReviewStep = false);
-                            },
-                            onPublish: () async {
-                              setModalState(() => isPublishing = true);
-                              try {
-                                await _submitMenuDelDiaFromDialog(
-                                  hueca: hueca,
-                                  managedBranch: managedBranch,
-                                  sopa: sopaCtrl.text.trim(),
-                                  segundo: segundoCtrl.text.trim(),
-                                  scheduledFor: isScheduled ? scheduledDateTime : null,
-                                  modalCtx: ctx,
-                                );
-                              } finally {
-                                if (modalCtx.mounted) {
-                                  setModalState(() => isPublishing = false);
-                                }
-                              }
-                            },
-                          )
-                        : _buildMenuInputStep(
-                            sopaCtrl: sopaCtrl,
-                            segundoCtrl: segundoCtrl,
-                            isDark: isDark,
-                            isScheduled: isScheduled,
-                            scheduledDateTime: scheduledDateTime,
-                            onToggleSchedule: (val) {
-                              setModalState(() {
-                                isScheduled = val;
-                              });
-                              if (val && scheduledDateTime == null) {
-                                pickMenuScheduleDateTime();
-                              }
-                            },
-                            onPickDateTime: pickMenuScheduleDateTime,
-                            onConfirm: () {
-                              final s = sopaCtrl.text.trim();
-                              final seg = segundoCtrl.text.trim();
-                              if (s.isEmpty && seg.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('⚠️ Por favor escribe al menos la sopa o el segundo del almuerzo.'),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                                return;
-                              }
-                              if (isScheduled && scheduledDateTime == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('⚠️ Por favor selecciona la fecha y hora programada o elige publicación inmediata.'),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                                return;
-                              }
-                              setModalState(() => isReviewStep = true);
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      initialDate: current.isBefore(now) ? now : current,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 30)),
+      helpText: '¿QUÉ DÍA SALE EL AVISO?',
+      confirmText: 'LISTO',
+      cancelText: 'CANCELAR',
     );
+    if (picked == null || !mounted) return;
+    final time = _scheduledDateTime ?? DateTime(now.year, now.month, now.day, _isMenu ? 11 : now.hour + 1, _isMenu ? 30 : 0);
+    _setSchedule(DateTime(picked.year, picked.month, picked.day, time.hour, time.minute));
   }
 
-  Widget _buildMenuInputStep({
-    required TextEditingController sopaCtrl,
-    required TextEditingController segundoCtrl,
-    required bool isDark,
-    required bool isScheduled,
-    required DateTime? scheduledDateTime,
-    required ValueChanged<bool> onToggleSchedule,
-    required VoidCallback onPickDateTime,
-    required VoidCallback onConfirm,
-  }) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 10),
-          const Text(
-            '🍲 Sopa',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Escribe la o las opciones de sopa:',
-            style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white60 : AppTheme.textMedium),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: sopaCtrl,
-            maxLines: 2,
-            minLines: 1,
-            decoration: InputDecoration(
-              hintText: 'Ej. Locro de papa o Caldo de patas',
-              filled: true,
-              fillColor: isDark ? AppTheme.surfaceDark : Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            '🍛 Segundo (Plato Fuerte)',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Escribe la o las opciones de plato fuerte:',
-            style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white60 : AppTheme.textMedium),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: segundoCtrl,
-            maxLines: 2,
-            minLines: 1,
-            decoration: InputDecoration(
-              hintText: 'Ej. Seco de pollo, Chuleta asada o Pescado frito',
-              filled: true,
-              fillColor: isDark ? AppTheme.surfaceDark : Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 22),
-
-          // Sección de Programación de Fecha y Hora
-          const Text(
-            '⏰ ¿Cuándo deseas publicar este menú?',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  label: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.flash_on, size: 16),
-                      SizedBox(width: 6),
-                      Text('Inmediato'),
-                    ],
-                  ),
-                  selected: !isScheduled,
-                  selectedColor: AppTheme.primary,
-                  labelStyle: TextStyle(
-                    color: !isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                    fontWeight: !isScheduled ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  onSelected: (val) {
-                    if (val) onToggleSchedule(false);
-                  },
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ChoiceChip(
-                  label: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.calendar_month, size: 16),
-                      SizedBox(width: 6),
-                      Text('Programar'),
-                    ],
-                  ),
-                  selected: isScheduled,
-                  selectedColor: AppTheme.primary,
-                  labelStyle: TextStyle(
-                    color: isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                    fontWeight: isScheduled ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  onSelected: (val) {
-                    if (val) onToggleSchedule(true);
-                  },
-                ),
-              ),
-            ],
-          ),
-          if (isScheduled) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.surfaceDark : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.schedule, color: AppTheme.primary, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Fecha y hora de publicación:',
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
-                        Text(
-                          scheduledDateTime != null
-                              ? '${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')}/${scheduledDateTime.year} a las ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')}'
-                              : 'No seleccionada aún (Toca elegir)',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.edit_calendar, size: 16),
-                    label: Text(scheduledDateTime == null ? 'Elegir' : 'Cambiar'),
-                    onPressed: onPickDateTime,
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.info_outline, size: 14, color: Colors.grey),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Se emitirá automáticamente a la hora indicada y permanecerá visible durante 4 horas.',
-                    style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : AppTheme.textMedium),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: onConfirm,
-              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-              label: const Text(
-                'Confirmar y Ver Vista Previa',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+  Future<void> _pickScheduleTime() async {
+    final now = DateTime.now();
+    final base = _scheduledDateTime ?? now;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(base),
+      helpText: '¿A QUÉ HORA SALE?',
+      confirmText: 'LISTO',
+      cancelText: 'CANCELAR',
     );
+    if (picked == null || !mounted) return;
+    var moment = DateTime(base.year, base.month, base.day, picked.hour, picked.minute);
+    // Sin día elegido: si esa hora ya pasó hoy, se entiende que es para mañana
+    if (_scheduledDateTime == null && moment.isBefore(now)) moment = moment.add(const Duration(days: 1));
+    _setSchedule(moment);
   }
 
-  Widget _buildMenuReviewStep({
-    required Hueca hueca,
-    required HuecaBranch? managedBranch,
-    required String sopa,
-    required String segundo,
-    required bool isScheduled,
-    required DateTime? scheduledDateTime,
-    required bool isDark,
-    required bool isPublishing,
-    required VoidCallback onEdit,
-    required VoidCallback onPublish,
-  }) {
-    final title = 'Menú del Día de ${hueca.name}';
-
-    final buf = StringBuffer();
-    if (sopa.isNotEmpty) buf.writeln('🍲 Sopa: $sopa');
-    if (segundo.isNotEmpty) buf.writeln('🍛 Segundo: $segundo');
-    buf.write('¡Almuerzo listo y calientito! Te esperamos.');
-    final message = buf.toString().trim();
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          Text(
-            'Así verán la notificación tus clientes en su celular:',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : AppTheme.textMedium,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Tarjeta de simulación Heads-Up Notification
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1410) : Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? Colors.white12 : AppTheme.chulpiCream,
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.black26 : const Color(0xFFFBF8F4),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.notifications_active, size: 12, color: AppTheme.primary),
-                      const SizedBox(width: 6),
-                      Text(
-                        'VISTA PREVIA DE NOTIFICACIÓN',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                          color: isDark ? Colors.white54 : AppTheme.textMedium,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        isScheduled && scheduledDateTime != null
-                            ? 'Programado'
-                            : 'ahora',
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.restaurant, size: 14, color: Colors.white),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isScheduled && scheduledDateTime != null
-                                ? 'Hue-Quito • Programado (${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')} ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')})'
-                                : 'Hue-Quito • ahora',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
-                            ),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE3A82C).withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(9999),
-                              border: Border.all(color: const Color(0xFFE3A82C), width: 1),
-                            ),
-                            child: const Text(
-                              'Menú de Hoy',
-                              style: TextStyle(
-                                color: Color(0xFFB45309),
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '🍛 $title',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        message,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.black87,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          if (isScheduled && scheduledDateTime != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.schedule, color: Colors.blue, size: 22),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Publicación Programada',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Se publicará automáticamente el ${scheduledDateTime.day.toString().padLeft(2, '0')}/${scheduledDateTime.month.toString().padLeft(2, '0')}/${scheduledDateTime.year} a las ${scheduledDateTime.hour.toString().padLeft(2, '0')}:${scheduledDateTime.minute.toString().padLeft(2, '0')}. Vigencia de 4 horas a partir de su emisión.',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: isDark ? Colors.white70 : AppTheme.textDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Mensaje de confirmación
-          Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  isScheduled
-                      ? 'Si todo se ve bien, confirma para dejar programado el menú.'
-                      : 'Si todo se ve bien, confirma para enviar tu aviso a publicación.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white60 : AppTheme.textMedium,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Botones de Acción
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: isPublishing ? null : onPublish,
-              icon: isPublishing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : Icon(isScheduled ? Icons.calendar_today_rounded : Icons.send_rounded, size: 20),
-              label: Text(
-                isPublishing
-                    ? (isScheduled ? 'Programando menú...' : 'Enviando aviso...')
-                    : (isScheduled ? 'Programar Publicación de Menú' : 'Publicar Menú de Inmediato'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: OutlinedButton.icon(
-              onPressed: isPublishing ? null : onEdit,
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text(
-                'Corregir o Modificar Opciones',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: isDark ? Colors.white70 : AppTheme.textDark,
-                side: BorderSide(color: isDark ? Colors.white24 : AppTheme.chulpiCream),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitMenuDelDiaFromDialog({
-    required Hueca hueca,
-    required HuecaBranch? managedBranch,
-    required String sopa,
-    required String segundo,
-    required BuildContext modalCtx,
-    DateTime? scheduledFor,
-  }) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
+  void _setSchedule(DateTime moment) {
+    if (moment.isBefore(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Debes haber iniciado sesión para enviar notificaciones.'),
+          content: Text('Esa hora ya pasó. Elige una hora más adelante.'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
+    setState(() => _scheduledDateTime = moment);
+  }
 
-    final title = 'Menú del Día de ${hueca.name}';
+  // ---------------------------------------------------------------------------
+  // Envío
+  // ---------------------------------------------------------------------------
 
+  /// Título y mensaje finales (el menú del día se arma con la sopa y el segundo)
+  (String, String) _composeNotice(Hueca hueca) {
+    if (!_isMenu) return (_titleController.text.trim(), _messageController.text.trim());
+    final sopa = _sopaController.text.trim();
+    final segundo = _segundoController.text.trim();
     final buf = StringBuffer();
     if (sopa.isNotEmpty) buf.writeln('🍲 Sopa: $sopa');
     if (segundo.isNotEmpty) buf.writeln('🍛 Segundo: $segundo');
     buf.write('¡Almuerzo listo y calientito! Te esperamos.');
-    final message = buf.toString().trim();
-
-    try {
-      final repo = ref.read(notificationRepositoryProvider);
-      String? branchId = managedBranch?.id;
-      String? branchName = managedBranch?.name;
-
-      await repo.submitNotificationRequest(
-        huecaId: hueca.id,
-        huecaName: hueca.name,
-        branchId: branchId,
-        branchName: branchName,
-        category: 'menu_del_dia',
-        title: title,
-        message: message,
-        discountTag: null,
-        scheduledFor: scheduledFor,
-        createdBy: user.uid,
-        autoApprove: true, // Menú del día se aprueba y se publica de inmediato o en su fecha programada con vigencia de 4 horas
-      );
-
-      if (!mounted) return;
-      if (modalCtx.mounted) {
-        setState(() {
-          _selectedCategory = 'menu_del_dia';
-          _titleController.text = title;
-          _messageController.text = message;
-          _isScheduled = scheduledFor != null;
-          _scheduledDateTime = scheduledFor;
-        });
-
-        Navigator.of(modalCtx).pop();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              scheduledFor != null
-                  ? '⏰ ¡Menú del Día programado con éxito! Se publicará automáticamente y estará visible por 4 horas.'
-                  : '🍛 ¡Menú del Día publicado con éxito! Estará visible durante 4 horas para tus comensales. 🚀',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-
-        // Switch to history tab to view pending status
-        _tabController.animateTo(1);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al enviar el aviso: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Widget _buildMenuDelDiaQuickCard(Hueca hueca, HuecaBranch? managedBranch, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF381F16), const Color(0xFF26150E)]
-              : [const Color(0xFFFFF7ED), const Color(0xFFFAF6F0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppTheme.primary.withValues(alpha: 0.35),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primary, Color(0xFFE3A82C)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.lunch_dining, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Menú del Día',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(9999),
-                          ),
-                          child: const Text(
-                            '⚡ Almuerzos',
-                            style: TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Escribe la sopa y el segundo del día para publicarlo de inmediato o programarlo a una fecha y hora específica.',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: isDark ? Colors.white70 : AppTheme.textMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _openMenuDelDiaDialog(hueca, managedBranch),
-              icon: const Icon(Icons.edit_note_rounded, size: 20),
-              label: const Text(
-                'Armar o Programar Menú del Día',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9999),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return ('Menú del Día de ${hueca.name}', buf.toString().trim());
   }
 
   Future<void> _submitRequest(Hueca hueca, HuecaBranch? managedBranch) async {
@@ -1194,7 +331,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     if (_isScheduled && _scheduledDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Por favor selecciona la fecha y hora programada o elige envío inmediato.'),
+          content: Text('Elige el día y la hora en que debe salir el aviso.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1207,70 +344,482 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     setState(() => _isSubmitting = true);
 
     try {
-      final repo = ref.read(notificationRepositoryProvider);
-
       String? branchId = _selectedBranchId;
       String? branchName;
-
       if (managedBranch != null) {
         branchId = managedBranch.id;
         branchName = managedBranch.name;
-      } else if (branchId != null && branchId.isNotEmpty) {
-        final b = hueca.branches.firstWhere(
-          (item) => item.id == branchId,
-          orElse: () => hueca.branches.first,
-        );
-        branchName = b.name;
+      } else if (branchId != null && hueca.branches.isNotEmpty) {
+        branchName = hueca.branches.firstWhere((b) => b.id == branchId, orElse: () => hueca.branches.first).name;
       }
 
-      final isMenu = _selectedCategory == 'menu_del_dia';
-      await repo.submitNotificationRequest(
-        huecaId: hueca.id,
-        huecaName: hueca.name,
-        branchId: branchId,
-        branchName: branchName,
-        category: _selectedCategory,
-        title: _titleController.text.trim(),
-        message: _messageController.text.trim(),
-        discountTag: _tagController.text.trim().isNotEmpty ? _tagController.text.trim() : null,
-        scheduledFor: _isScheduled ? _scheduledDateTime : null,
-        createdBy: user.uid,
-        autoApprove: isMenu,
+      final (title, message) = _composeNotice(hueca);
+      final publishAt = _publishAt;
+      await ref.read(notificationRepositoryProvider).submitNotificationRequest(
+            huecaId: hueca.id,
+            huecaName: hueca.name,
+            branchId: branchId,
+            branchName: branchName,
+            category: _selectedCategory,
+            title: title,
+            message: message,
+            discountTag: _tagController.text.trim().isNotEmpty ? _tagController.text.trim() : null,
+            scheduledFor: publishAt,
+            createdBy: user.uid,
+          );
+
+      if (!mounted) return;
+      _titleController.clear();
+      _messageController.clear();
+      _tagController.clear();
+      _sopaController.clear();
+      _segundoController.clear();
+      setState(() {
+        _isSubmitting = false;
+        _selectedBranchId = null;
+        _isScheduled = false;
+        _scheduledDateTime = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(publishAt == null
+              ? '¡Aviso publicado! Les llegará a los comensales que siguen tu hueca. 🚀'
+              : '⏰ Aviso programado para el ${_formatDay(publishAt)} a las ${_formatTime(publishAt)}.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
       );
-
-      if (mounted) {
-        _titleController.clear();
-        _messageController.clear();
-        _tagController.clear();
-        setState(() {
-          _isSubmitting = false;
-          _selectedBranchId = null;
-          _isScheduled = false;
-          _scheduledDateTime = null;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Solicitud enviada al administrador para autorización! 🚀'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
-
-        // Switch to history tab
-        _tabController.animateTo(1);
-      }
+      _tabController.animateTo(1);
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al enviar la solicitud: $e'),
+            content: Text(e is DailyNoticeLimitException ? '$e' : 'Error al publicar el aviso: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Formulario por pasos
+  // ---------------------------------------------------------------------------
+
+  InputDecoration _inputDecoration(bool isDark, String hint) => InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      );
+
+  Widget _stepHeader(int number, String title, bool isDark, {String? hint}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
+            child: Text('$number', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                if (hint != null)
+                  Text(hint, style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : AppTheme.textMedium)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _section(bool isDark, List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFEDE7E0)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+    );
+  }
+
+  /// Avisos que quedan hoy, con un punto por aviso
+  Widget _buildQuotaCard(Map<String, int> used, bool isDark) {
+    final max = NotificationRepository.maxNoticesPerDay;
+    final left = NotificationRepository.remainingFor(used, null);
+    final full = left == 0;
+    final color = full ? Colors.red.shade600 : Colors.green.shade700;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.18 : 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(full ? Icons.notifications_off_outlined : Icons.notifications_active_outlined, color: color, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  full ? 'Ya usaste tus avisos de hoy' : 'Te quedan $left de $max avisos hoy',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: color),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  full
+                      ? 'Puedes programar uno para otro día.'
+                      : 'Llegan al celular de quienes siguen tu hueca. Los programados cuentan para el día en que salen.',
+                  style: TextStyle(fontSize: 12, height: 1.3, color: isDark ? Colors.white70 : Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Row(
+            children: List.generate(
+              max,
+              (i) => Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Icon(i < left ? Icons.circle : Icons.circle_outlined, size: 14, color: color),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(Map<String, String> cat, bool isDark, double width) {
+    final selected = _selectedCategory == cat['id'];
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => setState(() => _selectedCategory = cat['id']!),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? AppTheme.primary.withValues(alpha: 0.12) : (isDark ? Colors.grey[850] : Colors.grey[50]),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: selected ? AppTheme.primary : (isDark ? Colors.white12 : Colors.grey.shade300), width: selected ? 2 : 1),
+          ),
+          child: Row(
+            children: [
+              Text(cat['emoji']!, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      cat['label']!,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: selected ? AppTheme.primary : null),
+                    ),
+                    Text(cat['desc']!, style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : AppTheme.textMedium)),
+                  ],
+                ),
+              ),
+              if (selected) const Icon(Icons.check_circle, color: AppTheme.primary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRequestForm(Hueca hueca, HuecaBranch? managedBranch, bool isDark) {
+    final used = ref.watch(usedNoticesByDayProvider(hueca.id)).value ?? const <String, int>{};
+    final publishAt = _publishAt;
+    final leftThatDay = NotificationRepository.remainingFor(used, publishAt);
+    final missingDate = _isScheduled && _scheduledDateTime == null;
+    final dayFull = leftThatDay == 0;
+
+    String buttonLabel;
+    if (_isSubmitting) {
+      buttonLabel = 'Publicando...';
+    } else if (publishAt != null) {
+      buttonLabel = 'Programar para el ${_formatDay(publishAt)} a las ${_formatTime(publishAt)}';
+    } else if (_isScheduled) {
+      buttonLabel = 'Elige el día y la hora';
+    } else {
+      buttonLabel = 'Publicar ahora';
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildQuotaCard(used, isDark),
+
+            // 1. Tipo de aviso
+            _section(isDark, [
+              _stepHeader(1, '¿Qué quieres avisar?', isDark),
+              LayoutBuilder(builder: (context, c) {
+                final half = (c.maxWidth - 10) / 2;
+                final menu = _categories.first;
+                return Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _buildCategoryCard(menu, isDark, c.maxWidth),
+                    ..._categories.skip(1).map((cat) => _buildCategoryCard(cat, isDark, c.maxWidth < 360 ? c.maxWidth : half)),
+                  ],
+                );
+              }),
+            ]),
+
+            // 2. Contenido
+            _section(isDark, [
+              _stepHeader(2, 'Escribe tu aviso', isDark,
+                  hint: _isMenu ? 'Con la sopa y el segundo armamos el aviso por ti.' : null),
+              if (_isMenu) ...[
+                TextFormField(
+                  controller: _sopaController,
+                  decoration: _inputDecoration(isDark, 'Ej. Locro de papa').copyWith(labelText: '🍲 Sopa'),
+                  validator: (_) => _sopaController.text.trim().isEmpty && _segundoController.text.trim().isEmpty
+                      ? 'Escribe al menos la sopa o el segundo'
+                      : null,
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _segundoController,
+                  decoration: _inputDecoration(isDark, 'Ej. Seco de pollo con arroz').copyWith(labelText: '🍛 Segundo'),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ] else ...[
+                TextFormField(
+                  controller: _titleController,
+                  maxLength: 60,
+                  decoration: _inputDecoration(isDark, 'Ej. ¡2x1 en seco de chivo este viernes!').copyWith(labelText: 'Título'),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Escribe un título';
+                    if (v.trim().length < 5) return 'El título debe tener al menos 5 caracteres';
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 4),
+                TextFormField(
+                  controller: _messageController,
+                  maxLines: 3,
+                  maxLength: 160,
+                  decoration: _inputDecoration(isDark, 'Ej. Ven con un amigo desde las 12h00 hasta agotar stock.')
+                      .copyWith(labelText: 'Mensaje', alignLabelWithHint: true),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Escribe el mensaje';
+                    if (v.trim().length < 10) return 'El mensaje debe ser un poco más largo';
+                    return null;
+                  },
+                  onChanged: (_) => setState(() {}),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openAiAssistant(hueca, managedBranch),
+                    icon: const Icon(Icons.auto_awesome, size: 16),
+                    label: const Text('Ayuda con IA ✨'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
+                      side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.5)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ),
+              ],
+              Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: const EdgeInsets.only(bottom: 4),
+                  title: Text(
+                    'Más opciones',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : AppTheme.textMedium),
+                  ),
+                  subtitle: Text(
+                    managedBranch != null ? 'Etiqueta · ${managedBranch.name}' : 'Etiqueta y sucursal',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  children: [
+                    TextFormField(
+                      controller: _tagController,
+                      maxLength: 25,
+                      decoration: _inputDecoration(isDark, 'Ej. 2x1, 20% OFF, Solo hoy')
+                          .copyWith(labelText: 'Etiqueta (opcional)', counterText: ''),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    if (managedBranch != null)
+                      Row(
+                        children: [
+                          const Icon(Icons.store, color: AppTheme.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text('Aplica para: ${managedBranch.name}', style: const TextStyle(fontWeight: FontWeight.w600))),
+                        ],
+                      )
+                    else if (hueca.branches.isNotEmpty)
+                      DropdownButtonFormField<String?>(
+                        initialValue: _selectedBranchId,
+                        decoration: _inputDecoration(isDark, '').copyWith(labelText: 'Sucursal'),
+                        items: [
+                          const DropdownMenuItem<String?>(value: null, child: Text('📍 Todas las sucursales')),
+                          ...hueca.branches.map((b) => DropdownMenuItem<String?>(value: b.id, child: Text('📍 ${b.name} (${b.sector})'))),
+                        ],
+                        onChanged: (val) => setState(() => _selectedBranchId = val),
+                      ),
+                  ],
+                ),
+              ),
+            ]),
+
+            // 3. Cuándo
+            _section(isDark, [
+              _stepHeader(3, '¿Cuándo sale?', isDark),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: false, icon: Icon(Icons.flash_on, size: 18), label: Text('Ahora')),
+                    ButtonSegment(value: true, icon: Icon(Icons.schedule, size: 18), label: Text('Programar')),
+                  ],
+                  selected: {_isScheduled},
+                  showSelectedIcon: false,
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: AppTheme.primary,
+                    selectedForegroundColor: Colors.white,
+                  ),
+                  onSelectionChanged: (s) => setState(() => _isScheduled = s.first),
+                ),
+              ),
+              if (_isScheduled) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _scheduleTile(
+                        isDark,
+                        icon: Icons.calendar_today,
+                        label: 'Día',
+                        value: _scheduledDateTime != null ? _formatDay(_scheduledDateTime!) : 'Elegir',
+                        onTap: _pickScheduleDay,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _scheduleTile(
+                        isDark,
+                        icon: Icons.access_time,
+                        label: 'Hora',
+                        value: _scheduledDateTime != null ? _formatTime(_scheduledDateTime!) : 'Elegir',
+                        onTap: _pickScheduleTime,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 10),
+              if (!missingDate)
+                Row(
+                  children: [
+                    Icon(dayFull ? Icons.block : Icons.check_circle_outline,
+                        size: 16, color: dayFull ? Colors.red.shade600 : Colors.green.shade700),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        dayFull
+                            ? (publishAt == null
+                                ? 'Hoy ya no te quedan avisos. Prográmalo para otro día.'
+                                : 'Ese día ya tiene ${NotificationRepository.maxNoticesPerDay} avisos. Elige otro día.')
+                            : (publishAt == null
+                                ? 'Sale en cuanto lo publiques.'
+                                : 'Ese día te quedan $leftThatDay de ${NotificationRepository.maxNoticesPerDay} avisos.'),
+                        style: TextStyle(fontSize: 12.5, color: dayFull ? Colors.red.shade600 : (isDark ? Colors.white70 : AppTheme.textMedium)),
+                      ),
+                    ),
+                  ],
+                ),
+            ]),
+
+            // 4. Vista previa
+            _section(isDark, [
+              _stepHeader(4, 'Así lo verán tus clientes', isDark),
+              _buildNotificationPreview(hueca.name, isDark),
+            ]),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                icon: _isSubmitting
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Icon(_isScheduled ? Icons.schedule_send : Icons.send),
+                label: Text(buttonLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: _isSubmitting || missingDate || dayFull ? null : () => _submitRequest(hueca, managedBranch),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _scheduleTile(bool isDark,
+      {required IconData icon, required String label, required String value, required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppTheme.primary),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -1290,7 +839,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
             const HueQuitoLogo.symbol(height: 26),
             const SizedBox(width: 10),
             const Text(
-              'Notificaciones',
+              'Avisos',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -1309,8 +858,8 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
           unselectedLabelColor: Colors.white70,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           tabs: const [
-            Tab(text: 'Solicitar Notificación', icon: Icon(Icons.add_alert, size: 20)),
-            Tab(text: 'Historial y Estados', icon: Icon(Icons.history, size: 20)),
+            Tab(text: 'Nuevo aviso', icon: Icon(Icons.add_alert, size: 20)),
+            Tab(text: 'Mis avisos', icon: Icon(Icons.history, size: 20)),
           ],
         ),
       ),
@@ -1323,6 +872,40 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
               child: Padding(
                 padding: EdgeInsets.all(24.0),
                 child: Text('No tienes una Hueca asignada a esta cuenta para enviar notificaciones.'),
+              ),
+            );
+          }
+
+          // Suscripción vencida sin pago: no puede enviar avisos (la hueca sigue visible en la app)
+          final subSettings = ref.watch(subscriptionSettingsProvider).value ?? const SubscriptionSettings();
+          final subInfo = ref.watch(subscriptionRepositoryProvider).evaluateHuecaSubscription(hueca: hueca, settings: subSettings);
+          if (subInfo.isLocked) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock_outline, size: 64, color: Colors.red.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Avisos pausados',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'El periodo de gracia terminó. Tu hueca sigue visible para los comensales, pero no puedes enviar avisos hasta subir tu comprobante de pago desde el Panel.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : AppTheme.textMedium),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -1341,433 +924,19 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
     );
   }
 
-  Widget _buildRequestForm(Hueca hueca, HuecaBranch? managedBranch, bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Asistente Destacado: Menú del Día para Huecas con Almuerzo
-            _buildMenuDelDiaQuickCard(hueca, managedBranch, isDark),
-
-            // Info Banner
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: AppTheme.primary, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Tus notificaciones llegarán directo a la barra de Android de los usuarios suscritos a ${hueca.name} tras ser aprobadas por el administrador.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.white70 : Colors.black87,
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Tarjeta de Advertencia de Tiempos de Aprobación
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.35)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.hourglass_top_rounded, color: Colors.amber.shade800, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tiempo de Aprobación: 2 horas a 1 día',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13.5,
-                            color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Cada notificación es revisada y autorizada por la administración antes de salir. Te recomendamos solicitar tus promociones y eventos con tiempo de anticipación.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            height: 1.3,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Categoría
-            const Text(
-              'Categoría del Anuncio',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: _categories.map((cat) {
-                final isSelected = _selectedCategory == cat['id'];
-                return ChoiceChip(
-                  label: Text('${cat['emoji']} ${cat['label']}'),
-                  selected: isSelected,
-                  selectedColor: AppTheme.primary,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  onSelected: (selected) {
-                    if (selected) setState(() => _selectedCategory = cat['id']!);
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Sucursal (si aplica y no es branch manager bloqueado)
-            if (managedBranch != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[850] : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.store, color: AppTheme.primary, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Aplica para: ${managedBranch.name}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else if (hueca.branches.isNotEmpty) ...[
-              const Text(
-                'Sucursal Destino',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String?>(
-                initialValue: _selectedBranchId,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text('📍 Todas las sucursales'),
-                  ),
-                  ...hueca.branches.map((b) => DropdownMenuItem<String?>(
-                        value: b.id,
-                        child: Text('📍 ${b.name} (${b.sector})'),
-                      )),
-                ],
-                onChanged: (val) => setState(() => _selectedBranchId = val),
-              ),
-              const SizedBox(height: 18),
-            ],
-
-            // Título
-            const Text(
-              'Título de la Notificación',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _titleController,
-              maxLength: 60,
-              decoration: InputDecoration(
-                hintText: 'Ej. ¡2x1 en Seco de Chivo este Viernes!',
-                filled: true,
-                fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                counterText: '',
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Por favor escribe un título';
-                if (v.trim().length < 5) return 'El título debe tener al menos 5 caracteres';
-                return null;
-              },
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 16),
-
-            // Mensaje / Detalles con botón generativo de IA
-            Row(
-              children: [
-                const Text(
-                  'Mensaje / Detalles *',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                const Spacer(),
-                InkWell(
-                  onTap: () => _openAiAssistant(hueca, managedBranch),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primary.withValues(alpha: 0.15),
-                          Colors.deepPurpleAccent.withValues(alpha: 0.15),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.auto_awesome, size: 14, color: AppTheme.primary),
-                        SizedBox(width: 5),
-                        Text(
-                          'Ayuda con IA ✨',
-                          style: TextStyle(
-                            color: AppTheme.primary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _messageController,
-              maxLines: 3,
-              maxLength: 160,
-              decoration: InputDecoration(
-                hintText: 'Ej. Ven a disfrutar con un amigo desde las 12h00 hasta agotar stock. Válido en locales físicos.',
-                filled: true,
-                fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Por favor escribe el mensaje';
-                if (v.trim().length < 10) return 'El mensaje debe ser más descriptivo';
-                return null;
-              },
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
-
-            // Etiqueta Opcional
-            const Text(
-              'Etiqueta / Descuento (Opcional)',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _tagController,
-              maxLength: 25,
-              decoration: InputDecoration(
-                hintText: 'Ej. 2x1, 20% OFF, Novedad, Solo Hoy',
-                filled: true,
-                fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                counterText: '',
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 20),
-
-            // ¿Cuándo quieres que salga la notificación? (Programación)
-            const Text(
-              '¿Cuándo quieres que salga la notificación?',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.flash_on, size: 16),
-                        SizedBox(width: 6),
-                        Text('Inmediata'),
-                      ],
-                    ),
-                    selected: !_isScheduled,
-                    selectedColor: AppTheme.primary,
-                    labelStyle: TextStyle(
-                      color: !_isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                      fontWeight: !_isScheduled ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() {
-                          _isScheduled = false;
-                        });
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.calendar_month, size: 16),
-                        SizedBox(width: 6),
-                        Text('Programada'),
-                      ],
-                    ),
-                    selected: _isScheduled,
-                    selectedColor: AppTheme.primary,
-                    labelStyle: TextStyle(
-                      color: _isScheduled ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                      fontWeight: _isScheduled ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() {
-                          _isScheduled = true;
-                        });
-                        if (_scheduledDateTime == null) {
-                          _pickScheduleDateTime();
-                        }
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            if (_isScheduled) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[850] : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.schedule, color: AppTheme.primary, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Fecha y hora de salida:',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
-                          ),
-                          Text(
-                            _scheduledDateTime != null
-                                ? '${_scheduledDateTime!.day.toString().padLeft(2, '0')}/${_scheduledDateTime!.month.toString().padLeft(2, '0')}/${_scheduledDateTime!.year} a las ${_scheduledDateTime!.hour.toString().padLeft(2, '0')}:${_scheduledDateTime!.minute.toString().padLeft(2, '0')}'
-                                : 'No seleccionada aún (Toca elegir)',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.edit_calendar, size: 16),
-                      label: Text(_scheduledDateTime == null ? 'Elegir' : 'Cambiar'),
-                      onPressed: _pickScheduleDateTime,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-
-            // Vista Previa de Notificación Nativa
-            const Text(
-              'Vista Previa en el Celular',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 10),
-            _buildNotificationPreview(hueca.name, isDark),
-            const SizedBox(height: 28),
-
-            // Botón de Envío
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(
-                  _isSubmitting ? 'Enviando Solicitud...' : 'Solicitar Autorización de Notificación',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: _isSubmitting ? null : () => _submitRequest(hueca, managedBranch),
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildNotificationPreview(String huecaName, bool isDark) {
     final cat = _categories.firstWhere(
       (c) => c['id'] == _selectedCategory,
       orElse: () => _categories.first,
     );
     final emoji = cat['emoji'] ?? '📢';
-    final title = _titleController.text.trim().isNotEmpty
-        ? _titleController.text.trim()
-        : 'Título de tu anuncio aquí';
-    final message = _messageController.text.trim().isNotEmpty
-        ? _messageController.text.trim()
-        : 'Aquí aparecerá la descripción de la promoción o noticia que verán tus clientes.';
+    // Igual que el push real: título (con el nombre de la hueca) y mensaje
+    final hueca = ref.read(myHuecaProvider).value;
+    final (rawTitle, rawMessage) =
+        hueca != null ? _composeNotice(hueca) : (_titleController.text.trim(), _messageController.text.trim());
+    final title = rawTitle.isNotEmpty ? rawTitle : 'Título de tu aviso';
+    final hasMenu = _sopaController.text.trim().isNotEmpty || _segundoController.text.trim().isNotEmpty;
+    final message = (_isMenu ? hasMenu : rawMessage.isNotEmpty) ? rawMessage : 'Aquí aparecerá el mensaje que verán tus clientes.';
     final tag = _tagController.text.trim();
 
     return Container(
@@ -1863,7 +1032,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '$emoji $huecaName: $title',
+                  title.contains(huecaName) ? '$emoji $title' : '$emoji $huecaName: $title',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -1902,13 +1071,13 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                 Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 const Text(
-                  'Aún no has solicitado notificaciones.',
+                  'Aún no has publicado avisos.',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () => _tabController.animateTo(0),
-                  child: const Text('Crear Primera Notificación'),
+                  child: const Text('Crear mi primer aviso'),
                 ),
               ],
             ),
@@ -2081,17 +1250,17 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
       case 'approved':
         if (item.isScheduled) {
           statusColor = Colors.teal;
-          statusText = 'Aprobada (Programada)';
+          statusText = 'Programado';
           statusIcon = Icons.schedule;
         } else {
           statusColor = Colors.green;
-          statusText = 'Aprobada y Emitida';
+          statusText = 'Publicado';
           statusIcon = Icons.check_circle;
         }
         break;
       case 'rejected':
         statusColor = Colors.red;
-        statusText = 'Rechazada';
+        statusText = 'No publicado';
         statusIcon = Icons.cancel;
         break;
       case 'system':
@@ -2102,7 +1271,7 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
       case 'pending':
       default:
         statusColor = Colors.amber.shade800;
-        statusText = 'Pendiente de Aprobación';
+        statusText = 'Publicando...';
         statusIcon = Icons.hourglass_top;
         break;
     }
@@ -2239,6 +1408,13 @@ class _BusinessNotificationScreenState extends ConsumerState<BusinessNotificatio
                     if (_categories.any((c) => c['id'] == item.category)) {
                       _selectedCategory = item.category;
                     }
+                    // El menú del día se vuelve a separar en sopa y segundo
+                    for (final line in item.message.split('\n')) {
+                      if (line.startsWith('🍲 Sopa: ')) _sopaController.text = line.substring('🍲 Sopa: '.length);
+                      if (line.startsWith('🍛 Segundo: ')) _segundoController.text = line.substring('🍛 Segundo: '.length);
+                    }
+                    _isScheduled = false;
+                    _scheduledDateTime = null;
                   });
                   _tabController.animateTo(0);
                   ScaffoldMessenger.of(context).showSnackBar(

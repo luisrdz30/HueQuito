@@ -250,6 +250,120 @@
   \vspace{0.2cm}
 }
 
+% Tras el título de un módulo, la primera pantalla va en la misma página
+\newif\ifskipnewpage
+
+% --- Captura que aún no existe: se muestra un aviso en lugar de romper la compilación ---
+\newcommand{\capturaimg}[2]{%
+  \IfFileExists{#1}{%
+    \includegraphics[height=#2, width=\linewidth, keepaspectratio]{#1}%
+  }{%
+    \begin{minipage}[c][#2][c]{\linewidth}\centering\color{textSecondary}\small\faIcon{camera}\ Captura pendiente\end{minipage}%
+  }%
+}
+
+% --- Pantalla con DOS capturas lado a lado y la descripción debajo ---
+\newcommand{\pantalladoble}[8]{%
+  % #1: Título  #2: archivo .dart  #3: rol  #4: color del rol
+  % #5: captura izquierda  #6: captura derecha  #7: altura  #8: descripción
+  \ifskipnewpage\global\skipnewpagefalse\else\newpage\fi
+  \begin{tcolorbox}[
+    enhanced,
+    colback=white,
+    colframe=cardBorder,
+    arc=2.5mm,
+    boxrule=0.8pt,
+    left=4mm, right=4mm, top=3mm, bottom=3mm
+  ]
+    \begin{minipage}[c]{0.70\textwidth}
+      {\large\bfseries\color{textPrimary} #1}\\[0.1cm]
+      {\footnotesize\ttfamily\color{textSecondary}\faIcon{file-code}\ \nolinkurl{#2}}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.28\textwidth}
+      \flushright
+      \tcbox[
+        enhanced,
+        colback=#4!10,
+        colframe=#4,
+        boxrule=0.6pt,
+        arc=1.5mm,
+        top=1mm, bottom=1mm, left=2.5mm, right=2.5mm
+      ]{\footnotesize\bfseries\color{#4} #3}
+    \end{minipage}
+  \end{tcolorbox}
+  \vspace{0.2cm}
+
+  \noindent
+  \begin{minipage}[t]{0.49\textwidth}
+    \begin{tcolorbox}[enhanced, colback=white, colframe=gray!30, arc=3mm, boxrule=0.7pt, halign=center, top=2mm, bottom=2mm, left=2mm, right=2mm]
+      \capturaimg{#5}{#7}
+    \end{tcolorbox}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.49\textwidth}
+    \begin{tcolorbox}[enhanced, colback=white, colframe=gray!30, arc=3mm, boxrule=0.7pt, halign=center, top=2mm, bottom=2mm, left=2mm, right=2mm]
+      \capturaimg{#6}{#7}
+    \end{tcolorbox}
+  \end{minipage}
+
+  \vspace{0.2cm}
+  #8
+}
+
+% La macro de una sola captura usa también el aviso de captura pendiente
+\renewcommand{\pantallashowcase}[7]{%
+  \ifskipnewpage\global\skipnewpagefalse\else\newpage\fi
+  \begin{tcolorbox}[
+    enhanced,
+    colback=white,
+    colframe=cardBorder,
+    arc=2.5mm,
+    boxrule=0.8pt,
+    left=4mm, right=4mm, top=3mm, bottom=3mm
+  ]
+    \begin{minipage}[c]{0.70\textwidth}
+      {\large\bfseries\color{textPrimary} #1}\\[0.1cm]
+      {\footnotesize\ttfamily\color{textSecondary}\faIcon{file-code}\ \nolinkurl{#2}}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.28\textwidth}
+      \flushright
+      \tcbox[
+        enhanced,
+        colback=#4!10,
+        colframe=#4,
+        boxrule=0.6pt,
+        arc=1.5mm,
+        top=1mm, bottom=1mm, left=2.5mm, right=2.5mm
+      ]{\footnotesize\bfseries\color{#4} #3}
+    \end{minipage}
+  \end{tcolorbox}
+  \vspace{0.2cm}
+
+  \noindent
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \vspace{0pt}
+    \begin{tcolorbox}[enhanced, colback=white, colframe=gray!30, arc=3mm, boxrule=0.7pt, halign=center, top=2mm, bottom=2mm, left=2mm, right=2mm]
+      \capturaimg{#5}{#6}
+    \end{tcolorbox}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.52\textwidth}
+    \vspace{0pt}
+    #7
+  \end{minipage}
+}
+
+\newcommand{\proposito}[1]{%
+  \begin{tcolorbox}[enhanced, colback=cardBg, colframe=cardBorder, arc=2mm, boxrule=0.6pt]
+    \textbf{\large Propósito}\\[0.1cm]
+    #1
+  \end{tcolorbox}
+  \vspace{0.2cm}
+}
+
 \begin{document}
 
 % =============================================================================
@@ -300,12 +414,12 @@
 
 El presente documento constituye el \textbf{Anexo Visual y Funcional} del Proyecto de Titulación \textit{``Plataforma Turística Innovadora con Gamificación, Inteligencia Artificial y Logística Inteligente (Hue-Quito)''}.
 
-Reúne capturas reales de pantalla de la versión vigente de la aplicación, tomadas en formato de teléfono móvil sobre la versión publicada (\url{https://huequito-b091a.web.app}), que comparte el mismo código fuente que la aplicación Android. Los datos visibles corresponden al catálogo real de \textbf{20 huecas tradicionales de Quito}, organizadas en cuatro zonas: \textit{Centro, Norte, Sur y Valles}. Las pantallas del dueño y del administrador se capturaron sobre una copia local de la aplicación conectada a los emuladores de Firebase, con las mismas 20 huecas y cuentas de prueba (por ejemplo, la dueña ficticia de \textit{El Pretil}), para no alterar los datos reales. Las interfaces se han clasificado en los tres roles que operan dentro de la plataforma:
+Reúne capturas reales de pantalla de la versión vigente de la aplicación, tomadas en formato de teléfono móvil con el mismo código fuente de la versión publicada (\url{https://huequito-b091a.web.app}) y de la aplicación Android. Los datos visibles corresponden al catálogo real de \textbf{20 huecas tradicionales de Quito}, organizadas en cuatro zonas: \textit{Centro, Norte, Sur y Valles}. Las capturas se tomaron sobre una copia local de la aplicación conectada a los emuladores de Firebase, con las mismas 20 huecas y cuentas de prueba (por ejemplo, la dueña ficticia de \textit{El Pretil}), para no alterar los datos reales. Las interfaces se han clasificado en los tres roles que operan dentro de la plataforma:
 
 \begin{enumerate}[label=\textbf{\Roman*.}]
   \item \textbf{Módulo de Usuario (Comensal / Turista):} Cuestionario de perfil gastronómico por zona, exploración de huecas, menú con buscador y filtros por categoría, tours personalizados optimizados por cercanía, navegación paso a paso, escaneo QR de sellos, álbum de cromos por zona y preferencias de accesibilidad.
-  \item \textbf{Módulo de Negocio (Dueño / Encargado de Hueca):} Tablero de métricas en tiempo real, menú digital organizado por categorías con ayuda de Inteligencia Artificial (Gemini), emisor de QR antifraude, redactor publicitario con IA y gestión de sucursales.
-  \item \textbf{Módulo de Administración (Superadministrador):} Centro de control global, auditoría de huecas, zonas y cromos, moderación de avisos, revisión de solicitudes de nuevas huecas y gestión de cuentas comerciales.
+  \item \textbf{Módulo de Negocio (Dueño / Encargado de Hueca):} Tablero de métricas en tiempo real, menú digital organizado por categorías con ayuda de Inteligencia Artificial (Gemini), avisos y menú del día que llegan como notificación push a los comensales (hasta 2 por día, inmediatos o programados), emisor de QR antifraude y gestión de sucursales.
+  \item \textbf{Módulo de Administración (Superadministrador):} Centro de control global, auditoría de huecas, zonas y cromos, supervisión de avisos, revisión de solicitudes de nuevas huecas y gestión de cuentas comerciales.
 \end{enumerate}
 
 \vspace{0.5cm}
@@ -740,7 +854,7 @@ Reúne capturas reales de pantalla de la versión vigente de la aplicación, tom
     \begin{itemize}[leftmargin=*, itemsep=2pt]
       \item \textbf{Lista agrupada (izquierda):} encabezados por categoría (Desayunos, Bebidas, Postres, Platos Fuertes\dots), foto, nombre en español e inglés (badge \texttt{EN}), precio con dos decimales y botones de editar y eliminar.
       \item \textbf{Botón \faIcon{magic}\ ``Organizar por categorías con IA'':} Gemini clasifica todos los platos en las categorías del menú y los guarda ordenados.
-      \item \textbf{Añadir al Menú (derecha):} \textit{Escanear Carta con Gemini IA (1 a 10 páginas)}, \textit{Escanear 1 Plato por Foto}, \textit{Subir Múltiples Fotos de Platos} o \textit{Añadir Plato Manualmente}.
+      \item \textbf{Añadir al Menú (derecha):} dos opciones, \textit{Escanear con IA} (fotos de la carta, hasta 10, de las que la IA saca los platos y precios y los traduce al inglés) o \textit{Añadir Plato Manualmente}.
       \item Las funciones de IA usan Gemini a través de Firebase AI Logic, sin claves de API dentro de la aplicación.
     \end{itemize}
   }
@@ -765,21 +879,20 @@ Reúne capturas reales de pantalla de la versión vigente de la aplicación, tom
 
 % --- PANTALLA 21: Avisos ---
 \pantalladoble
-  {Pantalla 21: Promociones y Redactor con IA}
+  {Pantalla 21: Avisos y Notificaciones Push}
   {lib/screens/business/notification\_management\_screen.dart}
   {DUEÑO / ENCARGADO}
   {huecaOrangeDark}
   {capturas/d07_avisos.png}
-  {capturas/d08_avisos_form.png}
+  {capturas/d08b_programar.png}
   {14cm}
   {
-    \proposito{Campañas y avisos que llegan al celular de los comensales suscritos a la hueca, previa aprobación del administrador.}
+    \proposito{Avisos que llegan como notificación push al celular o al navegador de los comensales que siguen la hueca, sin esperar aprobación.}
     \begin{itemize}[leftmargin=*, itemsep=2pt]
-      \item \textbf{Menú del Día:} publica la sopa y el segundo del día de inmediato o programado.
-      \item Avisos sobre el tiempo de aprobación (2 horas a 1 día) y el alcance de las notificaciones.
-      \item Categorías: \textit{Menú del Día, Promoción, Noticia, Nuevo Plato y Evento}; sucursal destino.
-      \item Título, mensaje con botón \textit{Ayuda con IA}, etiqueta opcional (\textit{2×1}) y salida \textit{Inmediata} o \textit{Programada}.
-      \item \textbf{Vista previa en el celular (derecha):} muestra la notificación tal como la recibirá el cliente, y el botón \textit{Solicitar Autorización de Notificación}.
+      \item \textbf{Izquierda:} avisos que le quedan hoy a la hueca (máximo 2) y el tipo de aviso: \textit{Menú del Día, Promoción, Noticia, Nuevo Plato} o \textit{Evento}.
+      \item \textbf{Derecha:} el menú del día se arma con la sopa y el segundo, y se programa con día y hora. Un aviso programado cuenta para el día en que sale.
+      \item En las demás categorías: título, mensaje con \textit{Ayuda con IA}, etiqueta (\textit{2x1}) y sucursal.
+      \item El botón dice qué pasará (\textit{Programar para el mié 04/11 a las 11:30}) y \textit{Mis avisos} muestra si cada aviso se publicó.
     \end{itemize}
   }
 
@@ -905,24 +1018,24 @@ Reúne capturas reales de pantalla de la versión vigente de la aplicación, tom
     \end{itemize}
   }
 
-% --- PANTALLA 28: Moderación de avisos ---
+% --- PANTALLA 28: Supervisión de avisos ---
 \pantallashowcase
-  {Pantalla 28: Moderación de Avisos y Notificaciones}
+  {Pantalla 28: Supervisión de Avisos y Notificaciones}
   {lib/screens/admin/admin_notifications_screen.dart}
   {SUPERADMIN}
   {adminNavy}
   {capturas/a05_avisos.png}
   {17.5cm}
   {
-    \proposito{Control editorial de las promociones que envían los dueños antes de que lleguen a los comensales.}
+    \proposito{Supervisión de los avisos de las huecas. Los avisos se publican solos (hasta 2 por día por hueca); el administrador revisa el historial, puede retirarlos y atiende los que el sistema no alcanzó a publicar.}
 
     \textbf{Componentes Clave:}
     \begin{itemize}[leftmargin=*, itemsep=2pt]
-      \item Pestañas \textit{Pendientes} (con contador) e \textit{Historial Completo}.
+      \item Pestañas \textit{Pendientes} (solo los avisos que la función automática no alcanzó a publicar) e \textit{Historial Completo}.
       \item Accesos a otras bandejas: \textit{Solicitudes} de huecas nuevas y \textit{Soporte} de negocios.
       \item Tarjeta del aviso con hueca emisora, categoría, etiqueta (\textit{2×1}) y tipo de emisión.
       \item Simulación de cómo saldrá la notificación en Android.
-      \item Botones \textit{Rechazar} y \textit{Aprobar y Emitir}.
+      \item Botones \textit{Rechazar} y \textit{Aprobar y Emitir} como respaldo manual.
     \end{itemize}
   }
 
