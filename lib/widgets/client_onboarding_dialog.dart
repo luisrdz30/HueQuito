@@ -114,7 +114,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEn ? "Diner's Guide" : 'Guía del Comensal',
+                          isEn ? "Diner's Guide" : 'Guía del comensal',
                           style: TextStyle(
                             color: Colors.blueGrey.shade900,
                             fontWeight: FontWeight.bold,
@@ -147,7 +147,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.blueGrey, size: 20),
-                    tooltip: isEn ? 'Close Guide' : 'Cerrar Guía',
+                    tooltip: isEn ? 'Close guide' : 'Cerrar guía',
                     visualDensity: VisualDensity.compact,
                     onPressed: _handleClose,
                   ),
@@ -233,7 +233,7 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
                       children: [
                         Text(
                           _currentPage == _totalPages - 1
-                              ? (isEn ? 'Start Exploring!' : '¡A Comer!')
+                              ? (isEn ? 'Start exploring!' : '¡A comer!')
                               : (isEn ? 'Next' : 'Siguiente'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
@@ -258,10 +258,10 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
   Widget _buildSlide0Huecas(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '🇪🇨 Quito Tradition' : '🇪🇨 Tradición Quiteña',
+      imageBadge: isEn ? '🇪🇨 Quito tradition' : '🇪🇨 Tradición quiteña',
       icon: Icons.restaurant,
       gradientColors: [const Color(0xFFEA580C), const Color(0xFFF97316)],
-      title: isEn ? "Discover Quito's Huecas" : 'Descubre las Mejores Huecas',
+      title: isEn ? "Discover Quito's Huecas" : 'Descubre las mejores huecas',
       subtitle: isEn
           ? 'Find traditional local eateries, authentic dishes, schedules, and real diner reviews.'
           : 'Encuentra locales tradicionales, platos típicos auténticos, horarios y valoraciones reales.',
@@ -276,14 +276,14 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
     );
   }
 
-  // Slide 1: Mapa Interactivo en Vivo
+  // Slide 1: Mapa interactivo en vivo
   Widget _buildSlide1Mapa(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '🧭 Real-time GPS' : '🧭 GPS en Tiempo Real',
+      imageBadge: isEn ? '🧭 Real-time GPS' : '🧭 GPS en tiempo real',
       icon: Icons.map_rounded,
       gradientColors: [const Color(0xFF0284C7), const Color(0xFF38BDF8)],
-      title: isEn ? 'Live Interactive Map' : 'Mapa Interactivo en Vivo',
+      title: isEn ? 'Live interactive map' : 'Mapa interactivo en vivo',
       subtitle: isEn
           ? 'Locate huecas around you in real time with interactive markers and quick preview cards.'
           : 'Ubica huecas a tu alrededor en tiempo real con pines interactivos y tarjetas de vista previa.',
@@ -302,10 +302,10 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
   Widget _buildSlide2Rutas(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '🚶‍♂️ Food Routes' : '🚶‍♂️ Circuitos Culinarios',
+      imageBadge: isEn ? '🚶‍♂️ Food routes' : '🚶‍♂️ Circuitos culinarios',
       icon: Icons.alt_route_rounded,
       gradientColors: [const Color(0xFF0D9488), const Color(0xFF14B8A6)],
-      title: isEn ? 'Guided Food Routes' : 'Rutas Culinarias Guiadas',
+      title: isEn ? 'Guided Food routes' : 'Rutas culinarias guiadas',
       subtitle: isEn
           ? 'Explore curated itineraries step-by-step with guided GPS navigation across Quito.'
           : 'Recorre circuitos temáticos paso a paso con navegación guiada por los barrios de Quito.',
@@ -324,10 +324,10 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
   Widget _buildSlide3Sellos(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '🎁 Free Rewards' : '🎁 Premios y Cortesías',
+      imageBadge: isEn ? '🎁 Free rewards' : '🎁 Premios y cortesías',
       icon: Icons.loyalty_rounded,
       gradientColors: [const Color(0xFFD97706), const Color(0xFFF59E0B)],
-      title: isEn ? 'Loyalty Stamp Card' : 'Cartilla Digital de Sellos',
+      title: isEn ? 'Loyalty stamp card' : 'Cartilla digital de sellos',
       subtitle: isEn
           ? 'Earn stamps on every visit! Fill your digital loyalty card to unlock free delicious rewards.'
           : '¡Gana sellos con cada consumo! Completa tu cartilla digital y canjea platos o premios gratis.',
@@ -342,14 +342,14 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
     );
   }
 
-  // Slide 4: Cromos Secretos por Sector
+  // Slide 4: Cromos secretos por Sector
   Widget _buildSlide4Cromos(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '🔑 Secret Stickers' : '🔑 Cromos Secretos',
+      imageBadge: isEn ? '🔑 Secret stickers' : '🔑 Cromos secretos',
       icon: Icons.collections_bookmark_rounded,
       gradientColors: [const Color(0xFF7C3AED), const Color(0xFF8B5CF6)],
-      title: isEn ? 'Secret Sector Stickers' : 'Álbum de Cromos por Sector',
+      title: isEn ? 'Secret sector stickers' : 'Álbum de cromos por sector',
       subtitle: isEn
           ? 'Discover secret stickers hidden in each spot to complete albums for every sector of Quito!'
           : '¡Descubre los stickers secretos ocultos en cada local y llena tu álbum por sectores de Quito!',
@@ -368,10 +368,10 @@ class _ClientOnboardingDialogState extends State<ClientOnboardingDialog> {
   Widget _buildSlide5Escaneo(bool isEn) {
     return _buildSlideTemplate(
       imageUrl: 'https://images.unsplash.com/photo-1595079672139-6274e1d74301?w=800&auto=format&fit=crop&q=80',
-      imageBadge: isEn ? '📲 Guest & Cloud Mode' : '📲 Modo Invitado y Nube',
+      imageBadge: isEn ? '📲 Guest & cloud mode' : '📲 Modo invitado y nube',
       icon: Icons.qr_code_scanner_rounded,
       gradientColors: [const Color(0xFF2563EB), const Color(0xFF3B82F6)],
-      title: isEn ? "Instant Scan & Guest Safe Mode" : '¡Todo Listo para Empezar!',
+      title: isEn ? "Instant Scan & Guest Safe Mode" : '¡Todo listo para empezar!',
       subtitle: isEn
           ? 'Scan stamps and secret stickers anytime! Even in Guest mode, your progress is saved on your device.'
           : '¡Escanea sellos y cromos en cualquier momento! Incluso como Invitado, tu progreso queda guardado en tu celular.',

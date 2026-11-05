@@ -272,6 +272,9 @@ class _AdminSolicitudesScreenState extends ConsumerState<AdminSolicitudesScreen>
                           // 3. Asignar ownerId en la hueca
                           await ref.read(huecaRepositoryProvider).assignHuecaOwner(targetHuecaId, createdUser.uid);
 
+                          // 3b. Aviso de bienvenida: la app del dueño cambia sola a su panel de negocio
+                          await ref.read(userRepositoryProvider).setBusinessWelcome(createdUser.uid, targetHuecaId, req.huecaName);
+
                           // 4. Marcar solicitud como aprobada
                           await ref.read(huecaRequestRepositoryProvider).markApproved(
                                 requestId: req.id,

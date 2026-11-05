@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/repositories/subscription_repository.dart';
-import 'package:hue_quito/repositories/user_repository.dart';
 
 void main() {
   group('SubscriptionSettings Unit Tests', () {
@@ -160,77 +158,6 @@ void main() {
       expect(info.isActive, isTrue);
       expect(info.isLocked, isFalse);
       expect(info.nextCutoffDate, isNotNull);
-    });
-  });
-
-  group('Excess Stickers & Reward Claim Unit Tests', () {
-    setUp(() {
-      SharedPreferences.setMockInitialValues({});
-    });
-
-    test('Guest claiming reward preserves excess stamps (e.g. 13 stamps - 10 target = 3 remaining)', () async {
-      final repo = UserRepository();
-
-      // Setup initial guest data with 13 stamps (8 initial + 5 received)
-      await UserRepository.saveGuestGamification({
-        'points': 130,
-        'totalStamps': 13,
-        'huecaStamps': {
-          'hueca_corvinas': 13,
-        },
-        'rewardsCount': 0,
-      });
-
-      // User claims reward for 10 stamps
-      const targetStamps = 10;
-      final remaining = await repo.claimHuecaReward(
-        uid: 'guest',
-        huecaId: 'hueca_corvinas',
-        targetStamps: targetStamps,
-        rewardText: 'Porción de corvina frita',
-      );
-
-      // Verify that instead of wiping to 0, 3 stamps remain
-      expect(remaining, equals(3));
-
-      final updated = await UserRepository.getGuestGamification();
-      final stampsMap = Map<String, dynamic>.from(updated['huecaStamps'] as Map);
-      expect(stampsMap['hueca_corvinas'], equals(3));
-      expect(updated['rewardsCount'], equals(1));
-    });
-
-    test('Multiple rewards can be claimed if surplus is large (e.g. 23 stamps)', () async {
-      final repo = UserRepository();
-
-      await UserRepository.saveGuestGamification({
-        'points': 230,
-        'totalStamps': 23,
-        'huecaStamps': {
-          'hueca_motes': 23,
-        },
-        'rewardsCount': 0,
-      });
-
-      // First claim: 23 - 10 = 13
-      final rem1 = await repo.claimHuecaReward(
-        uid: 'guest',
-        huecaId: 'hueca_motes',
-        targetStamps: 10,
-        rewardText: 'Mote gratis',
-      );
-      expect(rem1, equals(13));
-
-      // Second claim: 13 - 10 = 3
-      final rem2 = await repo.claimHuecaReward(
-        uid: 'guest',
-        huecaId: 'hueca_motes',
-        targetStamps: 10,
-        rewardText: 'Mote gratis',
-      );
-      expect(rem2, equals(3));
-
-      final updated = await UserRepository.getGuestGamification();
-      expect(updated['rewardsCount'], equals(2));
     });
   });
 }

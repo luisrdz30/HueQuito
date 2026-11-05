@@ -17,6 +17,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:hue_quito/utils/back_navigation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hue_quito/services/push_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:hue_quito/widgets/push_help_dialog.dart';
 
 class HuecaDetailScreen extends ConsumerStatefulWidget {
   final Object? hueca;
@@ -168,6 +171,7 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowNotificationsPrompt());
     _imagePageController = PageController();
     if (widget.hueca != null && widget.hueca is Hueca) {
       _currentHueca = widget.hueca as Hueca;
@@ -261,6 +265,126 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
     );
   }
 
+  Future<void> _enableNotifications(BuildContext context, String lang) async {
+    await ref.read(userRepositoryProvider).toggleNotificationSubscription(_currentHueca.id);
+    ref.invalidate(currentUserProvider);
+    if (!context.mounted) return;
+    await _registerDevice(context, lang);
+  }
+
+  /// Pide el permiso del sistema y registra este dispositivo para recibir los avisos push.
+  /// Devuelve el resultado; si está bloqueado o no disponible, explica cómo activarlo.
+  Future<PushRegistrationResult> _registerDevice(BuildContext context, String lang, {bool allowUnfollow = false}) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final result = uid != null
+        ? await PushService.instance.register(uid, askPermission: true)
+        : PushRegistrationResult.failed;
+    if (!context.mounted) return result;
+    final isEs = lang == 'es';
+
+    if (result == PushRegistrationResult.denied || result == PushRegistrationResult.unsupported) {
+      final unfollow = await showPushHelpDialog(context, result, isEs: isEs, allowUnfollow: allowUnfollow);
+      if (unfollow) {
+        await ref.read(userRepositoryProvider).toggleNotificationSubscription(_currentHueca.id);
+        ref.invalidate(currentUserProvider);
+      }
+      return result;
+    }
+
+    final enabled = result == PushRegistrationResult.enabled;
+    final String text;
+    if (enabled) {
+      text = kIsWeb
+          ? (isEs
+              ? '🔔 ¡Listo! Los avisos de ${_currentHueca.name} te llegarán a este navegador.'
+              : '🔔 Done! ${_currentHueca.name} notices will reach this browser.')
+          : (isEs
+              ? '🔔 ¡Notificaciones activadas para ${_currentHueca.name}!'
+              : '🔔 Notifications enabled for ${_currentHueca.name}!');
+    } else {
+      text = isEs
+          ? 'Sigues a ${_currentHueca.name}, pero falta aceptar el permiso de notificaciones.'
+          : 'You follow ${_currentHueca.name}, but notifications still need your permission.';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: enabled ? Colors.green : Colors.orange.shade800,
+        duration: Duration(seconds: enabled ? 3 : 8),
+        action: enabled
+            ? null
+            : SnackBarAction(
+                label: isEs ? 'Reintentar' : 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _registerDevice(context, lang),
+              ),
+      ),
+    );
+    return result;
+  }
+
+  /// La primera vez que el comensal entra a una hueca le explica para qué sirve la campana.
+  /// Sale una sola vez por hueca, y no a quien ya la sigue, a su dueño ni al administrador.
+  Future<void> _maybeShowNotificationsPrompt() async {
+    final huecaId = _currentHueca.id;
+    if (huecaId == 'error') return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'notif_prompt_seen_$huecaId';
+      if (prefs.getBool(key) ?? false) return;
+
+      final user = await ref.read(currentUserProvider.future);
+      if (user != null) {
+        final isStaff = user.role == 'admin' || user.managedHuecaId == huecaId || _currentHueca.ownerId == user.uid;
+        if (isStaff || user.subscribedHuecas.contains(huecaId)) return;
+      }
+      if (!mounted) return;
+      await prefs.setBool(key, true);
+      if (!mounted) return;
+
+      final lang = ref.read(settingsProvider).language;
+      final isEs = lang == 'es';
+      final accept = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          icon: const Icon(Icons.notifications_active, color: AppTheme.primary, size: 36),
+          title: Text(
+            isEs ? '¿Quieres enterarte de lo nuevo de ${_currentHueca.name}?' : 'Want to hear what\'s new at ${_currentHueca.name}?',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            isEs
+                ? 'Activa las alertas y te avisamos de su menú del día, promociones y novedades${kIsWeb ? ' en este navegador, aunque cierres la página. Cuando te pregunte, elige Permitir' : ' en tu celular'}. Puedes cambiarlo cuando quieras con la campana 🔔 de esta pantalla.'
+                : 'Turn on alerts and we\'ll notify you about its daily menu, promotions and news${kIsWeb ? ' in this browser, even with the page closed. When asked, choose Allow' : ' on your phone'}. You can change this anytime with the bell 🔔 on this screen.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(isEs ? 'Ahora no' : 'Not now'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(isEs ? 'Sí, activar' : 'Yes, turn on'),
+            ),
+          ],
+        ),
+      );
+      if (accept == true && mounted && AuthUtils.checkAuthAndPrompt(context)) {
+        await _enableNotifications(context, lang);
+      }
+    } catch (e) {
+      debugPrint('No se pudo mostrar la invitación a las alertas: $e');
+    }
+  }
+
   Future<void> _showNotificationSubscriptionDialog(BuildContext context, bool isSubscribed, String lang) async {
     if (!AuthUtils.checkAuthAndPrompt(context)) return;
 
@@ -294,8 +418,8 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
             children: [
               Text(
                 lang == 'es'
-                    ? 'Al activar las notificaciones de "${_currentHueca.name}", recibirás avisos de todas sus promociones, descuentos, nuevos platos y eventos directamente en tu celular.'
-                    : 'By enabling notifications for "${_currentHueca.name}", you will receive alerts about promotions, discounts, new dishes, and special events directly on your phone.',
+                    ? 'Al activar las notificaciones de "${_currentHueca.name}", recibirás avisos de todas sus promociones, descuentos, nuevos platos y eventos directamente en ${kIsWeb ? 'este navegador' : 'tu celular'}.'
+                    : 'By enabling notifications for "${_currentHueca.name}", you will receive alerts about promotions, discounts, new dishes, and special events directly on ${kIsWeb ? 'this browser' : 'your phone'}.',
                 style: const TextStyle(fontSize: 14, height: 1.35),
               ),
               const SizedBox(height: 12),
@@ -341,27 +465,17 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
         ),
       );
 
-      if (confirm == true) {
-        await ref.read(userRepositoryProvider).toggleNotificationSubscription(_currentHueca.id);
-        ref.invalidate(currentUserProvider);
-        // Pide el permiso del sistema y registra este dispositivo para recibir los avisos push
-        final uid = FirebaseAuth.instance.currentUser?.uid;
-        if (uid != null) await PushService.instance.register(uid, askPermission: true);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                lang == 'es'
-                    ? '🔔 ¡Notificaciones activadas para ${_currentHueca.name}!'
-                    : '🔔 Notifications enabled for ${_currentHueca.name}!',
-              ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
+      if (confirm == true && context.mounted) {
+        await _enableNotifications(context, lang);
       }
     } else {
+      // Ya la sigue pero este dispositivo no tiene permiso: primero se intenta recuperarlo
+      if (!await PushService.instance.canReceive()) {
+        if (!context.mounted) return;
+        final result = await _registerDevice(context, lang, allowUnfollow: true);
+        if (result != PushRegistrationResult.dismissed) return;
+      }
+      if (!context.mounted) return;
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -851,11 +965,20 @@ class _HuecaDetailScreenState extends ConsumerState<HuecaDetailScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            final Uri launchUri = Uri(
-                              scheme: 'tel',
-                              path: '0991234567',
-                            );
-                            await launchUrl(launchUri);
+                            final branches = _currentHueca.allBranches;
+                            final branchPhone = branches[_selectedBranchIndex.clamp(0, branches.length - 1)].phone.trim();
+                            final phone = branchPhone.isNotEmpty ? branchPhone : _currentHueca.phone.trim();
+                            if (phone.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(lang == 'es'
+                                      ? 'Esta hueca todavía no registró un teléfono.'
+                                      : 'This hueca has not added a phone number yet.'),
+                                ),
+                              );
+                              return;
+                            }
+                            await launchUrl(Uri(scheme: 'tel', path: phone.replaceAll(' ', '')));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: (Theme.of(context).brightness == Brightness.dark

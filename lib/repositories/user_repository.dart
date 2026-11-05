@@ -213,6 +213,23 @@ class UserRepository {
   /// - Si ya no administra nada, vuelve a 'user'.
   /// Devuelve true si el usuario debe entrar al panel de negocio.
   /// Las reglas de Firestore solo permiten estas transiciones, por eso se centraliza aquí.
+  /// ADMIN: deja un aviso de bienvenida en el perfil del nuevo dueño. Su app lo muestra
+  /// en vivo ("¡Tu hueca fue aprobada!") y lo lleva a su panel sin cerrar sesión.
+  Future<void> setBusinessWelcome(String uid, String huecaId, String huecaName) async {
+    await _db.collection('users').doc(uid).set({
+      'businessWelcome': {
+        'huecaId': huecaId,
+        'huecaName': huecaName,
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+    }, SetOptions(merge: true));
+  }
+
+  /// El dueño ya vio el aviso de bienvenida
+  Future<void> clearBusinessWelcome(String uid) async {
+    await _db.collection('users').doc(uid).update({'businessWelcome': FieldValue.delete()});
+  }
+
   Future<bool> syncBusinessRole(UserModel user) async {
     if (user.role == 'admin') return false;
     final uid = user.uid;
@@ -968,76 +985,27 @@ class UserRepository {
     }
   }
 
-  /// Canjea el premio de una hueca. Descuenta únicamente [targetStamps] requeridos,
-  /// conservando los sellos excedentes para la siguiente cartilla (ej. 13 - 10 = 3 restantes)
-  /// e incrementa el contador de recompensas del usuario.
-  Future<int> claimHuecaReward({
-    required String? uid,
-    required String huecaId,
-    required int targetStamps,
-    required String rewardText,
-  }) async {
-    final isGuest = uid == null || uid.isEmpty || uid == 'guest';
+  /// Sellos que se ganan al completar todos los cromos de una zona
+  static const int zonePrizeStamps = 4;
 
-    if (isGuest) {
-      final guestData = await getGuestGamification();
-      final huecaStamps = Map<String, dynamic>.from(guestData['huecaStamps'] ?? {});
-      final currentStamps = (huecaStamps[huecaId] as num?)?.toInt() ?? 0;
+  /// Premio de zona: suma [zonePrizeStamps] a la cartilla de una hueca de esa zona.
+  /// Se reclama una sola vez por zona. No cuenta para los sellos que la hueca entregó
+  /// (su plan gratuito) porque no salen de un QR suyo.
+  Future<void> claimZonePrize({required String uid, required String sector, required String huecaId}) async {
+    final docRef = _db.collection('users').doc(uid);
+    await _db.runTransaction((tx) async {
+      final doc = await tx.get(docRef);
+      final gamification = Map<String, dynamic>.from(doc.data()?['gamification'] ?? {});
+      final prizes = Map<String, dynamic>.from(gamification['zonePrizes'] ?? {});
+      if (prizes.containsKey(sector)) throw StateError('Ya reclamaste el premio de esta zona');
 
-      final remainingStamps = currentStamps >= targetStamps ? (currentStamps - targetStamps) : 0;
-      huecaStamps[huecaId] = remainingStamps;
-      guestData['huecaStamps'] = huecaStamps;
-
-      final rewardsCount = (guestData['rewardsCount'] as num?)?.toInt() ?? 0;
-      guestData['rewardsCount'] = rewardsCount + 1;
-
-      await saveGuestGamification(guestData);
-
-      try {
-        await _db.collection('huecas').doc(huecaId).collection('redemptions').add({
-          'userId': 'guest_local',
-          'rewardText': rewardText,
-          'stampsUsed': targetStamps,
-          'stampsRemaining': remainingStamps,
-          'date': FieldValue.serverTimestamp(),
-        });
-        await _db.collection('huecas').doc(huecaId).update({
-          'metrics.rewardsRedeemed': FieldValue.increment(1),
-        });
-      } catch (_) {}
-
-      return remainingStamps;
-    } else {
-      final docRef = _db.collection('users').doc(uid);
-      final doc = await docRef.get();
-      final userData = doc.data() ?? {};
-      final gamification = Map<String, dynamic>.from(userData['gamification'] ?? {});
-      final huecaStamps = Map<String, dynamic>.from(gamification['huecaStamps'] ?? {});
-      final currentStamps = (huecaStamps[huecaId] as num?)?.toInt() ?? 0;
-
-      final remainingStamps = currentStamps >= targetStamps ? (currentStamps - targetStamps) : 0;
-      huecaStamps[huecaId] = remainingStamps;
-      gamification['huecaStamps'] = huecaStamps;
-
-      final rewardsCount = (gamification['rewardsCount'] as num?)?.toInt() ?? 0;
-      gamification['rewardsCount'] = rewardsCount + 1;
-
-      await docRef.update({'gamification': gamification});
-
-      try {
-        await _db.collection('huecas').doc(huecaId).collection('redemptions').add({
-          'userId': uid,
-          'rewardText': rewardText,
-          'stampsUsed': targetStamps,
-          'stampsRemaining': remainingStamps,
-          'date': FieldValue.serverTimestamp(),
-        });
-        await _db.collection('huecas').doc(huecaId).update({
-          'metrics.rewardsRedeemed': FieldValue.increment(1),
-        });
-      } catch (_) {}
-
-      return remainingStamps;
-    }
+      final stamps = Map<String, dynamic>.from(gamification['huecaStamps'] ?? {});
+      stamps[huecaId] = ((stamps[huecaId] as num?)?.toInt() ?? 0) + zonePrizeStamps;
+      prizes[sector] = {'huecaId': huecaId, 'claimedAt': Timestamp.now()};
+      gamification['huecaStamps'] = stamps;
+      gamification['zonePrizes'] = prizes;
+      tx.update(docRef, {'gamification': gamification});
+    });
   }
+
 }

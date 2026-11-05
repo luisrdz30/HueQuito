@@ -143,6 +143,20 @@ class FaqScreen extends ConsumerWidget {
             ],
           ),
           ExpansionTile(
+            title: Text(isEn ? 'How do I get notifications without the app?' : '¿Cómo recibo notificaciones sin instalar la app?'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  isEn
+                      ? 'You can also get them on the web. Open a hueca, tap the bell 🔔 and choose Allow when your browser asks. It works in Chrome, Edge and Firefox, even with the page closed.\n\nOn iPhone, first open this page in Safari, tap Share and choose "Add to Home Screen". Then open HueQuito from that icon and tap the bell.\n\nIf you blocked them by mistake, tap the lock next to the page address, allow Notifications and reload the page.'
+                      : 'También te llegan por la web. Entra a una hueca, toca la campana 🔔 y elige Permitir cuando tu navegador pregunte. Funciona en Chrome, Edge y Firefox, aunque cierres la página.\n\nEn iPhone, primero abre esta página en Safari, toca Compartir y elige "Agregar a inicio". Luego abre HueQuito desde ese ícono y toca la campana.\n\nSi las bloqueaste sin querer, toca el candado junto a la dirección de la página, permite las Notificaciones y recarga la página.',
+                  style: const TextStyle(height: 1.4),
+                ),
+              ),
+            ],
+          ),
+          ExpansionTile(
             title: Text(isEn ? 'How do I register my own hueca or business?' : '¿Cómo registro mi propia hueca o negocio?'),
             children: [
               Padding(

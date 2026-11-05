@@ -99,9 +99,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verificar Slide 0 (Descubre Huecas)
-      expect(find.text('Guía del Comensal'), findsOneWidget);
+      expect(find.text('Guía del comensal'), findsOneWidget);
       expect(find.text('Paso 1 de 6'), findsOneWidget);
-      expect(find.text('Descubre las Mejores Huecas'), findsOneWidget);
+      expect(find.text('Descubre las mejores huecas'), findsOneWidget);
       expect(find.text('Saltar'), findsOneWidget);
 
       // Avanzar al Slide 1 (Mapa Interactivo)
@@ -109,7 +109,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Paso 2 de 6'), findsOneWidget);
-      expect(find.text('Mapa Interactivo en Vivo'), findsOneWidget);
+      expect(find.text('Mapa interactivo en vivo'), findsOneWidget);
       expect(find.text('Atrás'), findsOneWidget);
 
       // Avanzar al Slide 2 (Rutas)
@@ -117,29 +117,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Paso 3 de 6'), findsOneWidget);
-      expect(find.text('Rutas Culinarias Guiadas'), findsOneWidget);
+      expect(find.text('Rutas culinarias guiadas'), findsOneWidget);
 
       // Avanzar al Slide 3 (Sellos)
       await tester.tap(find.text('Siguiente'));
       await tester.pumpAndSettle();
 
       expect(find.text('Paso 4 de 6'), findsOneWidget);
-      expect(find.text('Cartilla Digital de Sellos'), findsOneWidget);
+      expect(find.text('Cartilla digital de sellos'), findsOneWidget);
 
       // Avanzar al Slide 4 (Cromos)
       await tester.tap(find.text('Siguiente'));
       await tester.pumpAndSettle();
 
       expect(find.text('Paso 5 de 6'), findsOneWidget);
-      expect(find.text('Álbum de Cromos por Sector'), findsOneWidget);
+      expect(find.text('Álbum de cromos por sector'), findsOneWidget);
 
       // Avanzar al Slide 5 (Escaneo y final)
       await tester.tap(find.text('Siguiente'));
       await tester.pumpAndSettle();
 
       expect(find.text('Paso 6 de 6'), findsOneWidget);
-      expect(find.text('¡Todo Listo para Empezar!'), findsOneWidget);
-      expect(find.text('¡A Comer!'), findsOneWidget);
+      expect(find.text('¡Todo listo para empezar!'), findsOneWidget);
+      expect(find.text('¡A comer!'), findsOneWidget);
     });
 
     testWidgets('ClientOnboardingDialog Skip button marks tutorial as seen', (tester) async {
@@ -166,7 +166,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Dialog closed
-      expect(find.text('Descubre las Mejores Huecas'), findsNothing);
+      expect(find.text('Descubre las mejores huecas'), findsNothing);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('has_seen_client_tutorial'), isTrue);
@@ -211,8 +211,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Dialog is displayed
-      expect(find.text('Guía del Comensal'), findsOneWidget);
-      expect(find.text('Descubre las Mejores Huecas'), findsOneWidget);
+      expect(find.text('Guía del comensal'), findsOneWidget);
+      expect(find.text('Descubre las mejores huecas'), findsOneWidget);
     });
 
     test('Guest gamification save and get works via SharedPreferences', () async {

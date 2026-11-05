@@ -123,6 +123,103 @@ exports.publicarAviso = onDocumentCreated('notifications/{id}', async (event) =>
   }
 });
 
+/**
+ * El negocio confirmó la entrega de un premio: vuelve a validar el QR y, en una sola
+ * transacción, descuenta los sellos del comensal, registra el canje e invalida el QR.
+ * Los sellos y el premio se leen de la hueca, no de lo que envió la app.
+ */
+exports.canjearPremio = onDocumentUpdated('reward_claims/{id}', async (event) => {
+  const antes = event.data?.before.data();
+  const despues = event.data?.after.data();
+  if (!antes || !despues || antes.status !== 'pending' || despues.status !== 'confirming') return;
+
+  const claimRef = event.data.after.ref;
+  await db.runTransaction(async (tx) => {
+    const claimSnap = await tx.get(claimRef);
+    const claim = claimSnap.data();
+    if (!claim || claim.status !== 'confirming') return;
+
+    const rechazar = (motivo) => tx.update(claimRef, {
+      status: 'rejected',
+      rejectionReason: motivo,
+      rejectedAt: FieldValue.serverTimestamp(),
+    });
+
+    const huecaRef = db.collection('huecas').doc(claim.huecaId);
+    const userRef = db.collection('users').doc(claim.userId);
+    const [huecaSnap, userSnap] = await Promise.all([tx.get(huecaRef), tx.get(userRef)]);
+    if (!huecaSnap.exists || !userSnap.exists) return rechazar('No se encontró la hueca o el cliente.');
+
+    const creado = claim.createdAt ? claim.createdAt.toMillis() : 0;
+    if (Date.now() > creado + 10 * 60 * 1000) return rechazar('Este QR venció. Genera uno nuevo.');
+    if (claim.confirmedBy === claim.userId) return rechazar('No puedes canjear tu propio premio.');
+
+    const tarjeta = huecaSnap.get('loyaltyCard') || {};
+    const requeridos = Number(tarjeta.maxStamps ?? tarjeta.targetStamps ?? 5);
+    const gamification = { ...(userSnap.get('gamification') || {}) };
+    const sellos = { ...(gamification.huecaStamps || {}) };
+    const actuales = Number(sellos[claim.huecaId] || 0);
+    if (actuales < requeridos) {
+      return rechazar(`Faltan sellos: tiene ${actuales} de ${requeridos}.`);
+    }
+
+    const restantes = actuales - requeridos;
+    sellos[claim.huecaId] = restantes;
+    gamification.huecaStamps = sellos;
+    gamification.rewardsCount = Number(gamification.rewardsCount || 0) + 1;
+    tx.update(userRef, { gamification });
+    tx.update(huecaRef, { 'metrics.rewardsRedeemed': FieldValue.increment(1) });
+    tx.set(huecaRef.collection('redemptions').doc(claimRef.id), {
+      userId: claim.userId,
+      rewardText: claim.rewardText || '',
+      stampsUsed: requeridos,
+      stampsRemaining: restantes,
+      confirmedBy: claim.confirmedBy || null,
+      date: FieldValue.serverTimestamp(),
+    });
+    tx.update(claimRef, {
+      status: 'redeemed',
+      stampsRequired: requeridos,
+      stampsRemaining: restantes,
+      redeemedAt: FieldValue.serverTimestamp(),
+    });
+  });
+});
+
+/** Avisa por push al dueño cuando el admin aprueba la solicitud de su hueca. */
+exports.avisarHuecaAprobada = onDocumentUpdated('hueca_requests/{id}', async (event) => {
+  const antes = event.data?.before.data();
+  const despues = event.data?.after.data();
+  if (!antes || !despues || antes.status === 'approved' || despues.status !== 'approved') return;
+  if (!despues.createdHuecaId) return;
+
+  // Le llega solo a quien hizo la solicitud. Si la envió sin cuenta (anon_...), al dueño asignado.
+  let destinatario = despues.requestedBy;
+  if (!destinatario || destinatario.startsWith('anon_')) {
+    const hueca = await db.collection('huecas').doc(despues.createdHuecaId).get();
+    destinatario = hueca.exists ? hueca.get('ownerId') : null;
+  }
+  if (!destinatario) return;
+  const usuario = await db.collection('users').doc(destinatario).get();
+  const tokens = (usuario.exists && usuario.get('fcmTokens')) || [];
+  if (tokens.length === 0) {
+    logger.info(`Solicitud ${event.params.id}: el solicitante no tiene dispositivos registrados para push`);
+    return;
+  }
+
+  const res = await getMessaging().sendEachForMulticast({
+    tokens,
+    notification: {
+      title: '¡Tu hueca fue aprobada! 🎉',
+      body: `${despues.huecaName || 'Tu hueca'} ya está en HueQuito. Entra y configúrala.`,
+    },
+    data: { type: 'hueca_aprobada', huecaId: despues.createdHuecaId },
+    android: { priority: 'high', notification: { channelId: 'huequito_promotions' } },
+    webpush: { fcmOptions: { link: `${APP_URL}/#/business/dashboard` } },
+  });
+  logger.info(`Solicitud ${event.params.id}: push enviado a ${res.successCount}/${tokens.length} dispositivos`);
+});
+
 /** Respaldo: si el admin aprueba a mano un aviso pendiente, también se envía. */
 exports.enviarAvisoAprobado = onDocumentUpdated('notifications/{id}', async (event) => {
   const antes = event.data?.before.data();

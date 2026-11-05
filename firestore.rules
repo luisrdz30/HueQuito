@@ -181,7 +181,7 @@ service cloud.firestore {
       }
 
       match /redemptions/{redemptionId} {
-        allow create: if true; // Canje de premio (también en modo invitado)
+        allow create: if false; // Solo la Cloud Function canjearPremio registra canjes
         allow read: if isAdmin() || isHuecaStaff(huecaId);
         allow delete: if isAdmin();
       }
@@ -348,6 +348,30 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/issued_qr_tokens/$(token)).data.points == request.resource.data.points
         && request.time < get(/databases/$(database)/documents/issued_qr_tokens/$(token)).data.createdAt + duration.value(10, 'm');
       allow update, delete: if isAdmin();
+    }
+
+    // Canje de premios con QR: lo crea el comensal, lo confirma el negocio y la Cloud
+    // Function canjearPremio descuenta los sellos. Vence a los 10 minutos.
+    match /reward_claims/{claimId} {
+      allow read: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid || isHuecaStaff(resource.data.huecaId) || isAdmin());
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAuthenticated() && resource.data.status == 'pending' && (
+        // El comensal lo invalida si sale de la pantalla
+        (resource.data.userId == request.auth.uid
+          && request.resource.data.status == 'cancelled'
+          && changedKeys().hasOnly(['status'])) ||
+        // El negocio confirma la entrega antes de que venza
+        (isHuecaStaff(resource.data.huecaId)
+          && request.resource.data.status == 'confirming'
+          && request.resource.data.confirmedBy == request.auth.uid
+          && request.resource.data.confirmedAt == request.time
+          && request.time < resource.data.createdAt + duration.value(10, 'm')
+          && changedKeys().hasOnly(['status', 'confirmedBy', 'confirmedAt']))
+      );
     }
 
     // =====================================================================

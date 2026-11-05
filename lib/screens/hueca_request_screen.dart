@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hue_quito/services/push_service.dart';
 import 'package:hue_quito/repositories/subscription_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -135,6 +136,11 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
             requestedBy: userId,
           );
 
+      // Pide permiso de notificaciones para avisarle cuando aprueben su hueca
+      if (!userId.startsWith('anon_')) {
+        await PushService.instance.register(userId, askPermission: true);
+      }
+
       if (mounted) {
         _showSuccessDialog();
       }
@@ -188,8 +194,8 @@ class _HuecaRequestScreenState extends ConsumerState<HuecaRequestScreen> {
           children: [
             Text(
               isEn
-                  ? 'Thank you for wanting to be part of the HueQuito family!\n\nWe have received the request to register "${_nameController.text.trim()}". Our admin team will verify the details and notify you by email (${_ownerEmailController.text.trim()}) to activate your business account.'
-                  : '¡Gracias por querer formar parte de la familia HueQuito!\n\nHemos recibido la solicitud para registrar "${_nameController.text.trim()}". Nuestro equipo administrativo verificará los datos y te notificará a tu correo (${_ownerEmailController.text.trim()}) para habilitar tu cuenta de negocio.',
+                  ? 'Thank you for wanting to be part of the HueQuito family!\n\nWe have received the request to register "${_nameController.text.trim()}". Our admin team will verify the details${FirebaseAuth.instance.currentUser != null ? ' and you\'ll get a notification on this device as soon as it\'s approved.' : ' and notify you by email (${_ownerEmailController.text.trim()}) to activate your business account.'}'
+                  : '¡Gracias por querer formar parte de la familia HueQuito!\n\nHemos recibido la solicitud para registrar "${_nameController.text.trim()}". Nuestro equipo administrativo verificará los datos${FirebaseAuth.instance.currentUser != null ? ' y te llegará una notificación a este dispositivo apenas sea aprobada.' : ' y te notificará a tu correo (${_ownerEmailController.text.trim()}) para habilitar tu cuenta de negocio.'}',
               style: const TextStyle(fontSize: 14, height: 1.4),
             ),
             const SizedBox(height: 14),

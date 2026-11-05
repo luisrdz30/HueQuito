@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/widgets/brand_logo.dart';
 import 'package:hue_quito/providers/data_provider.dart';
@@ -299,6 +300,9 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : AppTheme.textMedium),
                     ),
+                    const SizedBox(height: 24),
+                    // Los premios que los clientes ya ganaron se siguen entregando
+                    _buildRedeemButton(),
                   ],
                 ),
               ),
@@ -526,7 +530,9 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
                             _buildControlButton(Icons.add, _increment, isDark),
                           ],
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 28),
+                        _buildRedeemButton(),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -537,6 +543,24 @@ class _BusinessQrScreenState extends ConsumerState<BusinessQrScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
         error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+      ),
+    );
+  }
+
+  /// Escanea el QR de premio del comensal
+  Widget _buildRedeemButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton.icon(
+        onPressed: () => context.push('/business/redeem'),
+        icon: const Icon(Icons.card_giftcard),
+        label: const Text('Canjear premio de un cliente', style: TextStyle(fontWeight: FontWeight.bold)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppTheme.primary,
+          side: const BorderSide(color: AppTheme.primary, width: 1.4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
       ),
     );
   }

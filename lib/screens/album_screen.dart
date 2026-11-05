@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hue_quito/theme/theme.dart';
 import 'package:hue_quito/providers/data_provider.dart';
+import 'package:hue_quito/screens/reward_qr_screen.dart';
+import 'package:hue_quito/utils/auth_utils.dart';
 
 class AlbumScreen extends ConsumerStatefulWidget {
   const AlbumScreen({super.key});
@@ -736,7 +738,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                       width: double.infinity,
                       height: 44,
                       child: ElevatedButton.icon(
-                        onPressed: () => _showClaimRewardDialog(
+                        onPressed: () {
+                          if (!AuthUtils.checkAuthAndPrompt(context)) return;
+                          _showClaimRewardDialog(
                           hueca: hueca,
                           user: user,
                           isGuest: isGuest,
@@ -746,10 +750,11 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           reward: reward,
                           rewardImageUrl: rewardImageUrl,
                           lang: lang,
-                        ),
+                        );
+                        },
                         icon: const Icon(Icons.celebration, size: 18),
                         label: Text(
-                          lang == 'es' ? 'Reclamar Premio' : 'Claim Reward',
+                          lang == 'es' ? 'Reclamar premio' : 'Claim reward',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -792,7 +797,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                lang == 'es' ? '¡Reclamar Premio!' : 'Claim Reward!',
+                lang == 'es' ? '¡Reclamar premio!' : 'Claim Reward!',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
@@ -865,13 +870,13 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   const SizedBox(height: 4),
                   Text(
                     lang == 'es'
-                        ? '• Sellos canjeados: $targetStamps sellos'
+                        ? '• Sellos a canjear: $targetStamps'
                         : '• Redeemed stamps: $targetStamps stamps',
                     style: TextStyle(fontSize: 11.5, color: Colors.green.shade900),
                   ),
                   Text(
                     lang == 'es'
-                        ? '• Sellos que conservas: $extraStamps sellos'
+                        ? '• Sellos que conservas: $extraStamps'
                         : '• Retained stamps: $extraStamps stamps',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Colors.green.shade900),
                   ),
@@ -881,8 +886,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
             const SizedBox(height: 10),
             Text(
               lang == 'es'
-                  ? 'Muestra esta confirmación al personal del local para recibir tu beneficio.'
-                  : 'Show this confirmation to the local staff to receive your benefit.',
+                  ? 'Te mostraremos un QR para que el local lo escanee. Los sellos se descuentan solo cuando te entreguen el premio.'
+                  : 'We\'ll show you a QR for the place to scan. Stamps are deducted only when you get your reward.',
               style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],
@@ -899,88 +904,24 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text(lang == 'es' ? 'Confirmar Canje' : 'Confirm Claim'),
+            child: Text(lang == 'es' ? 'Generar QR' : 'Create QR'),
           ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      final userRepo = ref.read(userRepositoryProvider);
-      final remaining = await userRepo.claimHuecaReward(
-        uid: isGuest ? 'guest' : user.uid,
-        huecaId: hueca.id,
-        targetStamps: targetStamps,
-        rewardText: reward,
-      );
-
-      if (isGuest) {
-        await _loadGuestGamification();
-      } else {
-        ref.invalidate(currentUserProvider);
-      }
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 64),
-                const SizedBox(height: 12),
-                Text(
-                  lang == 'es' ? '¡Premio Reclamado con Éxito!' : 'Reward Successfully Claimed!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  lang == 'es'
-                      ? 'Presenta esta pantalla a ${hueca.name} para disfrutar de tu: $reward.'
-                      : 'Show this screen at ${hueca.name} to enjoy your: $reward.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13),
-                ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.amber.shade300),
-                  ),
-                  child: Text(
-                    lang == 'es'
-                        ? '⭐ Tu siguiente cartilla ya tiene $remaining ${remaining == 1 ? "sello" : "sellos"} acumulados.'
-                        : '⭐ Your next card already has $remaining ${remaining == 1 ? "stamp" : "stamps"} accumulated.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: Colors.amber.shade900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Text(lang == 'es' ? '¡Listo!' : 'Done!'),
-                ),
-              ),
-            ],
-          ),
-        );
-      }
+      // Los sellos se descuentan cuando el negocio escanea el QR y confirma la entrega
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => RewardQrScreen(
+          hueca: hueca,
+          user: user,
+          reward: reward,
+          targetStamps: targetStamps,
+          lang: lang,
+        ),
+      ));
+      if (mounted) ref.invalidate(currentUserProvider);
     }
   }
 
@@ -1269,10 +1210,120 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                 valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppTheme.accentGreen : AppTheme.primary),
               ),
             ),
+            if (isCompleted && !isGuest) ...[
+              const SizedBox(height: 12),
+              _buildZonePrize(lang: lang, sectorName: sectorName, huecas: huecasInSector, user: user),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  /// Premio por completar la zona: botón para reclamarlo o a qué hueca se le asignó
+  Widget _buildZonePrize({
+    required String lang,
+    required String sectorName,
+    required List<Hueca> huecas,
+    required UserModel user,
+  }) {
+    final isEs = lang == 'es';
+    final prizes = user.gamification['zonePrizes'];
+    final claimed = prizes is Map ? prizes[sectorName] : null;
+    if (claimed is Map) {
+      final hueca = huecas.where((h) => h.id == claimed['huecaId']).firstOrNull;
+      return Row(
+        children: [
+          const Icon(Icons.card_giftcard, color: AppTheme.accentGreen, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              isEs
+                  ? 'Premio reclamado: ${UserRepository.zonePrizeStamps} sellos en ${hueca?.name ?? 'tu hueca'}'
+                  : 'Prize claimed: ${UserRepository.zonePrizeStamps} stamps at ${hueca?.name ?? 'your hueca'}',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.accentGreen,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        icon: const Icon(Icons.card_giftcard, size: 18),
+        label: Text(isEs
+            ? 'Reclamar ${UserRepository.zonePrizeStamps} sellos de premio'
+            : 'Claim ${UserRepository.zonePrizeStamps} prize stamps'),
+        onPressed: () => _chooseZonePrizeHueca(lang: lang, sectorName: sectorName, huecas: huecas, user: user),
+      ),
+    );
+  }
+
+  Future<void> _chooseZonePrizeHueca({
+    required String lang,
+    required String sectorName,
+    required List<Hueca> huecas,
+    required UserModel user,
+  }) async {
+    final isEs = lang == 'es';
+    final hueca = await showModalBottomSheet<Hueca>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.7),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Text(
+                  isEs
+                      ? '¡Completaste $sectorName! ¿En qué hueca quieres tus ${UserRepository.zonePrizeStamps} sellos?'
+                      : 'You completed $sectorName! Which hueca gets your ${UserRepository.zonePrizeStamps} stamps?',
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: huecas
+                      .map((h) => ListTile(
+                            leading: const Icon(Icons.storefront, color: AppTheme.primary),
+                            title: Text(h.name),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.pop(ctx, h),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (hueca == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(userRepositoryProvider).claimZonePrize(uid: user.uid, sector: sectorName, huecaId: hueca.id);
+      ref.invalidate(currentUserProvider);
+      messenger.showSnackBar(SnackBar(
+        content: Text(isEs
+            ? '🎉 ¡${UserRepository.zonePrizeStamps} sellos agregados a tu cartilla de ${hueca.name}!'
+            : '🎉 ${UserRepository.zonePrizeStamps} stamps added to your ${hueca.name} card!'),
+        backgroundColor: AppTheme.accentGreen,
+      ));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(isEs ? 'No se pudo reclamar el premio: $e' : 'Could not claim the prize: $e'),
+        backgroundColor: Colors.redAccent,
+      ));
+    }
   }
 
   void _showSectorStickersModal({

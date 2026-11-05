@@ -80,38 +80,38 @@ void main() {
     // Navegar al Slide 1 (Perfil)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aca pones todo sobre tu negocio'), findsOneWidget);
-    expect(find.text('Ir a Perfil'), findsOneWidget);
+    expect(find.text('Acá pones todo sobre tu negocio'), findsOneWidget);
+    expect(find.text('Ir a perfil'), findsOneWidget);
 
     // Navegar al Slide 2 (Menú con IA)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aca gestionas tu menú con IA'), findsOneWidget);
-    expect(find.text('Ir a Menú con IA'), findsOneWidget);
+    expect(find.text('Acá gestionas tu menú con IA'), findsOneWidget);
+    expect(find.text('Ir a menú con IA'), findsOneWidget);
 
     // Navegar al Slide 3 (Mi QR)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aca entregas sellos y puntos con QR'), findsOneWidget);
+    expect(find.text('Acá entregas sellos y puntos con QR'), findsOneWidget);
     expect(find.text('Ver Mi QR'), findsOneWidget);
 
-    // Navegar al Slide 4 (Plan Gratuito y Suscripción)
+    // Navegar al Slide 4 (Plan gratuito y suscripción)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Plan Gratuito y Suscripción'), findsOneWidget);
-    expect(find.text('Ver Plan y Pagos'), findsOneWidget);
+    expect(find.text('Plan gratuito y suscripción'), findsOneWidget);
+    expect(find.text('Ver plan y pagos'), findsOneWidget);
 
     // Navegar al Slide 5 (Avisos)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aca pides notificaciones y avisos'), findsOneWidget);
-    expect(find.text('Ir a Avisos'), findsOneWidget);
+    expect(find.text('Acá publicas tus avisos'), findsOneWidget);
+    expect(find.text('Ir a avisos'), findsOneWidget);
 
     // Navegar al Slide 6 (Dashboard y Métricas)
     await tester.tap(find.text('Siguiente'));
     await tester.pumpAndSettle();
-    expect(find.text('Aqui estan tus dashboards y métricas'), findsOneWidget);
-    expect(find.text('¡Comenzar a Configurar!'), findsOneWidget);
+    expect(find.text('Aquí están tus métricas'), findsOneWidget);
+    expect(find.text('¡Comenzar a configurar!'), findsOneWidget);
   });
 
   testWidgets('AdminHuecaEditScreen displays streamlined basic fields for new hueca', (tester) async {

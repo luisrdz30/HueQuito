@@ -637,7 +637,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         : 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
+    // Toda la tarjeta abre la hueca; los botones de adentro siguen con su propia acción
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => context.push('/hueca_detail', extra: hueca),
+      child: Container(
       width: width,
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -995,6 +999,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

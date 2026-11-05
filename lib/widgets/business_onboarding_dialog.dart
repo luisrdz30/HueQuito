@@ -108,7 +108,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Guía de tu Negocio',
+                          'Guía de tu negocio',
                           style: TextStyle(
                             color: Colors.blueGrey.shade900,
                             fontWeight: FontWeight.bold,
@@ -126,7 +126,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.blueGrey),
-                    tooltip: 'Cerrar Guía',
+                    tooltip: 'Cerrar guía',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -300,7 +300,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
             ),
           ),
           const SizedBox(height: 14),
-          _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, fotos reales y Sticker Secreto imprimible'),
+          _buildFeatureCheckItem(Icons.store, 'Pestaña Perfil: Horarios, fotos reales y sticker secreto imprimible'),
           _buildFeatureCheckItem(Icons.restaurant_menu, 'Pestaña Menú: Digitalización asistida por IA'),
           _buildFeatureCheckItem(Icons.qr_code, 'Pestaña Mi QR: Otorga puntos y sellos con QR dinámico antifraude'),
           _buildFeatureCheckItem(Icons.card_membership, 'Plan Gratuito: Tus primeros ${widget.settings.freeTierMaxStamps} sellos entregados son 100% gratis'),
@@ -342,8 +342,8 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '1',
       tabName: 'Perfil',
       tabIcon: Icons.store,
-      title: 'Aca pones todo sobre tu negocio',
-      subtitle: 'Fotos de tu local, horarios, teléfonos y tu Sticker Secreto',
+      title: 'Acá pones todo sobre tu negocio',
+      subtitle: 'Fotos de tu local, horarios, teléfonos y tu sticker secreto',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -383,13 +383,13 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
             const SizedBox(height: 8),
             _buildMockField(Icons.location_on, 'Dirección: ${widget.hueca.address}'),
             _buildMockField(Icons.access_time, 'Horarios: Lun-Dom 08:00 - 18:00'),
-            _buildMockField(Icons.stars, 'Sticker Secreto: Descárgalo e imprímelo aquí'),
+            _buildMockField(Icons.stars, 'Sticker secreto: descárgalo e imprímelo aquí'),
           ],
         ),
       ),
       description:
-          'En la pestaña "Perfil" personalizas la identidad de tu hueca: teléfonos de pedidos, horarios de atención y fotos de tu local. Además, aquí configuras y descargas tu Sticker Secreto oficial para imprimirlo y colocarlo físicamente en tu local.',
-      actionLabel: 'Ir a Perfil',
+          'En la pestaña "Perfil" personalizas la identidad de tu hueca: teléfonos de pedidos, horarios de atención y fotos de tu local. Además, aquí configuras y descargas tu sticker secreto oficial para imprimirlo y colocarlo físicamente en tu local.',
+      actionLabel: 'Ir a perfil',
       onAction: () {
         Navigator.of(context).pop();
         context.go('/business/profile');
@@ -403,7 +403,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '2',
       tabName: 'Menú',
       tabIcon: Icons.restaurant_menu,
-      title: 'Aca gestionas tu menú con IA',
+      title: 'Acá gestionas tu menú con IA',
       subtitle: 'Foto a tu carta física y transcripción inteligente',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
@@ -428,7 +428,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                   Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
                   SizedBox(width: 6),
                   Text(
-                    'Escanear Carta con IA ✨',
+                    'Escanear carta con IA ✨',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                 ],
@@ -450,7 +450,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Plato Insignia • \$5.50', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                        Text('Plato insignia • \$5.50', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                         Text('Traducido automáticamente al inglés 🇺🇸', style: TextStyle(color: Colors.blueGrey, fontSize: 10)),
                       ],
                     ),
@@ -463,7 +463,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       ),
       description:
           '¡Olvídate de escribir plato por plato! En la pestaña "Menú" toma una foto clara de tu menú físico o pizarra y la Inteligencia Artificial transcribirá tus platos, precios e ingredientes, traduciéndolos al inglés para los visitantes.',
-      actionLabel: 'Ir a Menú con IA',
+      actionLabel: 'Ir a menú con IA',
       onAction: () {
         Navigator.of(context).pop();
         context.go('/business/menu');
@@ -477,7 +477,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '3',
       tabName: 'Mi QR',
       tabIcon: Icons.qr_code,
-      title: 'Aca entregas sellos y puntos con QR',
+      title: 'Acá entregas sellos y puntos con QR',
       subtitle: 'Elige los sellos a dar con un QR dinámico que se regenera',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
@@ -494,7 +494,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                 const SizedBox(width: 6),
                 const Expanded(
                   child: Text(
-                    'Mi QR de Caja',
+                    'Mi QR de caja',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -578,7 +578,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
         ),
       ),
       description:
-          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros ${widget.settings.freeTierMaxStamps} sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial!',
+          'En "Mi QR" entregas sellos y puntos de fidelidad a tus comensales por su consumo. Puedes seleccionar cuántos sellos otorgar (1, 2, 3...) y el código se regenera automáticamente cada 30 segundos para evitar capturas. ¡Tus primeros ${widget.settings.freeTierMaxStamps} sellos son 100% gratuitos para que impulses tu negocio sin ningún costo inicial! Cuando un cliente complete su cartilla, escanea su QR de premio desde esta misma pestaña.',
       actionLabel: 'Ver Mi QR',
       onAction: () {
         Navigator.of(context).pop();
@@ -587,13 +587,13 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
     );
   }
 
-  // SLIDE 4: Pestaña Plan Gratuito y Suscripción
+  // SLIDE 4: Pestaña Plan gratuito y suscripción
   Widget _buildSubscriptionSlide() {
     return _buildStepSlide(
       stepNumber: '4',
       tabName: 'Suscripción',
       tabIcon: Icons.card_membership,
-      title: 'Plan Gratuito y Suscripción',
+      title: 'Plan gratuito y suscripción',
       subtitle: 'Comienza 100% gratis y escala según tu crecimiento',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
@@ -642,8 +642,8 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Meta Gratuita', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
-                        Text('${widget.settings.freeTierMaxStamps} Sellos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                        const Text('Meta gratuita', style: TextStyle(fontSize: 10, color: Colors.blueGrey)),
+                        Text('${widget.settings.freeTierMaxStamps} sellos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
                         Text('Sin costo inicial', style: TextStyle(fontSize: 9.5, color: Colors.green.shade700, fontWeight: FontWeight.w600)),
                       ],
                     ),
@@ -696,7 +696,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       ),
       description:
           '¡Queremos que pruebes HueQuito sin riesgo! Tus primeros ${widget.settings.freeTierMaxStamps} sellos entregados a tus comensales son 100% gratuitos. Al alcanzar los ${widget.settings.freeTierMaxStamps} sellos, se activará la suscripción mensual de \$${widget.settings.monthlyPrice.toStringAsFixed(2)}/mes con ${widget.settings.gracePeriodDays} días de gracia para que sigas fidelizando clientes sin interrupciones. Podrás transferir fácilmente a nuestra cuenta de ${widget.settings.bankName} y subir la foto del comprobante directamente desde tu panel para su verificación en 24-48 horas.',
-      actionLabel: 'Ver Plan y Pagos',
+      actionLabel: 'Ver plan y pagos',
       onAction: () {
         Navigator.of(context).pop();
         context.go('/business/dashboard');
@@ -710,7 +710,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '5',
       tabName: 'Avisos',
       tabIcon: Icons.campaign,
-      title: 'Aca pides notificaciones y avisos',
+      title: 'Acá publicas tus avisos',
       subtitle: 'Comunica promociones y platos del día a tus comensales',
       mockupWidget: Container(
         padding: const EdgeInsets.all(12),
@@ -736,7 +736,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('¡Hoy Fritada Especial 2x1!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF78350F))),
+                        Text('¡Hoy fritada especial 2x1!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF78350F))),
                         Text('Enviado a los comensales que te tienen en favoritos', style: TextStyle(color: Color(0xFF92400E), fontSize: 10)),
                       ],
                     ),
@@ -764,7 +764,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       ),
       description:
           'En la pestaña "Avisos" puedes redactar avisos sobre promociones, platos de fin de semana o eventos. Tu solicitud pasa por una rápida revisión del administrador para asegurar la calidad antes de ser enviada a los teléfonos de tus clientes.',
-      actionLabel: 'Ir a Avisos',
+      actionLabel: 'Ir a avisos',
       onAction: () {
         Navigator.of(context).pop();
         context.go('/business/notifications');
@@ -778,7 +778,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       stepNumber: '6',
       tabName: 'Dashboard',
       tabIcon: Icons.bar_chart,
-      title: 'Aqui estan tus dashboards y métricas',
+      title: 'Aquí están tus métricas',
       subtitle: 'Monitorea el impacto de tu hueca en tiempo real',
       mockupWidget: Container(
         padding: const EdgeInsets.all(10),
@@ -793,7 +793,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
             const SizedBox(width: 8),
             Expanded(child: _buildMetricTile('Favoritos', '84', Icons.favorite, Colors.red)),
             const SizedBox(width: 8),
-            Expanded(child: _buildMetricTile('En Rutas', '3', Icons.alt_route, Colors.teal)),
+            Expanded(child: _buildMetricTile('En rutas', '3', Icons.alt_route, Colors.teal)),
             const SizedBox(width: 8),
             Expanded(child: _buildMetricTile('Sellos', '45', Icons.stars, Colors.amber)),
           ],
@@ -801,7 +801,7 @@ class _BusinessOnboardingDialogState extends State<BusinessOnboardingDialog> {
       ),
       description:
           'En este "Dashboard" revisas tus métricas reales: cuántas personas han visto tu ficha, cuántos comensales te han marcado como favorito, en cuántas rutas gastronómicas de Quito estás y el estado de tu Plan Gratuito con tus días y sellos disponibles.',
-      actionLabel: '¡Comenzar a Configurar!',
+      actionLabel: '¡Comenzar a configurar!',
       onAction: () {
         Navigator.of(context).pop();
         context.go('/business/profile');

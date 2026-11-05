@@ -13,6 +13,8 @@ import 'package:hue_quito/providers/data_provider.dart';
 import 'package:hue_quito/services/ai_generation_service.dart';
 import 'package:hue_quito/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hue_quito/services/push_service.dart';
+import 'package:hue_quito/widgets/push_help_dialog.dart';
 
 void main() {
   group('Notification System - Model & Serialization Tests', () {
@@ -280,6 +282,65 @@ void main() {
       expect(find.byIcon(Icons.notifications_active), findsWidgets);
       expect(find.text('Alertas'), findsOneWidget);
     });
+    Future<void> pumpDetail(WidgetTester tester, List<String> subscribed, {String role = 'user', String? managedHuecaId}) async {
+      final user = UserModel(
+        uid: 'user_1',
+        name: 'Maria',
+        email: 'maria@test.com',
+        profilePicUrl: '',
+        gamification: {},
+        preferences: {},
+        sectorAlbums: [],
+        favoriteHuecas: [],
+        subscribedHuecas: subscribed,
+        role: role,
+        managedHuecaId: managedHuecaId,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [currentUserProvider.overrideWith((ref) => Future.value(user))],
+          child: MaterialApp(home: HuecaDetailScreen(hueca: testHueca)),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    const promptTitle = '¿Quieres enterarte de lo nuevo de Las Corvinas de Don Jimmy?';
+
+    testWidgets('La primera vez que entra a una hueca le invita a activar las alertas, y solo una vez', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpDetail(tester, []);
+      expect(find.text(promptTitle), findsOneWidget);
+      expect(find.text('Sí, activar'), findsOneWidget);
+
+      await tester.tap(find.text('Ahora no'));
+      await tester.pumpAndSettle();
+      expect(find.text(promptTitle), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await pumpDetail(tester, []);
+      expect(find.text(promptTitle), findsNothing);
+    });
+
+    testWidgets('No invita a quien ya sigue la hueca ni a su encargado', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpDetail(tester, ['h1']);
+      expect(find.text(promptTitle), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await pumpDetail(tester, [], role: 'business', managedHuecaId: 'h1');
+      expect(find.text(promptTitle), findsNothing);
+    });
+
+    test('La guía explica cómo desbloquear las notificaciones en cada caso', () {
+      final (deniedTitle, deniedSteps) = pushHelpContent(PushRegistrationResult.denied, isEs: true);
+      expect(deniedTitle, 'Las notificaciones están desactivadas'); // en la app nativa
+      expect(deniedSteps.join(' '), contains('Ajustes'));
+
+      final (unsupportedTitle, _) = pushHelpContent(PushRegistrationResult.unsupported, isEs: true);
+      expect(unsupportedTitle, 'Este navegador no puede recibir notificaciones');
+    });
+
     test('NotificationModel 4-hour validity and remaining time helpers', () {
       final now = DateTime.now();
 

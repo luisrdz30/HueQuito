@@ -59,7 +59,7 @@ class DirectionsService {
           'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps'
         },
         body: json.encode(body),
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

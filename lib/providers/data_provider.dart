@@ -41,6 +41,18 @@ final currentUserProvider = FutureProvider<UserModel?>((ref) async {
 });
 
 
+/// Documento del propio usuario en tiempo real: así la app se entera al instante
+/// si el admin le aprueba una hueca, sin cerrar sesión
+final myUserDocProvider = StreamProvider<Map<String, dynamic>?>((ref) {
+  final authUser = ref.watch(authStateProvider).value;
+  if (authUser == null) return Stream.value(null);
+  try {
+    return FirebaseFirestore.instance.collection('users').doc(authUser.uid).snapshots().map((d) => d.data());
+  } catch (_) {
+    return Stream.value(null);
+  }
+});
+
 final myHuecaProvider = FutureProvider<Hueca?>((ref) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null) return null;

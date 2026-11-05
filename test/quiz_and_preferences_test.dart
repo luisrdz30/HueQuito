@@ -149,19 +149,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check Quito badge
-      expect(find.text('Quito • ADN Gastronómico'), findsOneWidget);
+      expect(find.text('Quito • ADN gastronómico'), findsOneWidget);
 
       // Check skip button
       expect(find.text('Saltar'), findsOneWidget);
 
       // Check Step 1: Sector selection step
-      expect(find.text('Paso 1 de 5 • Tu Sector'), findsOneWidget);
+      expect(find.text('Paso 1 de 5 • Tu sector'), findsOneWidget);
       expect(find.text('¿De qué sector de Quito eres?'), findsOneWidget);
       expect(find.text('Centro'), findsOneWidget);
       expect(find.text('Otro sector'), findsOneWidget);
 
       // Advance to food questions
-      await tester.tap(find.text('Continuar al Quiz Gastronómico'));
+      await tester.tap(find.text('Continuar al quiz gastronómico'));
       await tester.pumpAndSettle();
 
       // Check progress bar header for food questions
@@ -193,7 +193,7 @@ void main() {
 
       // Step 1: Select sector and continue to food questions
       expect(find.text('¿De qué sector de Quito eres?'), findsOneWidget);
-      await tester.tap(find.text('Continuar al Quiz Gastronómico'));
+      await tester.tap(find.text('Continuar al quiz gastronómico'));
       await tester.pumpAndSettle();
 
       // Answer all 4 food questions by tapping an option text
@@ -204,7 +204,7 @@ void main() {
       }
 
       // Check that the completion screen offers login to continue and guest option
-      expect(find.text('¡Quiz Completado!'), findsOneWidget);
+      expect(find.text('¡Quiz completado!'), findsOneWidget);
       expect(find.text('Tu Zona: Centro'), findsOneWidget);
       expect(find.text('Iniciar Sesión / Registrarme'), findsOneWidget);
       expect(find.text('O continuar como invitado'), findsOneWidget);

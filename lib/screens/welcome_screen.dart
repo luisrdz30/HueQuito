@@ -92,7 +92,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         : Colors.white.withValues(alpha: 0.92);
     final cardBorder = isDark ? Colors.white12 : AppTheme.chulpiCream;
     final titleColor = isDark ? AppTheme.textLight : AppTheme.textDark;
-    final subtitleColor = isDark ? Colors.white70 : AppTheme.textMedium;
+    final subtitleColor = isDark ? Colors.white : AppTheme.textDark;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -124,11 +124,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    (isDark ? Colors.black : Colors.black).withValues(alpha: 0.35),
-                    bgColor.withValues(alpha: 0.85),
+                    bgColor.withValues(alpha: 0.72),
+                    bgColor.withValues(alpha: 0.94),
                     bgColor,
                   ],
-                  stops: const [0.0, 0.45, 0.75],
+                  stops: const [0.0, 0.40, 0.70],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -228,8 +228,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                             isEn ? 'The Hidden Flavors of the Capital' : 'El sabor oculto de la capital',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                               color: titleColor,
                             ),
                           ),
@@ -242,7 +242,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                                   : 'Tu pasaporte a los locales tradicionales más auténticos, circuitos temáticos y cartilla de sellos.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 15,
                                 height: 1.4,
                                 color: subtitleColor,
                               ),
@@ -255,7 +255,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           _buildFeaturePill(
                             icon: Icons.storefront_rounded,
                             iconColor: const Color(0xFFEA580C),
-                            title: isEn ? 'Authentic Spots' : 'Huecas Tradicionales',
+                            title: isEn ? 'Authentic Spots' : 'Huecas tradicionales',
                             subtitle: isEn
                                 ? 'Real recipes, prices, and diner ratings'
                                 : 'Recetas de antaño, precios y valoraciones',
@@ -268,7 +268,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           _buildFeaturePill(
                             icon: Icons.navigation_rounded,
                             iconColor: const Color(0xFF0284C7),
-                            title: isEn ? 'GPS Map & Routes' : 'Mapa & Circuitos Guiados',
+                            title: isEn ? 'GPS Map & Routes' : 'Mapa y circuitos guiados',
                             subtitle: isEn
                                 ? 'Turn-by-turn routes to discover every corner'
                                 : 'Rutas temáticas paso a paso por los barrios',
@@ -281,7 +281,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           _buildFeaturePill(
                             icon: Icons.loyalty_rounded,
                             iconColor: const Color(0xFFD97706),
-                            title: isEn ? 'Stamps & Rewards' : 'Cartilla de Sellos & Cromos',
+                            title: isEn ? 'Stamps & Rewards' : 'Cartilla de sellos y cromos',
                             subtitle: isEn
                                 ? 'Collect stamps, unlock secret stickers and win gifts'
                                 : 'Acumula sellos en cada visita y canjea platos gratis',
@@ -322,7 +322,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    isEn ? 'Start Exploring' : 'Comenzar Aventura',
+                                    isEn ? 'Start Exploring' : 'Comenzar aventura',
                                     style: const TextStyle(
                                       fontSize: 16.5,
                                       fontWeight: FontWeight.bold,
@@ -438,7 +438,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: titleColor,
                   ),
@@ -446,10 +446,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     color: subtitleColor,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

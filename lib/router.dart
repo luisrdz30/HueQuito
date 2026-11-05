@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+import 'package:hue_quito/screens/business/reward_redeem_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,8 +48,12 @@ import 'package:hue_quito/screens/business/subscription_payment_screen.dart';
 import 'package:hue_quito/repositories/hueca_repository.dart';
 import 'package:hue_quito/providers/data_provider.dart';
 
+/// Navegador raíz: permite mostrar diálogos globales (p. ej. "tu hueca fue aprobada")
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       final user = FirebaseAuth.instance.currentUser;
@@ -298,6 +304,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             isAdminMode: true,
           );
         },
+      ),
+      GoRoute(
+        path: '/business/redeem',
+        builder: (context, state) => const RewardRedeemScreen(),
       ),
       GoRoute(
         path: '/business/branches',

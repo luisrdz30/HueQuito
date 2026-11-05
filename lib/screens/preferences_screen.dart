@@ -211,11 +211,11 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    (isDark ? Colors.black : Colors.black).withValues(alpha: 0.45),
-                    bgColor.withValues(alpha: 0.88),
+                    bgColor.withValues(alpha: 0.80),
+                    bgColor.withValues(alpha: 0.95),
                     bgColor,
                   ],
-                  stops: const [0.0, 0.35, 0.70],
+                  stops: const [0.0, 0.30, 0.65],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -278,7 +278,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                             const Icon(Icons.restaurant_menu, size: 14, color: AppTheme.primary),
                             const SizedBox(width: 6),
                             Text(
-                              isEn ? 'Quito • Flavor DNA' : 'Quito • ADN Gastronómico',
+                              isEn ? 'Quito • Flavor DNA' : 'Quito • ADN gastronómico',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -419,7 +419,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     bool isEn,
     List<QuizQuestion> questions,
   ) {
-    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
+    final subtitleColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
     final totalSteps = 1 + questions.length;
     final progress = (_currentPage + 1) / totalSteps;
@@ -445,7 +445,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                         ),
                         child: Text(
                           _currentPage == 0
-                              ? (isEn ? 'Step 1 of $totalSteps • Your Area' : 'Paso 1 de $totalSteps • Tu Sector')
+                              ? (isEn ? 'Step 1 of $totalSteps • Your Area' : 'Paso 1 de $totalSteps • Tu sector')
                               : (isEn
                                   ? 'Question $_currentPage of ${questions.length}'
                                   : 'Pregunta $_currentPage de ${questions.length}'),
@@ -513,7 +513,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     int totalQuestions,
   ) {
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
+    final subtitleColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final cardBg = isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.white.withValues(alpha: 0.88);
@@ -547,7 +547,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
                 ? 'Select your area to discover huecas near you, or choose Other to explore all Quito.'
                 : 'Elige tu zona para recomendarte huecas cercanas, o elige Otro para explorar toda la ciudad.',
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: 15,
               color: subtitleColor,
               height: 1.35,
             ),
@@ -767,7 +767,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
             ),
             icon: const Icon(Icons.arrow_forward, size: 18),
             label: Text(
-              isEn ? 'Continue to Food Quiz' : 'Continuar al Quiz Gastronómico',
+              isEn ? 'Continue to Food Quiz' : 'Continuar al quiz gastronómico',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ),
@@ -994,7 +994,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
 
     final profile = _resultProfile!;
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF475569);
+    final subtitleColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final cardBg = isDark
         ? const Color(0xFF1E293B).withValues(alpha: 0.95)
         : Colors.white.withValues(alpha: 0.95);
@@ -1032,7 +1032,7 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
           const SizedBox(height: 16),
 
           Text(
-            isEn ? '¡Quiz Completed!' : '¡Quiz Completado!',
+            isEn ? '¡Quiz Completed!' : '¡Quiz completado!',
             style: const TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w900,

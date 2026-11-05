@@ -98,12 +98,12 @@ void main() {
       expect(find.text('El sabor oculto de la capital'), findsOneWidget);
 
       // Features
-      expect(find.text('Huecas Tradicionales'), findsOneWidget);
-      expect(find.text('Mapa & Circuitos Guiados'), findsOneWidget);
-      expect(find.text('Cartilla de Sellos & Cromos'), findsOneWidget);
+      expect(find.text('Huecas tradicionales'), findsOneWidget);
+      expect(find.text('Mapa y circuitos guiados'), findsOneWidget);
+      expect(find.text('Cartilla de sellos y cromos'), findsOneWidget);
 
       // CTAs
-      expect(find.text('Comenzar Aventura'), findsOneWidget);
+      expect(find.text('Comenzar aventura'), findsOneWidget);
       expect(find.text('Iniciar Sesión'), findsOneWidget);
       expect(find.text('Español'), findsOneWidget);
     });
@@ -128,7 +128,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('El sabor oculto de la capital'), findsOneWidget);
-      expect(find.text('Comenzar Aventura'), findsOneWidget);
+      expect(find.text('Comenzar aventura'), findsOneWidget);
     });
   });
 }
