@@ -27,6 +27,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
   final Map<PolylineId, Polyline> _polylines = {};
   List<dynamic> _steps = [];
   bool _isLoading = true;
+  bool _routeIsApproximate = false;
   String _travelMode = 'walking';
 
   @override
@@ -146,7 +147,8 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
     }
 
     // FALLBACK ROBUSTO: Si la API de Google falla o devuelve nulo, trazamos la ruta geodésica entre paradas
-    if (polylineCoordinates.isEmpty) {
+    final routeIsApproximate = polylineCoordinates.isEmpty;
+    if (routeIsApproximate) {
       if (_currentPosition != null) {
         polylineCoordinates.add(LatLng(_currentPosition!.latitude, _currentPosition!.longitude));
       }
@@ -190,6 +192,7 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
         width: 5,
       );
       _steps = steps;
+      _routeIsApproximate = routeIsApproximate;
       _isLoading = false;
     });
 
@@ -435,6 +438,28 @@ class _RouteNavigationScreenState extends ConsumerState<RouteNavigationScreen> {
                       ],
                     ),
                   ),
+                  if (_routeIsApproximate && !_isLoading)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 8, 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, size: 18, color: Colors.orange),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              lang == 'es'
+                                  ? 'No pudimos cargar las calles. Esta ruta es aproximada.'
+                                  : 'We could not load the streets. This route is approximate.',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _fetchRoute,
+                            child: Text(lang == 'es' ? 'Reintentar' : 'Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
                   Expanded(
                     child: _isLoading
                       ? const Center(child: CircularProgressIndicator())

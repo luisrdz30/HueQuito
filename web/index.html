@@ -27,6 +27,18 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcxM0KCwFiiZBUj555w2K4xT8czajL8ms&libraries=geometry&loading=async"></script>
 </head>
 <body>
+  <script>
+    // Si entra un build nuevo, recarga una vez para no quedarse con la versión vieja en caché
+    if ('serviceWorker' in navigator) {
+      const hadController = !!navigator.serviceWorker.controller;
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
